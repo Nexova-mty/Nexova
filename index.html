@@ -4056,12 +4056,8 @@ function dibujarTendencia(data, tipo, valor, ventasFiltradas, gastosFiltrados) {
     const cH   = H - PT - PB;
     const baseY = PT + cH;
 
-    // ── Fondo con gradiente sutil ───────────────────────────────
-    const _tLight = document.body.classList.contains('light-theme');
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-    bgGrad.addColorStop(0, _tLight ? '#f7f7fa' : '#1c1c23');
-    bgGrad.addColorStop(1, _tLight ? '#ededf2' : '#13131a');
-    ctx.fillStyle = bgGrad;
+    // ── Fondo Power BI (siempre claro, estilo "card") ──────────
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, W, H);
 
     // ── Calcular máximo con escala "bonita" ─────────────────────
@@ -4080,16 +4076,15 @@ function dibujarTendencia(data, tipo, valor, ventasFiltradas, gastosFiltrados) {
         const y   = baseY - (i / STEPS) * cH;
         const val = (maxVal * i / STEPS);
 
-        // Línea
-        ctx.strokeStyle = i === 0 ? (_tLight?'rgba(0,0,0,0.18)':'rgba(255,255,255,0.18)') : (_tLight?'rgba(0,0,0,0.06)':'rgba(255,255,255,0.06)');
-        ctx.lineWidth   = i === 0 ? 1.5 : 1;
-        ctx.setLineDash(i === 0 ? [] : [4, 4]);
-        ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(W - PR, y); ctx.stroke();
+        // Línea — Power BI: solid light gray, horizontal only
+        ctx.strokeStyle = i === 0 ? '#CCCCCC' : '#E6E6E6';
+        ctx.lineWidth   = 1;
         ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(W - PR, y); ctx.stroke();
 
         // Label eje Y
         const txt = val >= 1000 ? '$' + (val/1000).toFixed(val%1000===0?0:1) + 'k' : '$' + val.toFixed(0);
-        ctx.fillStyle  = _tLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.35)';
+        ctx.fillStyle  = '#666666';
         ctx.font       = '11px "Segoe UI", Arial, sans-serif';
         ctx.textAlign  = 'right';
         ctx.fillText(txt, PL - 8, y + 4);
@@ -4100,18 +4095,11 @@ function dibujarTendencia(data, tipo, valor, ventasFiltradas, gastosFiltrados) {
     const barW   = Math.max(8, Math.min(groupW * 0.34, 28));
     const gap    = 3;
 
-    // ── Helper: barra con esquinas redondeadas arriba ────────────
+    // ── Helper: barra plana (Power BI — sin esquinas redondeadas) ──
     function barRounded(x, y, w, h, r) {
         if (h < 1) h = 1;
-        r = Math.min(r, w / 2, h);
         ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.lineTo(x + w - r, y);
-        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-        ctx.lineTo(x + w, y + h);
-        ctx.lineTo(x, y + h);
-        ctx.lineTo(x, y + r);
-        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.rect(x, y, w, h);
         ctx.closePath();
     }
 
@@ -4128,73 +4116,43 @@ function dibujarTendencia(data, tipo, valor, ventasFiltradas, gastosFiltrados) {
         const xV   = cx - barW - gap / 2;
         const xG   = cx + gap / 2;
 
-        // ── Barra Ventas ─────────────────────────
+        // ── Barra Ventas (Power BI blue, flat) ────
         if (vH > 0) {
-            const gradV = ctx.createLinearGradient(0, baseY - vH, 0, baseY);
-            gradV.addColorStop(0, '#ff8c42');
-            gradV.addColorStop(0.5, '#f46a1f');
-            gradV.addColorStop(1, 'rgba(244,106,31,0.55)');
-            ctx.fillStyle = gradV;
-            barRounded(xV, baseY - vH, barW, vH, 4);
-            ctx.fill();
-
-            // Brillo lateral
-            const shineV = ctx.createLinearGradient(xV, 0, xV + barW, 0);
-            shineV.addColorStop(0, 'rgba(255,255,255,0.12)');
-            shineV.addColorStop(0.4, 'rgba(255,255,255,0.04)');
-            shineV.addColorStop(1, 'rgba(0,0,0,0.1)');
-            ctx.fillStyle = shineV;
-            barRounded(xV, baseY - vH, barW, vH, 4);
+            ctx.fillStyle = '#118DFF';
+            barRounded(xV, baseY - vH, barW, vH, 0);
             ctx.fill();
         }
 
-        // ── Barra Gastos ─────────────────────────
+        // ── Barra Gastos (Power BI orange, flat) ──
         if (gH > 0) {
-            const gradG = ctx.createLinearGradient(0, baseY - gH, 0, baseY);
-            gradG.addColorStop(0, '#f87171');
-            gradG.addColorStop(0.5, '#ef4444');
-            gradG.addColorStop(1, 'rgba(239,68,68,0.45)');
-            ctx.fillStyle = gradG;
-            barRounded(xG, baseY - gH, barW, gH, 4);
-            ctx.fill();
-
-            const shineG = ctx.createLinearGradient(xG, 0, xG + barW, 0);
-            shineG.addColorStop(0, 'rgba(255,255,255,0.10)');
-            shineG.addColorStop(1, 'rgba(0,0,0,0.08)');
-            ctx.fillStyle = shineG;
-            barRounded(xG, baseY - gH, barW, gH, 4);
+            ctx.fillStyle = '#E66C37';
+            barRounded(xG, baseY - gH, barW, gH, 0);
             ctx.fill();
         }
 
-        // ── Valores encima ───────────────────────
+        // ── Valores encima (Power BI: matching color, bold) ──
         ctx.font      = `bold ${barW >= 18 ? 11 : 9}px "Segoe UI", Arial, sans-serif`;
         ctx.textAlign = 'center';
         if (ventasSerie[i] > 0) {
-            ctx.fillStyle = '#ffb07a';
+            ctx.fillStyle = '#118DFF';
             ctx.fillText(fmtVal(ventasSerie[i]), xV + barW / 2, baseY - vH - 6);
         }
         if (gastosSerie[i] > 0) {
-            ctx.fillStyle = '#fca5a5';
+            ctx.fillStyle = '#E66C37';
             ctx.fillText(fmtVal(gastosSerie[i]), xG + barW / 2, baseY - gH - 6);
         }
 
         // ── Etiqueta eje X ───────────────────────
-        ctx.fillStyle  = _tLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+        ctx.fillStyle  = '#666666';
         ctx.font       = `${barW >= 16 ? 12 : 10}px "Segoe UI", Arial, sans-serif`;
         ctx.textAlign  = 'center';
         ctx.fillText(lbl, cx, baseY + 18);
-
-        // Marca vertical sutil
-        ctx.strokeStyle = _tLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
-        ctx.lineWidth   = 1;
-        ctx.setLineDash([]);
-        ctx.beginPath(); ctx.moveTo(cx, baseY); ctx.lineTo(cx, baseY + 5); ctx.stroke();
     });
 
     // ── Leyenda centrada arriba ──────────────────────────────────
     const legendItems = [
-        { color: '#f46a1f', label: 'Ventas' },
-        { color: '#ef4444', label: 'Gastos' },
+        { color: '#118DFF', label: 'Ventas' },
+        { color: '#E66C37', label: 'Gastos' },
     ];
     const legendFont  = 13;
     const legendSwW   = 14;
@@ -4207,16 +4165,11 @@ function dibujarTendencia(data, tipo, valor, ventasFiltradas, gastosFiltrados) {
     const ly = 18;
 
     legendItems.forEach(it => {
-        // Swatch con redondeo
-        const gr = ctx.createLinearGradient(lx, ly - legendSwW/2, lx + legendSwW, ly + legendSwW/2);
-        gr.addColorStop(0, it.color);
-        gr.addColorStop(1, it.color + 'aa');
-        ctx.fillStyle = gr;
-        ctx.beginPath();
-        ctx.roundRect ? ctx.roundRect(lx, ly - legendSwW/2, legendSwW, legendSwW, 3) : ctx.fillRect(lx, ly - legendSwW/2, legendSwW, legendSwW);
-        ctx.fill();
+        // Swatch — Power BI: small solid square
+        ctx.fillStyle = it.color;
+        ctx.fillRect(lx, ly - legendSwW/2, legendSwW, legendSwW);
 
-        ctx.fillStyle  = _tLight ? '#18181c' : '#f0ede8';
+        ctx.fillStyle  = '#333333';
         ctx.font       = `bold ${legendFont}px "Segoe UI", Arial, sans-serif`;
         ctx.textAlign  = 'left';
         ctx.fillText(it.label, lx + legendSwW + legendGap, ly + 5);
@@ -4309,16 +4262,16 @@ window._donutSegments = [];
 function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrados) {
     gastosFiltrados = gastosFiltrados || [];
     window._lastDibujarGraficasArgs = [ventas, gastos, efectivo, transferencia, gastosFiltrados];
-    const COLORES = ['#f46a1f','#22c55e','#3b82f6','#a855f7','#ec4899','#eab308','#14b8a6','#f97316','#06b6d4','#84cc16'];
+    const COLORES = ['#118DFF','#12239E','#E66C37','#6B007B','#E044A7','#744EC2','#D9B300','#D64550','#14b8a6','#06b6d4'];
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
     const isLight = document.body.classList.contains('light-theme');
-    const canvasBg0 = isLight ? '#f7f7fa' : '#1e1e26';
-    const canvasBg1 = isLight ? '#ededf2' : '#13131a';
-    const donutBg   = isLight ? '#f7f7fa' : '#18181d';
-    const textColor = isLight ? '#18181c' : '#f0ede8';
-    const gridAlpha = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
-    const axisColor = isLight ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.2)';
-    const labelColor= isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.3)';
+    const canvasBg0 = '#FFFFFF';
+    const canvasBg1 = '#F8F8F8';
+    const donutBg   = '#FFFFFF';
+    const textColor = '#333333';
+    const gridAlpha = '#E6E6E6';
+    const axisColor = '#CCCCCC';
+    const labelColor= '#666666';
 
     // Helper: inicializar canvas HiDPI con dimensiones lógicas
     function hiDPICanvas(canvas, logW, logH) {
@@ -4331,14 +4284,12 @@ function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrado
         return { ctx, w: logW, h: logH };
     }
 
-    // Helper: barra redondeada arriba
+    // Helper: barra plana (Power BI — flat rectangles)
     function barR(ctx, x, y, bw, bh, r) {
-        if (bh < 1) bh = 1; r = Math.min(r, bw/2, bh);
+        if (bh < 1) bh = 1;
         ctx.beginPath();
-        ctx.moveTo(x+r, y); ctx.lineTo(x+bw-r, y);
-        ctx.quadraticCurveTo(x+bw, y, x+bw, y+r);
-        ctx.lineTo(x+bw, y+bh); ctx.lineTo(x, y+bh); ctx.lineTo(x, y+r);
-        ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath();
+        ctx.rect(x, y, bw, bh);
+        ctx.closePath();
     }
 
     // ── Gráfica 1: Ventas vs Gastos ──────────────────────────────
@@ -4348,36 +4299,31 @@ function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrado
         const PL=45, PR=15, PT=30, PB=45;
         const cH = h - PT - PB, baseY = PT + cH;
 
-        // Fondo
-        const bg = c.createLinearGradient(0,0,0,h);
-        bg.addColorStop(0,canvasBg0); bg.addColorStop(1,canvasBg1);
-        c.fillStyle = bg; c.fillRect(0,0,w,h);
+        // Fondo Power BI (siempre blanco)
+        c.fillStyle = '#FFFFFF'; c.fillRect(0,0,w,h);
 
         const maxV = Math.max(ventas, gastos, 1);
         function niceM(v){ const e=Math.pow(10,Math.floor(Math.log10(v))); const f=v/e; return (f<=1.5?1.5:f<=2?2:f<=3?3:f<=5?5:10)*e; }
         const maxVal = niceM(maxV);
 
-        // Guías
+        // Guías — Power BI: solid light gray, no dashes
         for (let i=1; i<=4; i++) {
             const gy = baseY - (i/4)*cH;
-            c.strokeStyle=gridAlpha; c.lineWidth=1; c.setLineDash([4,4]);
+            c.strokeStyle='#E6E6E6'; c.lineWidth=1; c.setLineDash([]);
             c.beginPath(); c.moveTo(PL,gy); c.lineTo(w-PR,gy); c.stroke();
-            c.setLineDash([]);
-            c.fillStyle=labelColor; c.font='10px "Segoe UI",Arial'; c.textAlign='right';
+            c.fillStyle='#666666'; c.font='10px "Segoe UI",Arial'; c.textAlign='right';
             const lv = maxVal*i/4; c.fillText((lv>=1000?'$'+(lv/1000).toFixed(1)+'k':'$'+lv.toFixed(0)), PL-4, gy+4);
         }
-        c.strokeStyle=axisColor; c.lineWidth=1.5; c.setLineDash([]);
+        c.strokeStyle='#CCCCCC'; c.lineWidth=1; c.setLineDash([]);
         c.beginPath(); c.moveTo(PL,baseY); c.lineTo(w-PR,baseY); c.stroke();
 
-        const datos = [{v:ventas,color:'#f46a1f',label:'Ventas',x:PL+20},{v:gastos,color:'#ef4444',label:'Gastos',x:PL+110}];
+        const datos = [{v:ventas,color:'#118DFF',label:'Ventas',x:PL+20},{v:gastos,color:'#E66C37',label:'Gastos',x:PL+110}];
         datos.forEach(d => {
             const bH = Math.max((d.v/maxVal)*cH, d.v>0?3:0);
             if (bH > 0) {
-                const gr = c.createLinearGradient(0, baseY-bH, 0, baseY);
-                gr.addColorStop(0, d.color+'ff'); gr.addColorStop(1, d.color+'66');
-                c.fillStyle = gr; barR(c, d.x, baseY-bH, 52, bH, 5); c.fill();
+                c.fillStyle = d.color; barR(c, d.x, baseY-bH, 52, bH, 0); c.fill();
             }
-            c.fillStyle=textColor; c.font='bold 13px "Segoe UI",Arial'; c.textAlign='center';
+            c.fillStyle='#333333'; c.font='bold 13px "Segoe UI",Arial'; c.textAlign='center';
             c.fillText(d.label, d.x+26, baseY+20);
             if (d.v > 0) {
                 c.fillStyle = d.color; c.font='bold 12px "Segoe UI",Arial';
@@ -4393,9 +4339,7 @@ function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrado
         const PL=45, PR=15, PT=30, PB=45;
         const cH = h - PT - PB, baseY = PT + cH;
 
-        const bg2 = c.createLinearGradient(0,0,0,h);
-        bg2.addColorStop(0,canvasBg0); bg2.addColorStop(1,canvasBg1);
-        c.fillStyle = bg2; c.fillRect(0,0,w,h);
+        c.fillStyle = '#FFFFFF'; c.fillRect(0,0,w,h);
 
         const maxV = Math.max(efectivo, transferencia, 1);
         function niceM(v){ const e=Math.pow(10,Math.floor(Math.log10(v))); const f=v/e; return (f<=1.5?1.5:f<=2?2:f<=3?3:f<=5?5:10)*e; }
@@ -4403,23 +4347,21 @@ function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrado
 
         for (let i=1; i<=4; i++) {
             const gy = baseY - (i/4)*cH;
-            c.strokeStyle=gridAlpha; c.lineWidth=1; c.setLineDash([4,4]);
-            c.beginPath(); c.moveTo(PL,gy); c.lineTo(w-PR,gy); c.stroke(); c.setLineDash([]);
-            c.fillStyle=labelColor; c.font='10px "Segoe UI",Arial'; c.textAlign='right';
+            c.strokeStyle='#E6E6E6'; c.lineWidth=1; c.setLineDash([]);
+            c.beginPath(); c.moveTo(PL,gy); c.lineTo(w-PR,gy); c.stroke();
+            c.fillStyle='#666666'; c.font='10px "Segoe UI",Arial'; c.textAlign='right';
             const lv=maxVal*i/4; c.fillText((lv>=1000?'$'+(lv/1000).toFixed(1)+'k':'$'+lv.toFixed(0)),PL-4,gy+4);
         }
-        c.strokeStyle=axisColor; c.lineWidth=1.5; c.setLineDash([]);
+        c.strokeStyle='#CCCCCC'; c.lineWidth=1; c.setLineDash([]);
         c.beginPath(); c.moveTo(PL,baseY); c.lineTo(w-PR,baseY); c.stroke();
 
-        const datos = [{v:efectivo,color:'#22c55e',label:'Efectivo',x:PL+20},{v:transferencia,color:'#3b82f6',label:'Tarjeta/Transfer.',x:PL+110}];
+        const datos = [{v:efectivo,color:'#12239E',label:'Efectivo',x:PL+20},{v:transferencia,color:'#744EC2',label:'Tarjeta/Transfer.',x:PL+110}];
         datos.forEach(d => {
             const bH = Math.max((d.v/maxVal)*cH, d.v>0?3:0);
             if (bH > 0) {
-                const gr = c.createLinearGradient(0, baseY-bH, 0, baseY);
-                gr.addColorStop(0, d.color+'ff'); gr.addColorStop(1, d.color+'55');
-                c.fillStyle = gr; barR(c, d.x, baseY-bH, 52, bH, 5); c.fill();
+                c.fillStyle = d.color; barR(c, d.x, baseY-bH, 52, bH, 0); c.fill();
             }
-            c.fillStyle=textColor; c.font='bold 12px "Segoe UI",Arial'; c.textAlign='center';
+            c.fillStyle='#333333'; c.font='bold 12px "Segoe UI",Arial'; c.textAlign='center';
             c.fillText(d.label, d.x+26, baseY+20);
             if (d.v > 0) {
                 c.fillStyle = d.color; c.font='bold 12px "Segoe UI",Arial';
@@ -4434,7 +4376,7 @@ function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrado
         const logW = 220, logH = 220;
         const { ctx: ctx3, w, h } = hiDPICanvas(canvas3, logW, logH);
 
-        ctx3.fillStyle = donutBg; ctx3.fillRect(0,0,w,h);
+        ctx3.fillStyle = '#FFFFFF'; ctx3.fillRect(0,0,w,h);
 
         const grupos = {};
         gastosFiltrados.forEach(g => { grupos[g.concepto] = (grupos[g.concepto]||0) + parseFloat(g.monto||0); });
@@ -4442,33 +4384,31 @@ function dibujarGraficas(ventas, gastos, efectivo, transferencia, gastosFiltrado
         const totalG = entradas.reduce((s,[,m])=>s+m, 0);
 
         window._donutSegments = [];
-        const cx = w/2, cy = h/2, rOuter = 88, rInner = 50;
+        const cx = w/2, cy = h/2, rOuter = 88, rInner = 42;
 
         if (entradas.length === 0 || totalG === 0) {
-            ctx3.fillStyle = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
+            ctx3.fillStyle = 'rgba(0,0,0,0.08)';
             ctx3.beginPath(); ctx3.arc(cx,cy,rOuter,0,Math.PI*2); ctx3.arc(cx,cy,rInner,0,Math.PI*2,true); ctx3.fill();
-            ctx3.fillStyle = labelColor; ctx3.font = '13px "Segoe UI",Arial'; ctx3.textAlign = 'center';
+            ctx3.fillStyle = '#666666'; ctx3.font = '13px "Segoe UI",Arial'; ctx3.textAlign = 'center';
             ctx3.fillText('Sin gastos', cx, cy+5);
         } else {
             let ang = -Math.PI/2;
             entradas.forEach(([concepto, monto], i) => {
                 const slice = (monto/totalG)*Math.PI*2;
                 const color = COLORES[i%COLORES.length];
-                // Sombra leve
-                ctx3.shadowColor = 'rgba(0,0,0,0.4)'; ctx3.shadowBlur = 6;
+                // Power BI: no shadows, clean flat segments
                 ctx3.beginPath(); ctx3.moveTo(cx,cy);
                 ctx3.arc(cx,cy,rOuter,ang,ang+slice);
                 ctx3.arc(cx,cy,rInner,ang+slice,ang,true);
                 ctx3.closePath(); ctx3.fillStyle = color; ctx3.fill();
-                ctx3.shadowBlur = 0;
-                ctx3.strokeStyle = donutBg; ctx3.lineWidth = 2; ctx3.stroke();
+                ctx3.strokeStyle = '#FFFFFF'; ctx3.lineWidth = 2; ctx3.stroke();
                 window._donutSegments.push({start:ang,end:ang+slice,concepto,monto,pct:monto/totalG*100,color});
                 ang += slice;
             });
             // Texto centro
-            ctx3.fillStyle = textColor; ctx3.font = 'bold 16px "Segoe UI",Arial'; ctx3.textAlign = 'center';
+            ctx3.fillStyle = '#333333'; ctx3.font = 'bold 16px "Segoe UI",Arial'; ctx3.textAlign = 'center';
             ctx3.fillText('$'+(totalG>=1000?(totalG/1000).toFixed(1)+'k':totalG.toFixed(0)), cx, cy);
-            ctx3.fillStyle = labelColor; ctx3.font = '11px "Segoe UI",Arial';
+            ctx3.fillStyle = '#666666'; ctx3.font = '11px "Segoe UI",Arial';
             ctx3.fillText('gastos', cx, cy+16);
         }
 
@@ -4601,16 +4541,15 @@ function dibujarDonutDestacado(idxDestacado) {
     // Restaurar transformación HiDPI correcta
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
     const logW = canvas.width / dpr, logH = canvas.height / dpr;
-    const _isLight = document.body.classList.contains('light-theme');
-    const _donutBg  = _isLight ? '#f7f7fa' : '#18181d';
-    const _textCol  = _isLight ? '#18181c' : '#f0ede8';
-    const _subCol   = _isLight ? 'rgba(0,0,0,0.4)' : '#888';
+    const _donutBg  = '#FFFFFF';
+    const _textCol  = '#333333';
+    const _subCol   = '#666666';
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = _donutBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.scale(dpr, dpr);
 
-    const cx = logW/2, cy = logH/2, rOuter = 88, rInner = 50;
+    const cx = logW/2, cy = logH/2, rOuter = 88, rInner = 42;
     segs.forEach((seg, i) => {
         const destacado = i === idxDestacado;
         const rO = destacado ? rOuter + 10 : rOuter;
@@ -4624,19 +4563,19 @@ function dibujarDonutDestacado(idxDestacado) {
         ctx.closePath();
         ctx.fillStyle = seg.color;
         ctx.fill();
-        ctx.strokeStyle = _donutBg;
+        ctx.strokeStyle = '#FFFFFF';
         ctx.lineWidth = 2;
         ctx.stroke();
     });
     ctx.globalAlpha = 1;
     // Texto central
     ctx.fillStyle = _textCol;
-    ctx.font = 'bold 13px Arial';
+    ctx.font = 'bold 13px "Segoe UI", Arial';
     ctx.textAlign = 'center';
     const seg = segs[idxDestacado];
     ctx.fillText(seg.pct.toFixed(1) + '%', cx, cy - 4);
     ctx.fillStyle = _subCol;
-    ctx.font = '10px Arial';
+    ctx.font = '10px "Segoe UI", Arial';
     ctx.fillText('del total', cx, cy + 12);
 }
 
