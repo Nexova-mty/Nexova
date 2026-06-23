@@ -575,6 +575,63 @@
             .section { max-width: 100% !important; }
         }
     </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAhStb6vYzd17ff6zH2lppFYAp7B58tr8g",
+  authDomain: "nexova-mty.firebaseapp.com",
+  projectId: "nexova-mty",
+  storageBucket: "nexova-mty.firebasestorage.app",
+  messagingSenderId: "712813418598",
+  appId: "1:712813418598:web:9697a7e39c7987bef4f5a7"
+});
+var _db = firebase.firestore();
+
+function guardarDatos(user, data) {
+  localStorage.setItem('data_' + user, JSON.stringify(data));
+  _db.collection('negocios').doc(user).set(data, { merge: true }).catch(function(e) { console.warn('Firestore write error:', e); });
+}
+
+function cargarDatos(user) {
+  return JSON.parse(localStorage.getItem('data_' + user) || '{}');
+}
+
+var _unsubscribeSnapshot = null;
+function iniciarSyncFirestore(user) {
+  if (_unsubscribeSnapshot) _unsubscribeSnapshot();
+  _unsubscribeSnapshot = _db.collection('negocios').doc(user).onSnapshot(function(doc) {
+    if (!doc.exists) return;
+    var remoteData = doc.data();
+    var localData = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    var remoteStr = JSON.stringify(remoteData);
+    var localStr = JSON.stringify(localData);
+    if (remoteStr !== localStr) {
+      localStorage.setItem('data_' + user, remoteStr);
+      if (window.currentUser === user) {
+        var activeSection = document.querySelector('.section.active');
+        if (activeSection) {
+          var tab = activeSection.id;
+          if (tab === 'inicio') renderInicio();
+          else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
+          else if (tab === 'inventario') renderInventario();
+          else if (tab === 'reportes') renderReportes();
+          else if (tab === 'graficas') renderGraficas();
+          else if (tab === 'citas') renderCitas();
+          else if (tab === 'costos') renderCostos();
+          else if (tab === 'cotizaciones') renderCotizaciones();
+          else if (tab === 'ajustes') renderAjustes();
+        }
+      }
+    }
+  }, function(err) { console.warn('Firestore listen error:', err); });
+}
+
+function detenerSyncFirestore() {
+  if (_unsubscribeSnapshot) { _unsubscribeSnapshot(); _unsubscribeSnapshot = null; }
+}
+</script>
 </head>
 <body>
 <div id="toastContainer"></div>
@@ -2432,6 +2489,7 @@ function mostrarResumenDia() {
 }
 
 function doLogout() {
+    detenerSyncFirestore();
     document.body.classList.remove('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'dashboard' && el.id !== 'toastContainer'
@@ -2654,7 +2712,7 @@ async function validarLogin() {
             // Migrar contraseña a hash si aún está en texto plano
             if (!emp.passwordHash) { emp.passwordHash = passHash; delete emp.password; }
             emp.ultimoAcceso = new Date().toLocaleString('es-MX');
-            localStorage.setItem(`data_${user}`, JSON.stringify(data));
+            guardarDatos(user, data);
             window.currentEmpleado = emp;
             iniciarDashboard(user, 'trabajador');
             cerrarLogin();
@@ -2852,7 +2910,7 @@ function migrarDatos(user) {
                 if (isNaN(cant) || cant < 0.1) { ing.cantidad = 1; dirty = true; }
             });
         });
-        if (dirty) localStorage.setItem(`data_${user}`, JSON.stringify(d));
+        if (dirty) guardarDatos(user, d);
     } catch(e) {}
 }
 
@@ -2886,7 +2944,7 @@ function iniciarDashboard(user, rol) {
             gastos: [],
             citas: []
         };
-        localStorage.setItem(`data_${user}`, JSON.stringify(data));
+        guardarDatos(user, data);
     }
 
     migrarDatos(user);
@@ -2906,6 +2964,11 @@ function iniciarDashboard(user, rol) {
 
     localStorage.setItem(`welcomed_${user}_${rol}`, '1');
     _generarToken(user, rol);
+    var localData = cargarDatos(user);
+    if (localData && Object.keys(localData).length > 0) {
+      guardarDatos(user, localData);
+    }
+    iniciarSyncFirestore(user);
 }
 
 function cerrarBienvenida() {
@@ -3305,7 +3368,7 @@ function completarVenta(metodo) {
         data.cajas[cajaIdx].transferencia = (parseFloat(data.cajas[cajaIdx].transferencia) || 0) + total;
     }
     
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
 
     showToast(`Venta registrada: $${total.toFixed(2)}`, "success");
 
@@ -3402,7 +3465,7 @@ function guardarNuevaCaja() {
     data.cajas = data.cajas || [];
     data.cajas.push({ nombre, vendedor, ventas: 0, efectivo: 0, transferencia: 0 });
     
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     document.getElementById('nombreCaja').value = '';
     document.getElementById('vendedorCaja').value = '';
     cerrarModalCaja();
@@ -3453,7 +3516,7 @@ function guardarNuevoProducto() {
     data.productos = data.productos || [];
     data.productos.push({ id: Date.now(), nombre, precio, stock, foto });
 
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     document.getElementById('nombreProducto').value = '';
     document.getElementById('precioProducto').value = '';
     document.getElementById('stockProducto').value = '';
@@ -3502,7 +3565,7 @@ function agregarGasto() {
         tipo
     });
     
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     document.getElementById('conceptoGasto').value = '';
     document.getElementById('montoGasto').value = '';
     renderReportes();
@@ -3556,7 +3619,7 @@ function guardarEditarVenta() {
         venta.producto = nuevoProd;
     }
 
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     cerrarModalEditarVenta();
     showToast('Venta actualizada');
     renderReportes();
@@ -3600,7 +3663,7 @@ function guardarEditarGasto() {
     gasto.monto = monto;
     gasto.tipo = tipo;
 
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     cerrarModalEditarGasto();
     renderReportes();
 }
@@ -3611,7 +3674,7 @@ function eliminarGasto(idx) {
         data.gastos = data.gastos || [];
         if (idx < 0 || idx >= data.gastos.length) return;
         data.gastos.splice(idx, 1);
-        localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+        guardarDatos(window.currentUser, data);
         renderReportes();
     }
 }
@@ -4783,7 +4846,7 @@ function guardarNuevaCita() {
     };
     
     data.citas.push(cita);
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     
     cerrarModalCita();
     renderCitas();
@@ -4931,7 +4994,7 @@ function completarCita(id) {
         if (cita2) {
             cita2.estado = 'completada';
             if (nota) cita2.notaCompletada = nota;
-            localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data2));
+            guardarDatos(window.currentUser, data2);
         }
         overlay.remove();
         renderCitas();
@@ -4943,7 +5006,7 @@ function eliminarCita(id) {
     if (!confirm('¿Eliminar esta cita?')) return;
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
     data.citas = (data.citas || []).filter(c => c.id !== id);
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     renderCitas();
 }
 
@@ -5177,7 +5240,7 @@ function guardarEditarCaja() {
         return;
     }
     
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     cerrarModalEditarCaja();
     renderCajas();
 }
@@ -5190,7 +5253,7 @@ function eliminarCajaDirecto(idx) {
     // Limpiar carrito de esa caja antes de eliminarla
     localStorage.removeItem('carrito_' + window.currentUser + '_caja_' + idx);
     data.cajas.splice(idx, 1);
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     // Si la caja activa era la eliminada, resetear a la primera disponible
     const actualIdx = parseInt(localStorage.getItem('currentCaja_' + window.currentUser));
     if (actualIdx === idx || !data.cajas[actualIdx]) {
@@ -5206,7 +5269,7 @@ function confirmarEliminarCaja() {
         data.cajas = data.cajas || [];
         if (indexCajaEditando >= 0 && indexCajaEditando < data.cajas.length) {
             data.cajas.splice(indexCajaEditando, 1);
-            localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+            guardarDatos(window.currentUser, data);
         }
         cerrarModalEditarCaja();
         renderCajas();
@@ -5259,7 +5322,7 @@ function guardarEditarProducto() {
 
     if (!prod.nombre) { showToast('Completa todos los campos', 'error'); return; }
 
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     cerrarModalEditarProducto();
     renderInventario();
     showToast('Producto actualizado', 'success');
@@ -5272,7 +5335,7 @@ function confirmarEliminarProducto() {
         data.productos = data.productos || [];
         if (indexProductoEditando >= 0 && indexProductoEditando < data.productos.length) {
             data.productos.splice(indexProductoEditando, 1);
-            localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+            guardarDatos(window.currentUser, data);
         }
         cerrarModalEditarProducto();
         renderInventario();
@@ -5344,7 +5407,7 @@ function guardarEditarCita() {
     cita.descripcion = document.getElementById('descripcionCitaEdit').value.trim();
     cita.notas = document.getElementById('notasCitaEdit').value.trim();
 
-    localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+    guardarDatos(window.currentUser, data);
     cerrarModalEditarCita();
     renderCitas();
 }
@@ -5353,7 +5416,7 @@ function confirmarEliminarCitaMod() {
     if (confirm('¿Estás seguro de eliminar esta cita?')) {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
         data.citas = data.citas.filter(c => c.id !== idCitaEditando);
-        localStorage.setItem(`data_${window.currentUser}`, JSON.stringify(data));
+        guardarDatos(window.currentUser, data);
         cerrarModalEditarCita();
         renderCitas();
     }
@@ -5479,6 +5542,11 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCajasSelect();
         renderHistorialCaja();
         renderCostos();
+        var localData2 = cargarDatos(savedUser);
+        if (localData2 && Object.keys(localData2).length > 0) {
+          guardarDatos(savedUser, localData2);
+        }
+        iniciarSyncFirestore(savedUser);
     }
     })(); // fin async IIFE de restauración de sesión
 
@@ -5515,7 +5583,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {id:4, nombre:'Carlos Martinez', tipo:'Peinado',          fecha:hoyFmt, hora:'15:30', telefono:'8183334455', estado:'pendiente'},
                 ]
             };
-            localStorage.setItem('data_demo', JSON.stringify(d));
+            guardarDatos('demo', d);
         }
         window.currentUser = 'demo';
         window.currentRole = 'dueno';
@@ -5968,7 +6036,7 @@ async function guardarEmpleado() {
         data.empleados.push({ nombre, username, passwordHash, ultimoAcceso: null });
     }
 
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     cerrarModalNuevoEmpleado();
     showToast(editIdx !== '' ? 'Empleado actualizado' : 'Empleado agregado');
     renderEmpleadosAjustes();
@@ -5980,7 +6048,7 @@ function eliminarEmpleado(idx) {
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     data.empleados = data.empleados || [];
     data.empleados.splice(idx, 1);
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     showToast('Empleado eliminado');
     renderEmpleadosAjustes();
 }
@@ -5991,7 +6059,7 @@ function guardarNombreNegocio() {
     if (!nombre) { showToast('Escribe un nombre para tu negocio', 'error'); return; }
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     data.nombreNegocio = nombre;
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     renderAjustes();
     showToast('Nombre guardado');
 }
@@ -6034,7 +6102,7 @@ function guardarMetaVenta() {
     if (isNaN(meta) || meta <= 0) { showToast('Ingresa una cantidad válida', 'error'); return; }
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     data.metaVentaMensual = meta;
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     renderInicio();
     showToast('Meta guardada');
 }
@@ -6291,7 +6359,7 @@ function guardarCosteo() {
         data.costeos.push(costeoObj);
     }
 
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     cerrarModalCosteo();
     renderCostos();
 }
@@ -6301,7 +6369,7 @@ function eliminarCosteo(idx) {
     const user = window.currentUser;
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     data.costeos = (data.costeos || []).filter((_,i) => i !== idx);
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     renderCostos();
 }
 
@@ -6366,7 +6434,7 @@ function subirLogoNegocio(input) {
         const user = window.currentUser;
         const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
         data.logoNegocio = e.target.result;
-        localStorage.setItem(`data_${user}`, JSON.stringify(data));
+        guardarDatos(user, data);
         actualizarLogoPreview();
     };
     reader.readAsDataURL(file);
@@ -6376,7 +6444,7 @@ function quitarLogoNegocio() {
     const user = window.currentUser;
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     delete data.logoNegocio;
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     actualizarLogoPreview();
 }
 
@@ -6505,7 +6573,7 @@ function guardarCotizacion() {
         data.cotizaciones.push(cotObj);
     }
 
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     cerrarModalCotizacion();
     renderCotizaciones();
 }
@@ -6515,7 +6583,7 @@ function eliminarCotizacion(idx) {
     const user = window.currentUser;
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     data.cotizaciones = (data.cotizaciones || []).filter((_,i) => i !== idx);
-    localStorage.setItem(`data_${user}`, JSON.stringify(data));
+    guardarDatos(user, data);
     renderCotizaciones();
 }
 
