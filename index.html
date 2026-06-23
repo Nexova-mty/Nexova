@@ -5048,76 +5048,156 @@ function generarPDF() {
     }
 }
 
-// Exportar reporte actual (filtrado por período) a Excel
+// Exportar TODO a Excel — archivo completo con Resumen, Ventas, Gastos, Inventario, Citas
 function exportarReportesExcel() {
     try {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-        const ventas = (data.ventas || []).filter(v => matchesPeriodo(v.fecha || v.hora));
-        const gastos = (data.gastos || []).filter(g => matchesPeriodo(g.fecha));
-        const negocio = (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
+        const ventas = data.ventas || [];
+        const gastos = data.gastos || [];
+        const productos = data.productos || [];
+        const citas = data.citas || [];
+        const cajas = data.cajas || [];
+        const negocio = data.nombreNegocio || (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
+        const fecha = new Date().toLocaleString('es-MX');
+
+        const totalVentas = ventas.reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
+        const totalGastos = gastos.reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
+        const totalEfectivo = ventas.filter(v=>v.metodo==='efectivo').reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
+        const totalTransferencia = totalVentas - totalEfectivo;
+        const ganancia = totalVentas - totalGastos;
+        const gastosFijos = gastos.filter(g=>g.tipo==='fijo').reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
+        const gastosVariables = totalGastos - gastosFijos;
+
+        const thStyle = 'style="background:#118DFF;color:#fff;font-weight:700;padding:8px 12px;border:1px solid #0d6ecc;font-family:Segoe UI,Arial;font-size:12px;"';
+        const tdStyle = 'style="padding:6px 12px;border:1px solid #ddd;font-family:Segoe UI,Arial;font-size:11px;"';
+        const tdNum = 'style="padding:6px 12px;border:1px solid #ddd;font-family:Segoe UI,Arial;font-size:11px;text-align:right;"';
+        const titleStyle = 'style="font-family:Segoe UI,Arial;font-size:16px;font-weight:700;color:#333;padding:10px 0 5px;"';
 
         let ventasRows = '';
-        ventas.forEach(v => {
+        ventas.forEach((v,i) => {
             const m = parseFloat(v.total || v.monto || 0);
-            const prods = Array.isArray(v.productos) && v.productos.length
-                ? v.productos.map(p => p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : '')).join(', ')
-                : (v.producto || '—');
-            ventasRows += `<tr><td>${escapeHTML(v.fecha||v.hora||'')}</td><td>${escapeHTML(v.cajaNombre||v.caja||'—')}</td><td>${escapeHTML(prods)}</td><td>${m.toFixed(2)}</td><td>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta/Transfer.'}</td></tr>`;
+            const prods = Array.isArray(v.productos) && v.productos.length ? v.productos.map(p => p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : '')).join(', ') : (v.producto || '');
+            const bg = i % 2 === 0 ? '#fff' : '#f5f8ff';
+            ventasRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(v.fecha||v.hora||'')}</td><td ${tdStyle}>${escapeHTML(v.cajaNombre||v.caja||'')}</td><td ${tdStyle}>${escapeHTML(prods)}</td><td ${tdNum}>${v.cantidad||1}</td><td ${tdNum}>${m.toFixed(2)}</td><td ${tdStyle}>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta/Transfer.'}</td></tr>`;
         });
 
         let gastosRows = '';
-        gastos.forEach(g => {
-            gastosRows += `<tr><td>${escapeHTML(g.fecha||'')}</td><td>${escapeHTML(g.concepto||'')}</td><td>${parseFloat(g.monto||0).toFixed(2)}</td><td>${g.tipo === 'fijo' ? 'Fijo' : 'Variable'}</td></tr>`;
+        gastos.forEach((g,i) => {
+            const bg = i % 2 === 0 ? '#fff' : '#fff5f5';
+            gastosRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(g.fecha||'')}</td><td ${tdStyle}>${escapeHTML(g.concepto||'')}</td><td ${tdNum}>${parseFloat(g.monto||0).toFixed(2)}</td><td ${tdStyle}>${g.tipo === 'fijo' ? 'Fijo' : 'Variable'}</td></tr>`;
+        });
+
+        let prodRows = '';
+        productos.forEach((p,i) => {
+            const vendidos = ventas.filter(v => v.producto === p.nombre).reduce((s,v) => s + (v.cantidad||1), 0);
+            const bg = i % 2 === 0 ? '#fff' : '#f5fff5';
+            prodRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(p.nombre)}</td><td ${tdNum}>${parseFloat(p.precio||0).toFixed(2)}</td><td ${tdNum}>${p.stock||0}</td><td ${tdNum}>${vendidos}</td></tr>`;
+        });
+
+        let citasRows = '';
+        citas.forEach((c,i) => {
+            const bg = i % 2 === 0 ? '#fff' : '#f5f0ff';
+            citasRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(c.nombre||'')}</td><td ${tdStyle}>${escapeHTML(c.telefono||'')}</td><td ${tdStyle}>${escapeHTML(c.fecha||'')} ${escapeHTML(c.hora||'')}</td><td ${tdStyle}>${escapeHTML(c.tipo||'')}</td><td ${tdStyle}>${c.estado === 'completada' ? 'Completada' : c.estado === 'vencida' ? 'Vencida' : 'Pendiente'}</td><td ${tdStyle}>${escapeHTML(c.descripcion||'')}</td></tr>`;
         });
 
         const html = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8">
         <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>
+        <x:ExcelWorksheet><x:Name>Resumen</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
         <x:ExcelWorksheet><x:Name>Ventas</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
         <x:ExcelWorksheet><x:Name>Gastos</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+        <x:ExcelWorksheet><x:Name>Inventario</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+        <x:ExcelWorksheet><x:Name>Citas</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
         </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
         </head><body>
-        <table border="1"><caption>${escapeHTML(negocio)} — Ventas (${getPeriodoLabel()})</caption>
-        <tr><th>Fecha/Hora</th><th>Caja</th><th>Productos</th><th>Total</th><th>Método</th></tr>
+
+        <h2 ${titleStyle}>${escapeHTML(negocio)} — Resumen General</h2>
+        <p style="font-family:Segoe UI;font-size:11px;color:#888;">Generado: ${fecha}</p>
+        <table border="1" cellpadding="6" style="border-collapse:collapse;margin-bottom:20px;">
+        <tr><td ${thStyle}>Concepto</td><td ${thStyle}>Monto</td></tr>
+        <tr><td ${tdStyle}>Total Ingresos (Ventas)</td><td ${tdNum}>$${totalVentas.toFixed(2)}</td></tr>
+        <tr><td ${tdStyle}>Total Egresos (Gastos)</td><td ${tdNum}>$${totalGastos.toFixed(2)}</td></tr>
+        <tr style="background:#e8f5e9;"><td ${tdStyle}><b>Ganancia Neta</b></td><td ${tdNum}><b>$${ganancia.toFixed(2)}</b></td></tr>
+        <tr><td ${tdStyle}>Ventas en Efectivo</td><td ${tdNum}>$${totalEfectivo.toFixed(2)}</td></tr>
+        <tr><td ${tdStyle}>Ventas Tarjeta/Transfer.</td><td ${tdNum}>$${totalTransferencia.toFixed(2)}</td></tr>
+        <tr><td ${tdStyle}>Gastos Fijos</td><td ${tdNum}>$${gastosFijos.toFixed(2)}</td></tr>
+        <tr><td ${tdStyle}>Gastos Variables</td><td ${tdNum}>$${gastosVariables.toFixed(2)}</td></tr>
+        <tr><td ${tdStyle}>Total Transacciones</td><td ${tdNum}>${ventas.length}</td></tr>
+        <tr><td ${tdStyle}>Productos en Inventario</td><td ${tdNum}>${productos.length}</td></tr>
+        <tr><td ${tdStyle}>Citas Registradas</td><td ${tdNum}>${citas.length}</td></tr>
+        <tr><td ${tdStyle}>Cajas Activas</td><td ${tdNum}>${cajas.length}</td></tr>
+        </table>
+
+        <h2 ${titleStyle}>Detalle de Ventas (${ventas.length} registros)</h2>
+        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
+        <tr><td ${thStyle}>Fecha/Hora</td><td ${thStyle}>Caja</td><td ${thStyle}>Producto</td><td ${thStyle}>Cantidad</td><td ${thStyle}>Total</td><td ${thStyle}>Metodo</td></tr>
         ${ventasRows}
+        <tr style="background:#e3f2fd;font-weight:700;"><td colspan="4" ${tdStyle}><b>TOTAL VENTAS</b></td><td ${tdNum}><b>$${totalVentas.toFixed(2)}</b></td><td ${tdStyle}></td></tr>
         </table>
-        <br>
-        <table border="1"><caption>${escapeHTML(negocio)} — Gastos (${getPeriodoLabel()})</caption>
-        <tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Tipo</th></tr>
+
+        <h2 ${titleStyle}>Detalle de Gastos (${gastos.length} registros)</h2>
+        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
+        <tr><td ${thStyle}>Fecha</td><td ${thStyle}>Concepto</td><td ${thStyle}>Monto</td><td ${thStyle}>Tipo</td></tr>
         ${gastosRows}
+        <tr style="background:#fce4ec;font-weight:700;"><td colspan="2" ${tdStyle}><b>TOTAL GASTOS</b></td><td ${tdNum}><b>$${totalGastos.toFixed(2)}</b></td><td ${tdStyle}></td></tr>
         </table>
+
+        <h2 ${titleStyle}>Inventario (${productos.length} productos)</h2>
+        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
+        <tr><td ${thStyle}>Producto</td><td ${thStyle}>Precio</td><td ${thStyle}>Stock</td><td ${thStyle}>Vendidos</td></tr>
+        ${prodRows}
+        </table>
+
+        <h2 ${titleStyle}>Citas (${citas.length} registros)</h2>
+        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
+        <tr><td ${thStyle}>Cliente</td><td ${thStyle}>Telefono</td><td ${thStyle}>Fecha/Hora</td><td ${thStyle}>Tipo</td><td ${thStyle}>Estado</td><td ${thStyle}>Descripcion</td></tr>
+        ${citasRows}
+        </table>
+
         </body></html>`;
 
         const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Reporte_NEXOVA_${new Date().toISOString().slice(0,10)}.xls`;
+        link.download = `NEXOVA_${escapeHTML(negocio).replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xls`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(url), 15000);
+        showToast('Excel descargado con todos los datos');
     } catch(e) {
         console.error('Error exportando a Excel:', e);
         showToast('Error al exportar a Excel: ' + e.message, 'error');
     }
 }
 
-// Exportar TODOS los datos (ventas + gastos) en CSV listo para importar en Power BI
+// Exportar TODO a Power BI — descarga CSV completo y abre Power BI
 function exportarPowerBI() {
     try {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-        const filas = [['tipo','fecha','concepto','categoria','metodo_o_tipo_gasto','monto']];
+        const negocio = data.nombreNegocio || (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
+
+        const filas = [['tipo','fecha','hora','concepto','categoria','caja','metodo','cantidad','monto','estado']];
 
         (data.ventas || []).forEach(v => {
             const m = parseFloat(v.total || v.monto || 0);
-            const prods = Array.isArray(v.productos) && v.productos.length
-                ? v.productos.map(p => p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : '')).join(' | ')
-                : (v.producto || '');
-            filas.push(['venta', v.fecha || v.hora || '', prods, v.cajaNombre || v.caja || '', v.metodo || '', m.toFixed(2)]);
+            const prods = Array.isArray(v.productos) && v.productos.length ? v.productos.map(p => p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : '')).join(' | ') : (v.producto || '');
+            const fechaParts = (v.fecha||'').split(', ');
+            filas.push(['Venta', fechaParts[0]||'', fechaParts[1]||'', prods, '', v.cajaNombre || v.caja || '', v.metodo || '', v.cantidad||1, m.toFixed(2), '']);
         });
 
         (data.gastos || []).forEach(g => {
-            filas.push(['gasto', g.fecha || '', g.concepto || '', '', g.tipo || '', parseFloat(g.monto||0).toFixed(2)]);
+            const fechaParts = (g.fecha||'').split(', ');
+            filas.push(['Gasto', fechaParts[0]||'', fechaParts[1]||'', g.concepto || '', g.tipo || '', '', '', 1, parseFloat(g.monto||0).toFixed(2), '']);
+        });
+
+        (data.productos || []).forEach(p => {
+            const vendidos = (data.ventas||[]).filter(v => v.producto === p.nombre).reduce((s,v) => s + (v.cantidad||1), 0);
+            filas.push(['Producto', '', '', p.nombre, '', '', '', p.stock||0, parseFloat(p.precio||0).toFixed(2), vendidos + ' vendidos']);
+        });
+
+        (data.citas || []).forEach(c => {
+            filas.push(['Cita', c.fecha||'', c.hora||'', c.nombre||'', c.tipo||'', '', '', 1, '', c.estado||'pendiente']);
         });
 
         const csv = filas.map(row => row.map(cell => {
@@ -5135,7 +5215,10 @@ function exportarPowerBI() {
         document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(url), 15000);
 
-        showToast('CSV descargado. En Power BI: Obtener datos → Texto/CSV.');
+        showToast('CSV descargado. Abriendo Power BI...');
+        setTimeout(function() {
+            window.open('https://app.powerbi.com/home', '_blank');
+        }, 1000);
     } catch(e) {
         console.error('Error exportando para Power BI:', e);
         showToast('Error al exportar: ' + e.message, 'error');
