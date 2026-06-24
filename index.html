@@ -5145,51 +5145,16 @@ function exportarReportesExcel() {
         ${citasRows}
         </table>
         </body></html>`;
-        window._excelFileName = `NEXOVA_${escapeHTML(negocio).replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xls`;
-
-        var overlay = document.createElement('div');
-        overlay.id = 'excelModal';
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
-        overlay.innerHTML = `
-            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:460px;width:100%;">
-                <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1.2rem;">
-                    <div style="width:40px;height:40px;background:#1d6f42;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.85rem;color:#fff;flex-shrink:0;">XLS</div>
-                    <div>
-                        <div style="font-weight:700;color:var(--white);font-size:1.1rem;">Exportar a Excel</div>
-                        <div style="color:var(--muted);font-size:0.82rem;">Toda la informacion de tu negocio</div>
-                    </div>
-                </div>
-                <div style="background:var(--bg3);border-radius:8px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:var(--muted);line-height:1.6;">
-                    <div style="font-weight:700;color:var(--white);margin-bottom:0.5rem;">El archivo incluye:</div>
-                    <div style="display:flex;flex-direction:column;gap:0.3rem;">
-                        <span>Resumen general (ingresos, egresos, ganancia)</span>
-                        <span>Detalle de todas las ventas</span>
-                        <span>Detalle de todos los gastos</span>
-                        <span>Inventario completo</span>
-                        <span>Historial de citas</span>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1.2rem;">
-                    <div style="display:flex;gap:0.8rem;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:#1d6f42;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">1</div>
-                        <div style="color:var(--muted);font-size:0.9rem;line-height:1.5;">Haz clic en <strong style="color:var(--white);">Abrir Excel Online</strong> e inicia sesion con tu cuenta de Microsoft.</div>
-                    </div>
-                    <div style="display:flex;gap:0.8rem;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:#1d6f42;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">2</div>
-                        <div style="color:var(--muted);font-size:0.9rem;line-height:1.5;">Haz clic en <strong style="color:var(--white);">Descargar Excel</strong> para guardar el archivo.</div>
-                    </div>
-                    <div style="display:flex;gap:0.8rem;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:#1d6f42;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">3</div>
-                        <div style="color:var(--muted);font-size:0.9rem;line-height:1.5;">Abre el archivo en <strong style="color:var(--white);">Excel Online, Excel desktop o Google Sheets</strong>.</div>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:0.6rem;">
-                    <button onclick="window.open('https://www.office.com/launch/excel','_blank')" style="width:100%;background:#1d6f42;color:#fff;border:none;padding:0.85rem;border-radius:8px;cursor:pointer;font-weight:800;font-size:1rem;min-height:48px;">Abrir Excel Online</button>
-                    <button onclick="descargarExcelArchivo()" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.85rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:1rem;min-height:48px;">Descargar Excel con mis datos</button>
-                    <button onclick="document.getElementById('excelModal').remove()" style="width:100%;background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.7rem;border-radius:8px;cursor:pointer;font-size:0.9rem;min-height:44px;">Cerrar</button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
+        var blob = new Blob(['﻿' + window._excelHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = `NEXOVA_${escapeHTML(negocio).replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xls`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
+        showToast('Excel descargado — abrelo en Excel, Numbers o Google Sheets');
     } catch(e) {
         console.error('Error exportando a Excel:', e);
         showToast('Error al exportar a Excel: ' + e.message, 'error');
@@ -5207,10 +5172,10 @@ function descargarExcelArchivo() {
     link.click();
     document.body.removeChild(link);
     setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
-    showToast('Excel descargado');
+    showToast('Excel descargado — abrelo en Excel, Numbers o Google Sheets');
 }
 
-// Exportar TODO a Power BI — muestra modal con pasos, abre Power BI y descarga CSV
+// Exportar TODO a Power BI — descarga CSV directo y abre Power BI
 function exportarPowerBI() {
     try {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
@@ -5239,59 +5204,22 @@ function exportarPowerBI() {
             return /[",\n]/.test(s) ? `"${s}"` : s;
         }).join(',')).join('\r\n');
 
-        window._pbiCSV = csv;
+        var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'NEXOVA_PowerBI_' + new Date().toISOString().slice(0,10) + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
 
-        var overlay = document.createElement('div');
-        overlay.id = 'pbiModal';
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
-        overlay.innerHTML = `
-            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:460px;width:100%;">
-                <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1.2rem;">
-                    <div style="width:40px;height:40px;background:#f2c811;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:#252423;flex-shrink:0;">PBI</div>
-                    <div>
-                        <div style="font-weight:700;color:var(--white);font-size:1.1rem;">Exportar a Power BI</div>
-                        <div style="color:var(--muted);font-size:0.82rem;">Sigue estos pasos</div>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1.5rem;">
-                    <div style="display:flex;gap:0.8rem;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:#f2c811;color:#252423;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">1</div>
-                        <div style="color:var(--muted);font-size:0.9rem;line-height:1.5;">Haz clic en <strong style="color:var(--white);">Abrir Power BI</strong> (se abre en otra pestaña). Inicia sesion con tu cuenta de Microsoft.</div>
-                    </div>
-                    <div style="display:flex;gap:0.8rem;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:#f2c811;color:#252423;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">2</div>
-                        <div style="color:var(--muted);font-size:0.9rem;line-height:1.5;">Haz clic en <strong style="color:var(--white);">Descargar CSV</strong> para guardar tus datos.</div>
-                    </div>
-                    <div style="display:flex;gap:0.8rem;align-items:flex-start;">
-                        <div style="width:28px;height:28px;border-radius:50%;background:#f2c811;color:#252423;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">3</div>
-                        <div style="color:var(--muted);font-size:0.9rem;line-height:1.5;">En Power BI: <strong style="color:var(--white);">Nuevo informe → Pegar datos o Subir archivo</strong> → selecciona el CSV descargado.</div>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:0.6rem;">
-                    <button onclick="window.open('https://app.powerbi.com/home','_blank')" style="width:100%;background:#f2c811;color:#252423;border:none;padding:0.85rem;border-radius:8px;cursor:pointer;font-weight:800;font-size:1rem;min-height:48px;">Abrir Power BI</button>
-                    <button onclick="descargarCSVPowerBI()" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.85rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:1rem;min-height:48px;">Descargar CSV con mis datos</button>
-                    <button onclick="document.getElementById('pbiModal').remove()" style="width:100%;background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.7rem;border-radius:8px;cursor:pointer;font-size:0.9rem;min-height:44px;">Cerrar</button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
+        showToast('CSV descargado — abrelo en Power BI: Nuevo informe → Subir archivo');
+        setTimeout(function() { window.open('https://app.powerbi.com/home', '_blank'); }, 1500);
     } catch(e) {
         console.error('Error exportando para Power BI:', e);
         showToast('Error al exportar: ' + e.message, 'error');
     }
-}
-
-function descargarCSVPowerBI() {
-    if (!window._pbiCSV) { showToast('Error: no hay datos', 'error'); return; }
-    var blob = new Blob(['﻿' + window._pbiCSV], { type: 'text/csv;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.href = url;
-    link.download = 'NEXOVA_PowerBI_' + new Date().toISOString().slice(0,10) + '.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
-    showToast('CSV descargado');
 }
 
 // Editar productos
