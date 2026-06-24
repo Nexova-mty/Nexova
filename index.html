@@ -1337,7 +1337,7 @@ function detenerSyncFirestore() {
                         <button onclick="cambiarPeriodoTipo('semana')" class="filtro-tipo-btn" data-tipo="semana" style="padding:0.5rem 1rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:0.85rem; min-height:40px;">Semana</button>
                         <button onclick="cambiarPeriodoTipo('mes')" class="filtro-tipo-btn" data-tipo="mes" style="padding:0.5rem 1rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:0.85rem; min-height:40px;">Mes</button>
                         <button onclick="cambiarPeriodoTipo('año')" class="filtro-tipo-btn" data-tipo="año" style="padding:0.5rem 1rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:0.85rem; min-height:40px;">Año</button>
-                        <button onclick="exportarReportesExcel()" style="margin-left:auto; padding:0.5rem 1rem; background:#1d6f42; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; min-height:40px;">Excel</button>
+                        <button onclick="exportarReportesExcel()" style="margin-left:auto; padding:0.5rem 1rem; background:#1d6f42; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; min-height:40px;">Descargar Excel</button>
                         <button onclick="generarPDF()" style="padding:0.5rem 1rem; background:var(--green); color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; min-height:40px;">PDF</button>
                     </div>
                     <!-- Selector de fecha según tipo -->
@@ -1447,7 +1447,7 @@ function detenerSyncFirestore() {
                         <button class="graf-periodo-btn" data-tipo="semana" onclick="cambiarGraficasPeriodo('semana')" style="padding:0.5rem 1rem; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); cursor:pointer; font-size:0.85rem; min-height:40px; font-weight:600;">Semana</button>
                         <button class="graf-periodo-btn" data-tipo="mes"    onclick="cambiarGraficasPeriodo('mes')"    style="padding:0.5rem 1rem; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); cursor:pointer; font-size:0.85rem; min-height:40px; font-weight:600;">Mes</button>
                         <button class="graf-periodo-btn" data-tipo="año"    onclick="cambiarGraficasPeriodo('año')"    style="padding:0.5rem 1rem; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); cursor:pointer; font-size:0.85rem; min-height:40px; font-weight:600;">Año</button>
-                        <button onclick="exportarPowerBI()" style="margin-left:auto; padding:0.5rem 1rem; border-radius:20px; border:none; background:#f2c811; color:#252423; cursor:pointer; font-size:0.85rem; min-height:40px; font-weight:700; white-space:nowrap;">Power BI</button>
+                        <button onclick="abrirEnGoogleSheets()" style="margin-left:auto; padding:0.5rem 1rem; border-radius:20px; border:none; background:#34a853; color:#fff; cursor:pointer; font-size:0.85rem; min-height:40px; font-weight:700; white-space:nowrap;">Google Sheets</button>
                     </div>
                     <div style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
                         <div id="graficasPickerDia"    style="display:none;"><input type="date"  id="graficasDiaVal"    onchange="cambiarGraficasValor(this.value)" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.8rem;border-radius:6px;font-size:0.9rem;min-height:40px;"></div>
@@ -5176,48 +5176,73 @@ function descargarExcelArchivo() {
 }
 
 // Exportar TODO a Power BI — descarga CSV directo y abre Power BI
-function exportarPowerBI() {
+function abrirEnGoogleSheets() {
     try {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
+        const ventas = data.ventas || [];
+        const gastos = data.gastos || [];
+        const productos = data.productos || [];
+        const negocio = data.nombreNegocio || (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
 
-        const filas = [['tipo','fecha','hora','concepto','categoria','caja','metodo','cantidad','monto','estado']];
-        (data.ventas || []).forEach(v => {
-            const m = parseFloat(v.total || v.monto || 0);
-            const prods = Array.isArray(v.productos) && v.productos.length ? v.productos.map(p => p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : '')).join(' | ') : (v.producto || '');
-            const fechaParts = (v.fecha||'').split(', ');
-            filas.push(['Venta', fechaParts[0]||'', fechaParts[1]||'', prods, '', v.cajaNombre || v.caja || '', v.metodo || '', v.cantidad||1, m.toFixed(2), '']);
+        const totalVentas = ventas.reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
+        const totalGastos = gastos.reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
+
+        var filas = [];
+        filas.push([negocio + ' — Reporte NEXOVA', '', '', '', '', '']);
+        filas.push(['Generado: ' + new Date().toLocaleString('es-MX'), '', '', '', '', '']);
+        filas.push(['', '', '', '', '', '']);
+        filas.push(['RESUMEN', '', '', '', '', '']);
+        filas.push(['Total Ingresos', totalVentas.toFixed(2)]);
+        filas.push(['Total Egresos', totalGastos.toFixed(2)]);
+        filas.push(['Ganancia Neta', (totalVentas - totalGastos).toFixed(2)]);
+        filas.push(['', '', '', '', '', '']);
+        filas.push(['VENTAS', '', '', '', '', '']);
+        filas.push(['Fecha', 'Caja', 'Producto', 'Cantidad', 'Total', 'Metodo']);
+        ventas.forEach(function(v) {
+            var m = parseFloat(v.total || v.monto || 0);
+            var prods = Array.isArray(v.productos) && v.productos.length ? v.productos.map(function(p){ return p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : ''); }).join(', ') : (v.producto || '');
+            filas.push([v.fecha||'', v.cajaNombre||v.caja||'', prods, v.cantidad||1, m.toFixed(2), v.metodo||'']);
         });
-        (data.gastos || []).forEach(g => {
-            const fechaParts = (g.fecha||'').split(', ');
-            filas.push(['Gasto', fechaParts[0]||'', fechaParts[1]||'', g.concepto || '', g.tipo || '', '', '', 1, parseFloat(g.monto||0).toFixed(2), '']);
+        filas.push(['', '', '', '', '', '']);
+        filas.push(['GASTOS', '', '', '', '', '']);
+        filas.push(['Fecha', 'Concepto', 'Monto', 'Tipo', '', '']);
+        gastos.forEach(function(g) {
+            filas.push([g.fecha||'', g.concepto||'', parseFloat(g.monto||0).toFixed(2), g.tipo||'', '', '']);
         });
-        (data.productos || []).forEach(p => {
-            const vendidos = (data.ventas||[]).filter(v => v.producto === p.nombre).reduce((s,v) => s + (v.cantidad||1), 0);
-            filas.push(['Producto', '', '', p.nombre, '', '', '', p.stock||0, parseFloat(p.precio||0).toFixed(2), vendidos + ' vendidos']);
-        });
-        (data.citas || []).forEach(c => {
-            filas.push(['Cita', c.fecha||'', c.hora||'', c.nombre||'', c.tipo||'', '', '', 1, '', c.estado||'pendiente']);
+        filas.push(['', '', '', '', '', '']);
+        filas.push(['INVENTARIO', '', '', '', '', '']);
+        filas.push(['Producto', 'Precio', 'Stock', 'Vendidos', '', '']);
+        productos.forEach(function(p) {
+            var vendidos = ventas.filter(function(v){ return v.producto === p.nombre; }).reduce(function(s,v){ return s + (v.cantidad||1); }, 0);
+            filas.push([p.nombre, parseFloat(p.precio||0).toFixed(2), p.stock||0, vendidos, '', '']);
         });
 
-        const csv = filas.map(row => row.map(cell => {
-            const s = String(cell ?? '').replace(/"/g, '""');
-            return /[",\n]/.test(s) ? `"${s}"` : s;
-        }).join(',')).join('\r\n');
+        var csv = filas.map(function(row) {
+            return row.map(function(cell) {
+                var s = String(cell == null ? '' : cell).replace(/"/g, '""');
+                return /[",\n]/.test(s) ? '"' + s + '"' : s;
+            }).join(',');
+        }).join('\r\n');
+
+        var csvBase64 = btoa(unescape(encodeURIComponent(csv)));
+        var gsheetsURL = 'https://docs.google.com/spreadsheets/d/e/create?usp=sharing';
 
         var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
         var url = URL.createObjectURL(blob);
         var link = document.createElement('a');
         link.href = url;
-        link.download = 'NEXOVA_PowerBI_' + new Date().toISOString().slice(0,10) + '.csv';
+        link.download = 'NEXOVA_' + new Date().toISOString().slice(0,10) + '.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
 
-        showToast('CSV descargado — abrelo en Power BI: Nuevo informe → Subir archivo');
-        setTimeout(function() { window.open('https://app.powerbi.com/home', '_blank'); }, 1500);
+        showToast('Archivo descargado — abriendo Google Sheets...');
+        setTimeout(function() {
+            window.open('https://sheets.google.com/create', '_blank');
+        }, 1000);
     } catch(e) {
-        console.error('Error exportando para Power BI:', e);
+        console.error('Error exportando a Google Sheets:', e);
         showToast('Error al exportar: ' + e.message, 'error');
     }
 }
