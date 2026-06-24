@@ -880,7 +880,7 @@ function detenerSyncFirestore() {
                 </div>
             </div>
             <div class="testi-card">
-                <p class="testi-text">"El volumen de clientes en el restaurante es alto y necesitábamos controlar ventas, cortes de caja y gastos sin perdernos en hojas de Excel. NEXOVA lo hace todo junto y mis encargados lo aprendieron en un día."</p>
+                <p class="testi-text">"El volumen de clientes en el restaurante es alto y necesitábamos controlar ventas, cortes de caja y gastos sin perdernos en hojas de cálculo. NEXOVA lo hace todo junto y mis encargados lo aprendieron en un día."</p>
                 <div class="testi-author">
                     <div class="testi-avatar" style="font-size:0.7rem;">20</div>
                     <div>
@@ -1337,7 +1337,7 @@ function detenerSyncFirestore() {
                         <button onclick="cambiarPeriodoTipo('semana')" class="filtro-tipo-btn" data-tipo="semana" style="padding:0.5rem 1rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:0.85rem; min-height:40px;">Semana</button>
                         <button onclick="cambiarPeriodoTipo('mes')" class="filtro-tipo-btn" data-tipo="mes" style="padding:0.5rem 1rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:0.85rem; min-height:40px;">Mes</button>
                         <button onclick="cambiarPeriodoTipo('año')" class="filtro-tipo-btn" data-tipo="año" style="padding:0.5rem 1rem; background:var(--bg3); color:var(--muted); border:1px solid var(--border); border-radius:20px; cursor:pointer; font-size:0.85rem; min-height:40px;">Año</button>
-                        <button onclick="exportarReportesExcel()" style="margin-left:auto; padding:0.5rem 1rem; background:#1d6f42; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; min-height:40px;">Descargar Excel</button>
+                        <button onclick="abrirEnGoogleSheets()" style="margin-left:auto; padding:0.5rem 1rem; background:#34a853; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; min-height:40px;">Google Sheets</button>
                         <button onclick="generarPDF()" style="padding:0.5rem 1rem; background:var(--green); color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; min-height:40px;">PDF</button>
                     </div>
                     <!-- Selector de fecha según tipo -->
@@ -5048,132 +5048,8 @@ function generarPDF() {
     }
 }
 
-// Exportar TODO a Excel — modal con pasos, abre Excel Online y descarga archivo
-function exportarReportesExcel() {
-    try {
-        const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-        const ventas = data.ventas || [];
-        const gastos = data.gastos || [];
-        const productos = data.productos || [];
-        const citas = data.citas || [];
-        const cajas = data.cajas || [];
-        const negocio = data.nombreNegocio || (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
-        const fecha = new Date().toLocaleString('es-MX');
-
-        const totalVentas = ventas.reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
-        const totalGastos = gastos.reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
-        const totalEfectivo = ventas.filter(v=>v.metodo==='efectivo').reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
-        const totalTransferencia = totalVentas - totalEfectivo;
-        const ganancia = totalVentas - totalGastos;
-        const gastosFijos = gastos.filter(g=>g.tipo==='fijo').reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
-        const gastosVariables = totalGastos - gastosFijos;
-
-        const thStyle = 'style="background:#1d6f42;color:#fff;font-weight:700;padding:8px 12px;border:1px solid #165a35;font-family:Segoe UI,Arial;font-size:12px;"';
-        const tdStyle = 'style="padding:6px 12px;border:1px solid #ddd;font-family:Segoe UI,Arial;font-size:11px;"';
-        const tdNum = 'style="padding:6px 12px;border:1px solid #ddd;font-family:Segoe UI,Arial;font-size:11px;text-align:right;"';
-        const titleStyle = 'style="font-family:Segoe UI,Arial;font-size:16px;font-weight:700;color:#333;padding:10px 0 5px;"';
-
-        let ventasRows = '';
-        ventas.forEach((v,i) => {
-            const m = parseFloat(v.total || v.monto || 0);
-            const prods = Array.isArray(v.productos) && v.productos.length ? v.productos.map(p => p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : '')).join(', ') : (v.producto || '');
-            const bg = i % 2 === 0 ? '#fff' : '#f5f8ff';
-            ventasRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(v.fecha||v.hora||'')}</td><td ${tdStyle}>${escapeHTML(v.cajaNombre||v.caja||'')}</td><td ${tdStyle}>${escapeHTML(prods)}</td><td ${tdNum}>${v.cantidad||1}</td><td ${tdNum}>${m.toFixed(2)}</td><td ${tdStyle}>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta/Transfer.'}</td></tr>`;
-        });
-        let gastosRows = '';
-        gastos.forEach((g,i) => {
-            const bg = i % 2 === 0 ? '#fff' : '#fff5f5';
-            gastosRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(g.fecha||'')}</td><td ${tdStyle}>${escapeHTML(g.concepto||'')}</td><td ${tdNum}>${parseFloat(g.monto||0).toFixed(2)}</td><td ${tdStyle}>${g.tipo === 'fijo' ? 'Fijo' : 'Variable'}</td></tr>`;
-        });
-        let prodRows = '';
-        productos.forEach((p,i) => {
-            const vendidos = ventas.filter(v => v.producto === p.nombre).reduce((s,v) => s + (v.cantidad||1), 0);
-            const bg = i % 2 === 0 ? '#fff' : '#f5fff5';
-            prodRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(p.nombre)}</td><td ${tdNum}>${parseFloat(p.precio||0).toFixed(2)}</td><td ${tdNum}>${p.stock||0}</td><td ${tdNum}>${vendidos}</td></tr>`;
-        });
-        let citasRows = '';
-        citas.forEach((c,i) => {
-            const bg = i % 2 === 0 ? '#fff' : '#f5f0ff';
-            citasRows += `<tr style="background:${bg}"><td ${tdStyle}>${escapeHTML(c.nombre||'')}</td><td ${tdStyle}>${escapeHTML(c.telefono||'')}</td><td ${tdStyle}>${escapeHTML(c.fecha||'')} ${escapeHTML(c.hora||'')}</td><td ${tdStyle}>${escapeHTML(c.tipo||'')}</td><td ${tdStyle}>${c.estado === 'completada' ? 'Completada' : c.estado === 'vencida' ? 'Vencida' : 'Pendiente'}</td><td ${tdStyle}>${escapeHTML(c.descripcion||'')}</td></tr>`;
-        });
-
-        window._excelHTML = `<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8">
-        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>
-        <x:ExcelWorksheet><x:Name>Resumen</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-        <x:ExcelWorksheet><x:Name>Ventas</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-        <x:ExcelWorksheet><x:Name>Gastos</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-        <x:ExcelWorksheet><x:Name>Inventario</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-        <x:ExcelWorksheet><x:Name>Citas</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-        </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
-        </head><body>
-        <h2 ${titleStyle}>${escapeHTML(negocio)} — Resumen General</h2>
-        <p style="font-family:Segoe UI;font-size:11px;color:#888;">Generado: ${fecha}</p>
-        <table border="1" cellpadding="6" style="border-collapse:collapse;margin-bottom:20px;">
-        <tr><td ${thStyle}>Concepto</td><td ${thStyle}>Monto</td></tr>
-        <tr><td ${tdStyle}>Total Ingresos (Ventas)</td><td ${tdNum}>$${totalVentas.toFixed(2)}</td></tr>
-        <tr><td ${tdStyle}>Total Egresos (Gastos)</td><td ${tdNum}>$${totalGastos.toFixed(2)}</td></tr>
-        <tr style="background:#e8f5e9;"><td ${tdStyle}><b>Ganancia Neta</b></td><td ${tdNum}><b>$${ganancia.toFixed(2)}</b></td></tr>
-        <tr><td ${tdStyle}>Ventas en Efectivo</td><td ${tdNum}>$${totalEfectivo.toFixed(2)}</td></tr>
-        <tr><td ${tdStyle}>Ventas Tarjeta/Transfer.</td><td ${tdNum}>$${totalTransferencia.toFixed(2)}</td></tr>
-        <tr><td ${tdStyle}>Gastos Fijos</td><td ${tdNum}>$${gastosFijos.toFixed(2)}</td></tr>
-        <tr><td ${tdStyle}>Gastos Variables</td><td ${tdNum}>$${gastosVariables.toFixed(2)}</td></tr>
-        <tr><td ${tdStyle}>Total Transacciones</td><td ${tdNum}>${ventas.length}</td></tr>
-        <tr><td ${tdStyle}>Productos en Inventario</td><td ${tdNum}>${productos.length}</td></tr>
-        <tr><td ${tdStyle}>Citas Registradas</td><td ${tdNum}>${citas.length}</td></tr>
-        <tr><td ${tdStyle}>Cajas Activas</td><td ${tdNum}>${cajas.length}</td></tr>
-        </table>
-        <h2 ${titleStyle}>Detalle de Ventas (${ventas.length} registros)</h2>
-        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
-        <tr><td ${thStyle}>Fecha/Hora</td><td ${thStyle}>Caja</td><td ${thStyle}>Producto</td><td ${thStyle}>Cantidad</td><td ${thStyle}>Total</td><td ${thStyle}>Metodo</td></tr>
-        ${ventasRows}
-        <tr style="background:#e3f2fd;font-weight:700;"><td colspan="4" ${tdStyle}><b>TOTAL VENTAS</b></td><td ${tdNum}><b>$${totalVentas.toFixed(2)}</b></td><td ${tdStyle}></td></tr>
-        </table>
-        <h2 ${titleStyle}>Detalle de Gastos (${gastos.length} registros)</h2>
-        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
-        <tr><td ${thStyle}>Fecha</td><td ${thStyle}>Concepto</td><td ${thStyle}>Monto</td><td ${thStyle}>Tipo</td></tr>
-        ${gastosRows}
-        <tr style="background:#fce4ec;font-weight:700;"><td colspan="2" ${tdStyle}><b>TOTAL GASTOS</b></td><td ${tdNum}><b>$${totalGastos.toFixed(2)}</b></td><td ${tdStyle}></td></tr>
-        </table>
-        <h2 ${titleStyle}>Inventario (${productos.length} productos)</h2>
-        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
-        <tr><td ${thStyle}>Producto</td><td ${thStyle}>Precio</td><td ${thStyle}>Stock</td><td ${thStyle}>Vendidos</td></tr>
-        ${prodRows}
-        </table>
-        <h2 ${titleStyle}>Citas (${citas.length} registros)</h2>
-        <table border="1" cellpadding="4" style="border-collapse:collapse;margin-bottom:20px;">
-        <tr><td ${thStyle}>Cliente</td><td ${thStyle}>Telefono</td><td ${thStyle}>Fecha/Hora</td><td ${thStyle}>Tipo</td><td ${thStyle}>Estado</td><td ${thStyle}>Descripcion</td></tr>
-        ${citasRows}
-        </table>
-        </body></html>`;
-        var blob = new Blob(['﻿' + window._excelHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
-        var url = URL.createObjectURL(blob);
-        var link = document.createElement('a');
-        link.href = url;
-        link.download = `NEXOVA_${escapeHTML(negocio).replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xls`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
-        showToast('Excel descargado — abrelo en Excel, Numbers o Google Sheets');
-    } catch(e) {
-        console.error('Error exportando a Excel:', e);
-        showToast('Error al exportar a Excel: ' + e.message, 'error');
-    }
-}
-
-function descargarExcelArchivo() {
-    if (!window._excelHTML) { showToast('Error: no hay datos', 'error'); return; }
-    var blob = new Blob(['﻿' + window._excelHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.href = url;
-    link.download = window._excelFileName || 'NEXOVA_Reporte.xls';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
-    showToast('Excel descargado — abrelo en Excel, Numbers o Google Sheets');
-}
+// Función legacy — redirige a Google Sheets
+function exportarReportesExcel() { abrirEnGoogleSheets(); }
 
 // Exportar TODO a Power BI — descarga CSV directo y abre Power BI
 function abrirEnGoogleSheets() {
