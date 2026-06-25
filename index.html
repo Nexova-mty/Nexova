@@ -2494,6 +2494,8 @@ function mostrarResumenDia() {
 
 function doLogout() {
     detenerSyncFirestore();
+    _stopAutodemo();
+    clearTimeout(_inactivityTimer);
     document.body.classList.remove('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'dashboard' && el.id !== 'toastContainer'
@@ -2814,7 +2816,7 @@ if (window.top !== window.self) {
     try { window.top.location = window.self.location; } catch(e) { document.body.innerHTML = ''; }
 }
 
-// Cierre de sesión automático por inactividad (20 minutos)
+// Cierre de sesión automático por inactividad (40 minutos)
 var _inactivityTimer;
 function _resetInactivity() {
     clearTimeout(_inactivityTimer);
@@ -2829,7 +2831,7 @@ function _resetInactivity() {
 });
 
 // Verificación periódica del token de sesión (cada 5 minutos)
-setInterval(async function() {
+var _tokenCheckInterval = setInterval(async function() {
     if (!window.currentUser) return;
     const ok = await _verificarToken(window.currentUser, window.currentRole || 'dueno');
     if (!ok) {
@@ -2919,6 +2921,7 @@ function migrarDatos(user) {
 }
 
 function iniciarDashboard(user, rol) {
+    _stopAutodemo();
     rol = rol || 'dueno';
     if (!CLIENTS[user]) {
         showToast('Usuario no válido', 'error');
@@ -3246,7 +3249,7 @@ function imprimirTicket(carrito, total, metodo, fechaHora, cajaNombre) {
         const user = window.currentUser;
         const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
         const negocio = (CLIENTS[user] && CLIENTS[user].name) || 'Mi Negocio';
-        const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/')) ? data.logoNegocio : '';
+        const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
 
         let itemsHTML = '';
         carrito.forEach(it => {
@@ -3721,10 +3724,18 @@ function getThisYearISO() {
 function parseFechaStr(fechaStr) {
     if (!fechaStr) return null;
     try {
-        const parts = fechaStr.split(' ')[0].replace(',','').split('/');
-        if (parts.length !== 3) return null;
-        const [d, m, y] = parts.map(Number);
-        return new Date(y, m - 1, d);
+        const partes = fechaStr.replace(',','').trim().split(/\s+/);
+        const dateParts = partes[0].split('/');
+        if (dateParts.length !== 3) return null;
+        const [d, m, y] = dateParts.map(Number);
+        let hh = 0, mm = 0, ss = 0;
+        if (partes[1]) {
+            const timeParts = partes[1].split(':').map(Number);
+            hh = timeParts[0] || 0;
+            mm = timeParts[1] || 0;
+            ss = timeParts[2] || 0;
+        }
+        return new Date(y, m - 1, d, hh, mm, ss);
     } catch { return null; }
 }
 
@@ -3797,11 +3808,9 @@ function getPeriodoLabel() {
 
 function cambiarPeriodoTipo(tipo) {
     localStorage.setItem('reportePeriodoTipo', tipo);
-    // Mantener valor si ya es del mismo tipo, sino poner valor por defecto
+    // Siempre resetear al valor por defecto al cambiar tipo de período
     const defaults = { dia: getTodayISO(), semana: getThisWeekISO(), mes: getThisMonthISO(), año: getThisYearISO() };
-    if (!localStorage.getItem('reportePeriodoValor')) {
-        localStorage.setItem('reportePeriodoValor', defaults[tipo]);
-    }
+    localStorage.setItem('reportePeriodoValor', defaults[tipo]);
     actualizarFiltroUI();
     renderReportes();
 }
@@ -3838,7 +3847,7 @@ function actualizarFiltroUI() {
                 // Poblar años disponibles con los datos
                 const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
                 const años = new Set();
-                (data.ventas||[]).forEach(v => { const f = parseFechaStr(v.hora); if(f) años.add(f.getFullYear()); });
+                (data.ventas||[]).forEach(v => { const f = parseFechaStr(v.fecha || v.hora); if(f) años.add(f.getFullYear()); });
                 (data.gastos||[]).forEach(g => { const f = parseFechaStr(g.fecha); if(f) años.add(f.getFullYear()); });
                 años.add(obtenerFechaMonterrey().getFullYear());
                 el.innerHTML = [...años].sort((a,b)=>b-a).map(a=>`<option value="${a}" ${String(a)===valor?'selected':''}>${a}</option>`).join('');
@@ -4601,7 +4610,7 @@ function descargarGraficaPDF(canvasId, titulo) {
     const periodo = getPeriodoLabel();
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
     const negocio = (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
-    const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/')) ? data.logoNegocio : '';
+    const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
     const fecha = new Date().toLocaleString('es-MX');
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
     <title>${escapeHTML(negocio)} — ${titulo}</title>
@@ -4986,7 +4995,7 @@ function generarPDF() {
         const nombreArchivo = `Reporte_NEXOVA_${new Date().toISOString().slice(0,10)}.html`;
         const esMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
         const negocio = (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
-        const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/')) ? data.logoNegocio : '';
+        const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
         const periodo = getPeriodoLabel();
 
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reporte ${escapeHTML(negocio)}</title><style>
@@ -5055,7 +5064,7 @@ function generarPDF() {
 // Función legacy — redirige a Google Sheets
 function exportarReportesExcel() { abrirEnGoogleSheets(); }
 
-// Exportar TODO a Power BI — descarga CSV directo y abre Power BI
+// Exportar datos a CSV y abrir Google Sheets
 function abrirEnGoogleSheets() {
     try {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
@@ -5103,9 +5112,6 @@ function abrirEnGoogleSheets() {
                 return /[",\n]/.test(s) ? '"' + s + '"' : s;
             }).join(',');
         }).join('\r\n');
-
-        var csvBase64 = btoa(unescape(encodeURIComponent(csv)));
-        var gsheetsURL = 'https://docs.google.com/spreadsheets/d/e/create?usp=sharing';
 
         var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
         var url = URL.createObjectURL(blob);
@@ -5174,14 +5180,26 @@ function eliminarCajaDirecto(idx) {
     const caja = data.cajas && data.cajas[idx];
     if (!caja) return;
     if (!confirm(`¿Eliminar la caja "${caja.nombre}"? Esta acción no se puede deshacer.`)) return;
-    // Limpiar carrito de esa caja antes de eliminarla
-    localStorage.removeItem('carrito_' + window.currentUser + '_caja_' + idx);
+    const totalCajas = data.cajas.length;
+    // Re-key all cart entries: remove deleted, shift higher indices down
+    for (let i = 0; i < totalCajas; i++) {
+        const key = 'carrito_' + window.currentUser + '_caja_' + i;
+        if (i === idx) {
+            localStorage.removeItem(key);
+        } else if (i > idx) {
+            const cartData = localStorage.getItem(key);
+            localStorage.removeItem(key);
+            if (cartData) localStorage.setItem('carrito_' + window.currentUser + '_caja_' + (i - 1), cartData);
+        }
+    }
     data.cajas.splice(idx, 1);
     guardarDatos(window.currentUser, data);
-    // Si la caja activa era la eliminada, resetear a la primera disponible
+    // Si la caja activa era la eliminada o ya no existe, resetear a la primera disponible
     const actualIdx = parseInt(localStorage.getItem('currentCaja_' + window.currentUser));
-    if (actualIdx === idx || !data.cajas[actualIdx]) {
+    if (isNaN(actualIdx) || actualIdx >= data.cajas.length) {
         localStorage.setItem('currentCaja_' + window.currentUser, data.cajas.length > 0 ? '0' : '');
+    } else if (actualIdx > idx) {
+        localStorage.setItem('currentCaja_' + window.currentUser, String(actualIdx - 1));
     }
     renderCajas();
 }
@@ -5339,7 +5357,7 @@ function guardarEditarCita() {
 function confirmarEliminarCitaMod() {
     if (confirm('¿Estás seguro de eliminar esta cita?')) {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-        data.citas = data.citas.filter(c => c.id !== idCitaEditando);
+        data.citas = (data.citas || []).filter(c => c.id !== idCitaEditando);
         guardarDatos(window.currentUser, data);
         cerrarModalEditarCita();
         renderCitas();
@@ -5347,7 +5365,10 @@ function confirmarEliminarCitaMod() {
 }
 
 // ===== AUTODEMO =====
+window._autodemoActive = false;
+function _stopAutodemo() { window._autodemoActive = false; }
 function _runAutodemo() {
+    window._autodemoActive = true;
     var TABS = ['inicio','citas','ventas','reportes'];
     var TAB_BTNS = {
         inicio:   document.querySelector('.nav-btn[onclick*="inicio"]'),
@@ -5376,6 +5397,7 @@ function _runAutodemo() {
     }
 
     function loop() {
+        if (!window._autodemoActive) return;
         // Inicio: 4s
         goTab('inicio', function(){
             delay(4000, function(){
@@ -5432,6 +5454,7 @@ function _runAutodemo() {
 document.addEventListener('DOMContentLoaded', function() {
     // Restaurar sesión si existe — con verificación de token de integridad
     (async function() {
+    try {
     const savedUser = localStorage.getItem('currentUser');
     const savedRole = localStorage.getItem('currentRole') || 'dueno';
     if (savedUser && CLIENTS[savedUser]) {
@@ -5466,11 +5489,11 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCajasSelect();
         renderHistorialCaja();
         renderCostos();
-        var localData2 = cargarDatos(savedUser);
-        if (localData2 && Object.keys(localData2).length > 0) {
-          guardarDatos(savedUser, localData2);
-        }
         iniciarSyncFirestore(savedUser);
+    }
+    } catch(e) {
+        console.error('Error restaurando sesión:', e);
+        showToast('Error al restaurar sesión. Inicia sesión nuevamente.', 'error');
     }
     })(); // fin async IIFE de restauración de sesión
 
@@ -6040,6 +6063,7 @@ function exportarDatos() {
     a.href = URL.createObjectURL(blob);
     a.download = `nexova_${user}_datos.json`;
     a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 15000);
 }
 
 function confirmarResetDemo() {
@@ -6342,8 +6366,12 @@ function actualizarLogoPreview() {
     ['logoPreviewBoxAjustes'].forEach(id => {
         const box = document.getElementById(id);
         if (!box) return;
-        if (data.logoNegocio) {
-            box.innerHTML = `<img src="${data.logoNegocio}" style="width:100%; height:100%; object-fit:contain;">`;
+        if (data.logoNegocio && data.logoNegocio.startsWith('data:image/')) {
+            const img = document.createElement('img');
+            img.src = data.logoNegocio;
+            img.style.cssText = 'width:100%; height:100%; object-fit:contain;';
+            box.innerHTML = '';
+            box.appendChild(img);
         } else {
             box.innerHTML = `<span style="color:var(--muted); font-size:0.7rem; text-align:center;">Sin logo</span>`;
         }
@@ -6355,9 +6383,14 @@ function subirLogoNegocio(input) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
+        const result = e.target.result;
+        if (!result || !result.startsWith('data:image/')) {
+            showToast('Formato de imagen no válido', 'error');
+            return;
+        }
         const user = window.currentUser;
         const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
-        data.logoNegocio = e.target.result;
+        data.logoNegocio = result;
         guardarDatos(user, data);
         actualizarLogoPreview();
     };
@@ -6519,7 +6552,7 @@ function descargarCotizacionPDF(idx) {
         if (!c) return;
 
         const negocio = (CLIENTS[user] && CLIENTS[user].name) || 'Mi Negocio';
-        const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/')) ? data.logoNegocio : '';
+        const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
         const fecha = c.fecha || new Date().toISOString().slice(0,10);
         const generadoEn = new Date().toLocaleString('es-MX');
         const esMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
