@@ -5755,6 +5755,42 @@ function renderInicio() {
         }
     }
 
+    // Control de empleados — solo dueño
+    if (esDueno) {
+        var empleados = data.empleados || [];
+        var empStats = {};
+        empleados.forEach(function(emp) {
+            empStats[emp.nombre] = { ventas: 0, monto: 0, sucursal: emp.sucursal || '', ultimoAcceso: emp.ultimoAcceso || 'Nunca' };
+        });
+        ventas.forEach(function(v) {
+            var vendedor = v.vendedor;
+            if (vendedor && empStats[vendedor]) {
+                empStats[vendedor].ventas += (v.cantidad || 1);
+                empStats[vendedor].monto += parseFloat(v.total || v.monto || 0);
+            }
+        });
+        var empNames = Object.keys(empStats);
+        if (empNames.length > 0) {
+            html += `<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1rem; margin-bottom:1.5rem;">
+                <div style="font-weight:700; color:var(--white); margin-bottom:0.8rem;">Actividad de empleados</div>`;
+            empNames.forEach(function(nombre) {
+                var s = empStats[nombre];
+                html += `<div style="display:flex; align-items:center; justify-content:space-between; gap:0.8rem; padding:0.7rem 0; border-bottom:1px solid var(--border); flex-wrap:wrap;">
+                    <div style="min-width:100px;">
+                        <div style="font-weight:600; color:var(--white); font-size:0.9rem;">${escapeHTML(nombre)}</div>
+                        ${s.sucursal ? `<div style="font-size:0.75rem; color:var(--orange);">${escapeHTML(s.sucursal)}</div>` : ''}
+                        <div style="font-size:0.72rem; color:var(--muted);">${escapeHTML(s.ultimoAcceso)}</div>
+                    </div>
+                    <div style="display:flex; gap:1rem; flex-shrink:0;">
+                        <div style="text-align:center;"><div style="font-size:1rem; font-weight:800; color:var(--green);">${s.ventas}</div><div style="font-size:0.68rem; color:var(--muted);">Ventas</div></div>
+                        <div style="text-align:center;"><div style="font-size:1rem; font-weight:800; color:var(--orange);">${fmt(s.monto)}</div><div style="font-size:0.68rem; color:var(--muted);">Total</div></div>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+    }
+
     // Si es dueño, resumen de ventas del día
     if (esDueno && ventasHoy.length > 0) {
         html += `<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1rem; margin-bottom:1.5rem;">
