@@ -2638,47 +2638,24 @@ function mostrarAcceso() {
             <div style="position: relative; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: clamp(1.5rem, 5vw, 2.5rem); max-width: 420px; width: 100%; margin: auto;">
                 <button onclick="cerrarLogin()" style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); font-size: 1rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1;">✕</button>
                 <h2 style="font-family: 'Bebas Neue'; font-size: clamp(1.5rem, 6vw, 1.8rem); margin-bottom: 0.4rem; color: var(--white); padding-right: 2.5rem;">Acceso <span style="color: var(--orange);">Exclusivo</span></h2>
-                <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.6;">Panel de Control para Clientes Autorizados</p>
-
-                <!-- Selector de rol -->
-                <div style="margin-bottom: 1.2rem;">
-                    <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem;">¿Cómo ingresas?</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
-                        <button type="button" class="rol-btn active-rol" data-rol="dueno"
-                            onclick="seleccionarRol(this)"
-                            style="padding: 0.75rem 0.5rem; border-radius: 6px; border: 2px solid var(--orange); background: rgba(244,106,31,0.15); color: var(--white); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; min-height: 48px;">
-                            Dueño
-                        </button>
-                        <button type="button" class="rol-btn" data-rol="trabajador"
-                            onclick="seleccionarRol(this)"
-                            style="padding: 0.75rem 0.5rem; border-radius: 6px; border: 2px solid var(--border); background: var(--bg3); color: var(--muted); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; min-height: 48px;">
-                            Trabajador
-                        </button>
-                    </div>
-                </div>
+                <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.6;">Ingresa con tu usuario y contraseña</p>
 
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Negocio (cuenta)</label>
-                        <input type="text" id="loginUser" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
-                    </div>
-                    <!-- Campo extra solo para empleados -->
-                    <div id="loginEmpUserDiv" style="display:none;">
-                        <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Tu usuario de empleado</label>
-                        <input type="text" id="loginEmpUser" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" placeholder="Ej. ana" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
+                        <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Usuario</label>
+                        <input type="text" id="loginUser" autocomplete="username" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
                     </div>
                     <div>
                         <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Contraseña</label>
-                        <input type="password" id="loginPass" autocomplete="current-password" onkeydown="if(event.key==='Enter')validarLogin()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
+                        <input type="password" id="loginPass" autocomplete="current-password" placeholder="Tu contraseña" onkeydown="if(event.key==='Enter')validarLogin()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
                     </div>
-                    <button onclick="validarLogin()" style="background: var(--orange); color: #fff; border: none; padding: 1rem; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: background 0.2s; margin-top: 0.25rem; min-height: 48px;">Acceder →</button>
+                    <button onclick="validarLogin()" style="background: var(--orange); color: #fff; border: none; padding: 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: background 0.2s; margin-top: 0.25rem; min-height: 48px;">Acceder →</button>
                     <div id="loginError" style="color: var(--red); font-size: 0.85rem; text-align: center; display: none; padding: 0.5rem; background: rgba(239,68,68,0.1); border-radius: 3px;"></div>
                 </div>
             </div>
         </div>
     `;
 
-    // Evitar duplicados si se llama varias veces
     const existing = document.getElementById('loginModal');
     if (existing) existing.remove();
     document.body.insertAdjacentHTML('beforeend', loginHTML);
@@ -2701,7 +2678,6 @@ function cerrarLogin() {
 }
 
 async function validarLogin() {
-    // Rate limiting — bloquear después de 5 intentos fallidos en 5 minutos
     if (!window._loginAttempts) window._loginAttempts = [];
     var now = Date.now();
     window._loginAttempts = window._loginAttempts.filter(function(t) { return now - t < 300000; });
@@ -2710,63 +2686,59 @@ async function validarLogin() {
         return;
     }
 
-    const user = document.getElementById('loginUser').value.trim();
+    const user = document.getElementById('loginUser').value.trim().toLowerCase();
     const pass = document.getElementById('loginPass').value;
-    const rolSeleccionado = document.querySelector('.rol-btn.active-rol')?.dataset.rol || 'dueno';
 
     if (!user || !pass) {
         mostrarErrorLogin('Completa usuario y contraseña');
         return;
     }
 
+    const passHash = await _h(pass);
+
+    // 1. Intentar como dueño de un negocio
     const creds = CRED_HASHES[user];
-    if (!creds) {
-        window._loginAttempts.push(Date.now());
-        mostrarErrorLogin('Usuario o contraseña incorrectos');
-        document.getElementById('loginPass').value = '';
+    if (creds && passHash === creds.dueno) {
+        window.currentEmpleado = null;
+        iniciarDashboard(user, 'dueno');
+        cerrarLogin();
         return;
     }
 
-    const passHash = await _h(pass);
+    // 2. Intentar como contraseña maestra de trabajador
+    if (creds && passHash === creds.trabajador) {
+        window.currentEmpleado = null;
+        iniciarDashboard(user, 'trabajador');
+        cerrarLogin();
+        return;
+    }
 
-    if (rolSeleccionado === 'dueno') {
-        if (passHash === creds.dueno) {
-            window.currentEmpleado = null;
-            iniciarDashboard(user, 'dueno');
-            cerrarLogin();
-        } else {
-            window._loginAttempts.push(Date.now());
-            mostrarErrorLogin('Usuario o contraseña incorrectos');
-            document.getElementById('loginPass').value = '';
-        }
-    } else {
-        // Trabajador: primero buscar en empleados guardados
-        const empUsername = (document.getElementById('loginEmpUser')?.value || '').trim();
-        const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
-        const empleados = data.empleados || [];
-        // Compatibilidad: admite passwordHash (nuevo) o password en texto plano (empleados anteriores)
-        const emp = empUsername
-            ? empleados.find(e => e.username === empUsername &&
-                (e.passwordHash ? e.passwordHash === passHash : e.password === pass))
-            : null;
+    // 3. Intentar como empleado registrado — buscar en todos los negocios
+    var loginOK = false;
+    var negocios = Object.keys(CRED_HASHES);
+    for (var i = 0; i < negocios.length; i++) {
+        var neg = negocios[i];
+        var data = JSON.parse(localStorage.getItem('data_' + neg) || '{}');
+        var empleados = data.empleados || [];
+        var emp = empleados.find(function(e) {
+            return e.username === user && (e.passwordHash ? e.passwordHash === passHash : e.password === pass);
+        });
         if (emp) {
-            // Migrar contraseña a hash si aún está en texto plano
             if (!emp.passwordHash) { emp.passwordHash = passHash; delete emp.password; }
             emp.ultimoAcceso = new Date().toLocaleString('es-MX');
-            guardarDatos(user, data);
+            guardarDatos(neg, data);
             window.currentEmpleado = emp;
-            iniciarDashboard(user, 'trabajador');
+            iniciarDashboard(neg, 'trabajador');
             cerrarLogin();
-        } else if (!empUsername && passHash === creds.trabajador) {
-            // Contraseña maestra de trabajador (sin usuario de empleado)
-            window.currentEmpleado = null;
-            iniciarDashboard(user, 'trabajador');
-            cerrarLogin();
-        } else {
-            window._loginAttempts.push(Date.now());
-            mostrarErrorLogin('Usuario o contraseña incorrectos');
-            document.getElementById('loginPass').value = '';
+            loginOK = true;
+            break;
         }
+    }
+
+    if (!loginOK) {
+        window._loginAttempts.push(Date.now());
+        mostrarErrorLogin('Usuario o contraseña incorrectos');
+        document.getElementById('loginPass').value = '';
     }
 }
 
