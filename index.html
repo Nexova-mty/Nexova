@@ -616,10 +616,10 @@ function iniciarSyncFirestore(user) {
           if (tab === 'inicio') renderInicio();
           else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
           else if (tab === 'inventario') renderInventario();
+          else if (tab === 'costos') renderCostos();
           else if (tab === 'reportes') renderReportes();
           else if (tab === 'graficas') renderGraficas();
           else if (tab === 'citas') renderCitas();
-          else if (tab === 'costos') renderCostos();
           else if (tab === 'cotizaciones') renderCotizaciones();
           else if (tab === 'ajustes') renderAjustes();
         }
@@ -2521,6 +2521,7 @@ function doLogout() {
     localStorage.removeItem('currentRole');
     localStorage.removeItem('_nxs');
     localStorage.removeItem('_nxt');
+    localStorage.removeItem('_nxv');
 }
 
 function abrirHistorialCliente() {
@@ -2792,7 +2793,7 @@ async function _verificarToken(user, rol) {
     const nonce = localStorage.getItem('_nxs');
     const token = localStorage.getItem('_nxt');
     const version = localStorage.getItem('_nxv');
-    if (!version) return true;  // primera vez después de actualización, permitir
+    if (!version) return false;  // token incompleto, require re-login
     if (!nonce || !token) return false;
     const expected = await _h(user + '|' + rol + '|' + nonce + '|' + _nx);
     return expected === token;
@@ -3002,7 +3003,7 @@ function switchTab(tab, btn) {
 
     if (tab === 'inicio') renderInicio();
     else if (tab === 'cajas') renderCajas();
-    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderHistorialCaja(); }
+    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
     else if (tab === 'inventario') renderInventario();
     else if (tab === 'reportes') renderReportes();
     else if (tab === 'graficas') renderGraficas();
@@ -3013,9 +3014,11 @@ function switchTab(tab, btn) {
 }
 
 function filtrarProductosPOS() {
-    const busqueda = document.getElementById('busquedaProductosPOS').value.toLowerCase();
+    const busquedaEl = document.getElementById('busquedaProductosPOS');
+    const busqueda = busquedaEl ? busquedaEl.value.toLowerCase() : '';
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
     const grid = document.getElementById('productosGrid');
+    if (!grid) return;
     grid.innerHTML = '';
     (data.productos || []).filter(p => p.nombre.toLowerCase().includes(busqueda)).forEach(prod => {
         const card = document.createElement('div');
@@ -3111,6 +3114,7 @@ function cambiarCaja(idx) {
 function renderProductos() {
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
     const grid = document.getElementById('productosGrid');
+    if (!grid) return;
     grid.innerHTML = '';
     (data.productos || []).forEach(prod => {
         const card = document.createElement('div');
@@ -3126,7 +3130,7 @@ function renderProductos() {
 }
 
 function agregarAlCarrito(producto) {
-    if (producto.stock <= 0) {
+    if ((producto.stock || 0) <= 0) {
         showToast('Sin stock', 'error');
         return;
     }
@@ -3272,7 +3276,7 @@ function imprimirTicket(carrito, total, metodo, fechaHora, cajaNombre) {
             <div class="center">
                 ${logo ? `<img class="logo" src="${logo}">` : ''}
                 <h1>${escapeHTML(negocio)}</h1>
-                <div>${fechaHora}</div>
+                <div>${escapeHTML(fechaHora)}</div>
                 <div>Caja: ${escapeHTML(cajaNombre || '')}</div>
             </div>
             <hr>
@@ -3398,8 +3402,10 @@ function completarVenta(metodo) {
 function renderInventario() {
     if (!window.currentUser) return;
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-    const busqueda = document.getElementById('busquedaProducto').value.toLowerCase();
+    const busquedaEl = document.getElementById('busquedaProducto');
+    const busqueda = busquedaEl ? busquedaEl.value.toLowerCase() : '';
     const tbody = document.getElementById('inventarioTable');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     (data.productos || []).forEach((prod, idx) => {
@@ -3477,6 +3483,7 @@ function guardarNuevaCaja() {
     document.getElementById('vendedorCaja').value = '';
     cerrarModalCaja();
     renderCajas();
+    renderCajasSelect();
 }
 
 // INVENTARIO
@@ -3532,6 +3539,7 @@ function guardarNuevoProducto() {
     if (fotoEl) { fotoEl.src = ''; fotoEl.style.display = 'none'; }
     cerrarModalProducto();
     renderInventario();
+    renderProductos();
 }
 
 function filtrarProductos() {
@@ -3630,11 +3638,12 @@ function guardarEditarVenta() {
     cerrarModalEditarVenta();
     showToast('Venta actualizada');
     renderReportes();
+    renderCajas();
 }
 
 function abrirModalEditarGasto(idx) {
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-    const gasto = data.gastos[idx];
+    const gasto = (data.gastos || [])[idx];
     if (!gasto) return;
     indexGastoEditando = idx;
 
@@ -4987,7 +4996,7 @@ function generarPDF() {
         });
 
         let gastosHTML = '<tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Tipo</th></tr>';
-        (data.gastos || []).forEach(g => {
+        (data.gastos || []).filter(g => matchesPeriodo(g.fecha)).forEach(g => {
             gastosHTML += `<tr><td>${escapeHTML(g.fecha||'')}</td><td>${escapeHTML(g.concepto||'')}</td><td>$${parseFloat(g.monto||0).toFixed(2)}</td><td>${g.tipo === 'fijo' ? 'Fijo' : 'Variable'}</td></tr>`;
         });
         
@@ -5207,14 +5216,9 @@ function eliminarCajaDirecto(idx) {
 function confirmarEliminarCaja() {
     if (indexCajaEditando === null) return;
     if (confirm('¿Estás seguro de eliminar esta caja?')) {
-        const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-        data.cajas = data.cajas || [];
-        if (indexCajaEditando >= 0 && indexCajaEditando < data.cajas.length) {
-            data.cajas.splice(indexCajaEditando, 1);
-            guardarDatos(window.currentUser, data);
-        }
+        const idx = indexCajaEditando;
         cerrarModalEditarCaja();
-        renderCajas();
+        eliminarCajaDirecto(idx);
     }
 }
 
@@ -5267,6 +5271,7 @@ function guardarEditarProducto() {
     guardarDatos(window.currentUser, data);
     cerrarModalEditarProducto();
     renderInventario();
+    renderProductos();
     showToast('Producto actualizado', 'success');
 }
 
@@ -5281,6 +5286,7 @@ function confirmarEliminarProducto() {
         }
         cerrarModalEditarProducto();
         renderInventario();
+        renderProductos();
     }
 }
 
@@ -5576,7 +5582,7 @@ function renderInicio() {
         return `${parts[2]}-${parts[1]}-${parts[0]}` === hoyISO;
     }
 
-    const ventasHoy  = ventas.filter(v => esHoy(v.fecha));
+    const ventasHoy  = ventas.filter(v => esHoy(v.fecha || v.hora));
     const gastosHoy  = gastos.filter(g => esHoy(g.fecha));
     const totalVentas = ventasHoy.reduce((s,v) => s + (parseFloat(v.total || v.monto || 0)||0), 0);
     const totalGastos = gastosHoy.reduce((s,g) => s + (parseFloat(g.monto)||0), 0);
@@ -5685,7 +5691,7 @@ function renderInicio() {
         const ventasMes = ventas.filter(v => {
             const p = parseFechaStr(v.fecha);
             return p && p.getMonth() === hoyMTY.getMonth() && p.getFullYear() === hoyMTY.getFullYear();
-        }).reduce((s,v) => s + (parseFloat(v.total)||0), 0);
+        }).reduce((s,v) => s + (parseFloat(v.total || v.monto)||0), 0);
 
         if (data.metaVentaMensual) {
             const meta = parseFloat(data.metaVentaMensual);
@@ -5963,7 +5969,8 @@ async function guardarEmpleado() {
     const password = document.getElementById('empPassword').value.trim();
     const editIdx  = document.getElementById('empleadoEditIdx').value;
 
-    if (!nombre || !username || !password) { showToast('Completa todos los campos', 'error'); return; }
+    const isEdit = editIdx !== '';
+    if (!nombre || !username || (!isEdit && !password)) { showToast('Completa todos los campos', 'error'); return; }
     if (/\s/.test(username)) { showToast('El usuario no puede tener espacios', 'error'); return; }
 
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
@@ -5974,11 +5981,15 @@ async function guardarEmpleado() {
     if (duplicado) { showToast('Ese usuario ya existe, elige otro', 'error'); return; }
 
     // Guardar contraseña como hash SHA-256 (nunca en texto plano)
-    const passwordHash = await _h(password);
+    const passwordHash = password ? await _h(password) : null;
 
     if (editIdx !== '') {
         const emp = data.empleados[parseInt(editIdx)];
-        if (emp) { emp.nombre = nombre; emp.username = username; emp.passwordHash = passwordHash; delete emp.password; }
+        if (emp) {
+            emp.nombre = nombre;
+            emp.username = username;
+            if (passwordHash) { emp.passwordHash = passwordHash; delete emp.password; }
+        }
     } else {
         data.empleados.push({ nombre, username, passwordHash, ultimoAcceso: null });
     }
@@ -6024,7 +6035,7 @@ function renderHistorialCaja() {
         const p = (v.fecha||'').split(',')[0].trim().split('/');
         if (p.length !== 3) return false;
         const iso = `${p[2].padStart(4,'0')}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-        return iso === hoyISO && v.cajaNombre === cajaNombre;
+        return iso === hoyISO && (v.cajaNombre === cajaNombre || v.caja === cajaNombre);
     });
     if (ventas.length === 0) { el.innerHTML = `<div style="color:var(--muted); font-size:0.85rem; padding:0.5rem 0;">Sin ventas registradas hoy en esta caja.</div>`; return; }
     const total = ventas.reduce((s,v) => s + (parseFloat(v.total)||0), 0);
@@ -6381,6 +6392,11 @@ function actualizarLogoPreview() {
 function subirLogoNegocio(input) {
     const file = input.files && input.files[0];
     if (!file) return;
+    if (file.size > 500 * 1024) {
+        showToast('La imagen es demasiado grande. Máximo 500 KB.', 'error');
+        input.value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.onload = function(e) {
         const result = e.target.result;
