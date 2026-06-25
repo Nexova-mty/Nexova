@@ -2,6 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>NEXOVA — Automatización No-Code para negocios en Monterrey</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -579,6 +583,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+// IMPORTANTE: Configurar reglas de Firestore en Firebase Console:
+// rules_version = '2';
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//     match /negocios/{negocioId} {
+//       allow read, write: if request.auth != null;
+//     }
+//   }
+// }
 firebase.initializeApp({
   apiKey: "AIzaSyAhStb6vYzd17ff6zH2lppFYAp7B58tr8g",
   authDomain: "nexova-mty.firebaseapp.com",
@@ -590,12 +603,22 @@ firebase.initializeApp({
 var _db = firebase.firestore();
 
 function guardarDatos(user, data) {
-  localStorage.setItem('data_' + user, JSON.stringify(data));
+  var raw = JSON.stringify(data);
+  localStorage.setItem('data_' + user, raw);
+  _h(raw).then(function(hash) { localStorage.setItem('_hash_' + user, hash); });
   _db.collection('negocios').doc(user).set(data, { merge: true }).catch(function(e) { console.warn('Firestore write error:', e); });
 }
 
 function cargarDatos(user) {
   return JSON.parse(localStorage.getItem('data_' + user) || '{}');
+}
+
+async function verificarIntegridadDatos(user) {
+    var raw = localStorage.getItem('data_' + user);
+    var storedHash = localStorage.getItem('_hash_' + user);
+    if (!raw || !storedHash) return true; // no data yet
+    var currentHash = await _h(raw);
+    return currentHash === storedHash;
 }
 
 var _unsubscribeSnapshot = null;
@@ -2678,6 +2701,15 @@ function cerrarLogin() {
 }
 
 async function validarLogin() {
+    // Rate limiting — bloquear después de 5 intentos fallidos en 5 minutos
+    if (!window._loginAttempts) window._loginAttempts = [];
+    var now = Date.now();
+    window._loginAttempts = window._loginAttempts.filter(function(t) { return now - t < 300000; });
+    if (window._loginAttempts.length >= 5) {
+        mostrarErrorLogin('Demasiados intentos. Espera 5 minutos.');
+        return;
+    }
+
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value;
     const rolSeleccionado = document.querySelector('.rol-btn.active-rol')?.dataset.rol || 'dueno';
@@ -2689,6 +2721,7 @@ async function validarLogin() {
 
     const creds = CRED_HASHES[user];
     if (!creds) {
+        window._loginAttempts.push(Date.now());
         mostrarErrorLogin('Usuario o contraseña incorrectos');
         document.getElementById('loginPass').value = '';
         return;
@@ -2702,6 +2735,7 @@ async function validarLogin() {
             iniciarDashboard(user, 'dueno');
             cerrarLogin();
         } else {
+            window._loginAttempts.push(Date.now());
             mostrarErrorLogin('Usuario o contraseña incorrectos');
             document.getElementById('loginPass').value = '';
         }
@@ -2729,6 +2763,7 @@ async function validarLogin() {
             iniciarDashboard(user, 'trabajador');
             cerrarLogin();
         } else {
+            window._loginAttempts.push(Date.now());
             mostrarErrorLogin('Usuario o contraseña incorrectos');
             document.getElementById('loginPass').value = '';
         }
@@ -2777,6 +2812,7 @@ const CRED_HASHES = {
     'zaylashes': { dueno: 'ed9fd48d1f9aecfaab66f699eb793ec072d651fab8705cabd9cf1517a4b17489', trabajador: '4f50f93bfae1314d5f4bbcaeeb108715719b41d644fbcb572fbe12f49ae42cd5' },
     'demo':      { dueno: 'd3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791', trabajador: '312bba6ac1c4274943d7d3c1f346e8e27310c731e407ce5592d82f0d101fbff1' },
 };
+Object.freeze(CRED_HASHES);
 
 // Generar y guardar token de sesión (fire-and-forget)
 function _generarToken(user, rol) {
@@ -2802,6 +2838,11 @@ async function _verificarToken(user, rol) {
 
 // Bloquear clic derecho (evita "Inspeccionar elemento" y "Ver código fuente")
 document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+// Sanitize URL — remove any suspicious parameters
+if (location.search && !location.search.match(/^\?(autodemo)?$/)) {
+    history.replaceState(null, '', location.pathname);
+}
 
 // Bloquear atajos de teclado para DevTools y vista de código
 document.addEventListener('keydown', function(e) {
@@ -2847,6 +2888,7 @@ const CLIENTS = {
     zaylashes: { name: 'ZR Studio Lashes', productos: [{id:1, nombre:'Extensiones', precio:450}, {id:2, nombre:'Relleno', precio:150}] },
     demo: { name: 'Demo Sistema NEXOVA', productos: [{id:1,nombre:'Corte de cabello',precio:80},{id:2,nombre:'Tinte completo',precio:350},{id:3,nombre:'Shampoo profesional',precio:180},{id:4,nombre:'Peinado',precio:120},{id:5,nombre:'Depilacion cejas',precio:60},{id:6,nombre:'Keratina',precio:450},{id:7,nombre:'Unas acrilicas',precio:320},{id:8,nombre:'Mascarilla capilar',precio:200}] },
 };
+Object.freeze(CLIENTS);
 
 function seleccionarRol(btn) {
     document.querySelectorAll('.rol-btn').forEach(b => {
