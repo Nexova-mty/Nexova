@@ -1437,6 +1437,7 @@ function detenerSyncFirestore() {
                                 <th>Productos</th>
                                 <th>Total</th>
                                 <th>Pago</th>
+                                <th>Vendedor</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -1707,6 +1708,12 @@ function detenerSyncFirestore() {
                     <div id="listaEmpleadosAjustes"></div>
                 </div>
 
+                <div id="ajustesActividadSection" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Control de Empleados</h3>
+                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Ventas y actividad de cada empleado y sucursal.</p>
+                    <div id="actividadEmpleadosContainer"></div>
+                </div>
+
                 <!-- Acciones -->
                 <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;" id="ajustesDuenoOnly">
                     <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; text-transform:uppercase; letter-spacing:0.05em;">Datos</h3>
@@ -1927,6 +1934,10 @@ function detenerSyncFirestore() {
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Usuario de acceso</label>
             <input type="text" id="empUsername" placeholder="Ej. ana (sin espacios)" autocomplete="off" oninput="this.value=this.value.replace(/\s/g,'')" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
             <div style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem;">El empleado usará esto para iniciar sesión.</div>
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Sucursal (opcional)</label>
+            <input type="text" id="empSucursal" placeholder="Ej. Sucursal Centro" autocomplete="off" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
         </div>
         <div style="margin-bottom:1.2rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Contraseña</label>
@@ -3382,10 +3393,11 @@ function completarVenta(metodo) {
             cantidad: item.qty,
             monto: item.precio * item.qty,
             total: item.precio * item.qty,
-            metodo: metodo
+            metodo: metodo,
+            vendedor: window.currentEmpleado ? window.currentEmpleado.nombre : (window.currentRole === 'dueno' ? 'Dueño' : 'Trabajador')
         });
     });
-    
+
     data.cajas[cajaIdx].ventas  = (parseFloat(data.cajas[cajaIdx].ventas)  || 0) + total;
     if (metodo === 'efectivo') {
         data.cajas[cajaIdx].efectivo = (parseFloat(data.cajas[cajaIdx].efectivo) || 0) + total;
@@ -4284,7 +4296,7 @@ function renderReportes() {
         if (buscar && !prods.toLowerCase().includes(buscar) && !caja.toLowerCase().includes(buscar)) return;
         const realIdx = allVentas.indexOf(v);
         const row = document.createElement('tr');
-        row.innerHTML = `<td style="white-space:nowrap;">${escapeHTML(v.fecha||'')}</td><td>${escapeHTML(caja)}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(prods)}</td><td style="white-space:nowrap;">$${total.toFixed(2)}</td><td>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta / Transfer.'}</td><td style="white-space:nowrap;"><button onclick="abrirModalEditarVenta(${realIdx})" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.35rem 0.7rem; border-radius:4px; cursor:pointer; font-size:0.75rem;">Editar</button></td>`;
+        row.innerHTML = `<td style="white-space:nowrap;">${escapeHTML(v.fecha||'')}</td><td>${escapeHTML(caja)}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(prods)}</td><td style="white-space:nowrap;">$${total.toFixed(2)}</td><td>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta / Transfer.'}</td><td>${escapeHTML(v.vendedor || 'Sin registrar')}</td><td style="white-space:nowrap;"><button onclick="abrirModalEditarVenta(${realIdx})" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.35rem 0.7rem; border-radius:4px; cursor:pointer; font-size:0.75rem;">Editar</button></td>`;
         tbody.appendChild(row);
     });
     
@@ -4968,6 +4980,7 @@ function completarCita(id) {
         const cita2 = (data2.citas || []).find(c => c.id === id);
         if (cita2) {
             cita2.estado = 'completada';
+            cita2.completadaPor = window.currentEmpleado ? window.currentEmpleado.nombre : (window.currentRole === 'dueno' ? 'Dueño' : 'Trabajador');
             if (nota) cita2.notaCompletada = nota;
             guardarDatos(window.currentUser, data2);
         }
@@ -5000,13 +5013,13 @@ function generarPDF() {
         totalGastos = (data.gastos || []).filter(g => matchesPeriodo(g.fecha)).reduce((sum, g) => sum + (parseFloat(g.monto)||0), 0);
         const ganancia = total - totalGastos;
 
-        let ventasHTML = '<tr><th>Fecha/Hora</th><th>Caja</th><th>Productos</th><th>Total</th><th>Método</th></tr>';
+        let ventasHTML = '<tr><th>Fecha/Hora</th><th>Caja</th><th>Productos</th><th>Total</th><th>Método</th><th>Vendedor</th></tr>';
         (data.ventas || []).filter(v => matchesPeriodo(v.fecha || v.hora)).forEach(v => {
             const m = parseFloat(v.total || v.monto || 0);
             const prods = Array.isArray(v.productos) && v.productos.length
                 ? v.productos.map(p => escapeHTML(p.nombre || '') + (p.cantidad > 1 ? ' ×'+p.cantidad : '')).join(', ')
                 : escapeHTML(v.producto || '—');
-            ventasHTML += `<tr><td>${escapeHTML(v.fecha||'')}</td><td>${escapeHTML(v.cajaNombre||v.caja||'—')}</td><td>${prods}</td><td>$${m.toFixed(2)}</td><td>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta / Transfer.'}</td></tr>`;
+            ventasHTML += `<tr><td>${escapeHTML(v.fecha||'')}</td><td>${escapeHTML(v.cajaNombre||v.caja||'—')}</td><td>${prods}</td><td>$${m.toFixed(2)}</td><td>${v.metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta / Transfer.'}</td><td>${escapeHTML(v.vendedor||'Sin registrar')}</td></tr>`;
         });
 
         let gastosHTML = '<tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Tipo</th></tr>';
@@ -5109,11 +5122,11 @@ function abrirEnGoogleSheets() {
         filas.push(['Ganancia Neta', (totalVentas - totalGastos).toFixed(2)]);
         filas.push(['', '', '', '', '', '']);
         filas.push(['VENTAS', '', '', '', '', '']);
-        filas.push(['Fecha', 'Caja', 'Producto', 'Cantidad', 'Total', 'Metodo']);
+        filas.push(['Fecha', 'Caja', 'Producto', 'Cantidad', 'Total', 'Metodo', 'Vendedor']);
         ventas.forEach(function(v) {
             var m = parseFloat(v.total || v.monto || 0);
             var prods = Array.isArray(v.productos) && v.productos.length ? v.productos.map(function(p){ return p.nombre + (p.cantidad > 1 ? ' x'+p.cantidad : ''); }).join(', ') : (v.producto || '');
-            filas.push([v.fecha||'', v.cajaNombre||v.caja||'', prods, v.cantidad||1, m.toFixed(2), v.metodo||'']);
+            filas.push([v.fecha||'', v.cajaNombre||v.caja||'', prods, v.cantidad||1, m.toFixed(2), v.metodo||'', v.vendedor||'Sin registrar']);
         });
         filas.push(['', '', '', '', '', '']);
         filas.push(['GASTOS', '', '', '', '', '']);
@@ -5916,11 +5929,14 @@ function renderAjustes() {
         empSection.style.display = esDueno ? '' : 'none';
         if (esDueno) renderEmpleadosAjustes();
     }
+    var actSection = document.getElementById('ajustesActividadSection');
+    if (actSection) actSection.style.display = esDueno ? '' : 'none';
     if (r) {
         r.textContent = esDueno ? 'Dueño' : (window.currentEmpleado ? window.currentEmpleado.nombre : 'Trabajador');
         r.style.color = esDueno ? 'var(--orange)' : 'var(--muted)';
     }
     actualizarLogoPreview();
+    renderActividadEmpleados();
 }
 
 function renderEmpleadosAjustes() {
@@ -5949,11 +5965,60 @@ function renderEmpleadosAjustes() {
         </div>`).join('');
 }
 
+function renderActividadEmpleados() {
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    var empleados = data.empleados || [];
+    var ventas = data.ventas || [];
+    var container = document.getElementById('actividadEmpleadosContainer');
+    if (!container) return;
+
+    if (empleados.length === 0) {
+        container.innerHTML = '<div style="color:var(--muted); font-size:0.88rem; padding:0.8rem 0;">Agrega empleados para ver su actividad.</div>';
+        return;
+    }
+
+    var stats = {};
+    stats['Dueño'] = { ventas: 0, monto: 0, sucursal: '' };
+    stats['Trabajador'] = { ventas: 0, monto: 0, sucursal: '' };
+    empleados.forEach(function(emp) {
+        stats[emp.nombre] = { ventas: 0, monto: 0, sucursal: emp.sucursal || '', ultimoAcceso: emp.ultimoAcceso || 'Nunca' };
+    });
+
+    ventas.forEach(function(v) {
+        var vendedor = v.vendedor || 'Sin registrar';
+        if (!stats[vendedor]) stats[vendedor] = { ventas: 0, monto: 0, sucursal: '' };
+        stats[vendedor].ventas += (v.cantidad || 1);
+        stats[vendedor].monto += parseFloat(v.total || v.monto || 0);
+    });
+
+    var html = '';
+    Object.keys(stats).forEach(function(nombre) {
+        var s = stats[nombre];
+        if (nombre === 'Trabajador' && s.ventas === 0) return;
+        var isEmp = empleados.find(function(e){ return e.nombre === nombre; });
+        html += '<div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.85rem 0; border-bottom:1px solid var(--border); flex-wrap:wrap;">' +
+            '<div style="flex:1; min-width:120px;">' +
+                '<div style="font-weight:700; color:var(--white); font-size:0.95rem;">' + escapeHTML(nombre) + '</div>' +
+                (s.sucursal ? '<div style="font-size:0.78rem; color:var(--orange); margin-top:0.15rem;">' + escapeHTML(s.sucursal) + '</div>' : '') +
+                (isEmp && s.ultimoAcceso ? '<div style="font-size:0.75rem; color:var(--muted); margin-top:0.1rem;">Ultimo acceso: ' + escapeHTML(s.ultimoAcceso) + '</div>' : '') +
+            '</div>' +
+            '<div style="display:flex; gap:1.2rem; flex-shrink:0;">' +
+                '<div style="text-align:center;"><div style="font-size:1.1rem; font-weight:800; color:var(--green);">' + s.ventas + '</div><div style="font-size:0.7rem; color:var(--muted);">Ventas</div></div>' +
+                '<div style="text-align:center;"><div style="font-size:1.1rem; font-weight:800; color:var(--orange);">$' + s.monto.toFixed(2) + '</div><div style="font-size:0.7rem; color:var(--muted);">Total</div></div>' +
+            '</div>' +
+        '</div>';
+    });
+
+    container.innerHTML = html || '<div style="color:var(--muted);">Sin actividad registrada.</div>';
+}
+
 function abrirModalNuevoEmpleado() {
     document.getElementById('tituloModalEmpleado').textContent = 'Nuevo Empleado';
     document.getElementById('empleadoEditIdx').value = '';
     document.getElementById('empNombre').value = '';
     document.getElementById('empUsername').value = '';
+    if (document.getElementById('empSucursal')) document.getElementById('empSucursal').value = '';
     document.getElementById('empPassword').value = '';
     document.getElementById('modalNuevoEmpleado').style.display = 'flex';
     setTimeout(() => document.getElementById('empNombre').focus(), 80);
@@ -5967,6 +6032,7 @@ function abrirModalEditarEmpleado(idx) {
     document.getElementById('empleadoEditIdx').value = idx;
     document.getElementById('empNombre').value = emp.nombre || '';
     document.getElementById('empUsername').value = emp.username || '';
+    if (document.getElementById('empSucursal')) document.getElementById('empSucursal').value = emp.sucursal || '';
     document.getElementById('empPassword').value = '';
     document.getElementById('modalNuevoEmpleado').style.display = 'flex';
     setTimeout(() => document.getElementById('empNombre').focus(), 80);
@@ -5981,6 +6047,7 @@ async function guardarEmpleado() {
     const nombre   = document.getElementById('empNombre').value.trim();
     const username = document.getElementById('empUsername').value.trim().toLowerCase();
     const password = document.getElementById('empPassword').value.trim();
+    const sucursal = (document.getElementById('empSucursal') ? document.getElementById('empSucursal').value.trim() : '');
     const editIdx  = document.getElementById('empleadoEditIdx').value;
 
     const isEdit = editIdx !== '';
@@ -6002,10 +6069,11 @@ async function guardarEmpleado() {
         if (emp) {
             emp.nombre = nombre;
             emp.username = username;
+            emp.sucursal = sucursal;
             if (passwordHash) { emp.passwordHash = passwordHash; delete emp.password; }
         }
     } else {
-        data.empleados.push({ nombre, username, passwordHash, ultimoAcceso: null });
+        data.empleados.push({ nombre, username, passwordHash, sucursal, ultimoAcceso: null });
     }
 
     guardarDatos(user, data);
