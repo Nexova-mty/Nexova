@@ -668,7 +668,8 @@ empId: emp.id || emp.username
 });
 } catch(e2) {}
 });
-var html = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Empleados <span style="color:var(--orange);">Global</span></h2>';
+var html = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Empleados <span style="color:var(--orange);">Global</span></h2>' +
+'<button onclick="adminAgregarEmpleado()" style="background:var(--orange); color:#fff; border:none; padding:0.7rem 1.5rem; border-radius:6px; cursor:pointer; font-weight:700; margin-bottom:1.5rem; min-height:44px;">+ Agregar Empleado</button>';
 if (allEmps.length === 0) {
 html += '<div style="color:var(--muted); padding:2rem; text-align:center;">No hay empleados registrados.</div>';
 } else {
@@ -727,6 +728,85 @@ renderAdminEmpleados();
 } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
+async function adminAgregarEmpleado() {
+if(!_isAdmin)return;
+var clientes = await _getAllClients();
+var options = clientes.map(function(c){ return '<option value="' + escapeHTML(c.username) + '">' + escapeHTML(c.negocio) + ' (' + escapeHTML(c.username) + ')</option>'; }).join('');
+
+var overlay = document.createElement('div');
+overlay.id = 'adminEmpModal';
+overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:420px;width:100%;">' +
+'<h3 style="color:var(--white);margin-bottom:1.2rem;">Agregar Empleado</h3>' +
+'<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Negocio</label>' +
+'<select id="adminEmpNegocio" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;">' + options + '</select></div>' +
+'<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Nombre completo</label>' +
+'<input type="text" id="adminEmpNombre" placeholder="Ej. Ana Garcia" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
+'<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Usuario</label>' +
+'<input type="text" id="adminEmpUsername" placeholder="Ej. ana" oninput="this.value=this.value.replace(/\\s/g,\'\').toLowerCase()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
+'<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Contrasena</label>' +
+'<input type="text" id="adminEmpPass" placeholder="Contrasena del empleado" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
+'<div style="margin-bottom:1.2rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Sucursal (opcional)</label>' +
+'<input type="text" id="adminEmpSucursal" placeholder="Ej. Sucursal Centro" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
+'<div style="display:flex;gap:0.8rem;">' +
+'<button onclick="adminGuardarEmpleado()" style="flex:1;background:var(--orange);color:#fff;border:none;padding:0.75rem;border-radius:6px;cursor:pointer;font-weight:700;min-height:48px;">Guardar</button>' +
+'<button onclick="document.getElementById(\'adminEmpModal\').remove()" style="flex:1;background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.75rem;border-radius:6px;cursor:pointer;min-height:48px;">Cancelar</button>' +
+'</div></div>';
+document.body.appendChild(overlay);
+}
+
+async function adminGuardarEmpleado() {
+if(!_isAdmin)return;
+var negocioUser = document.getElementById('adminEmpNegocio').value;
+var nombre = document.getElementById('adminEmpNombre').value.trim();
+var username = document.getElementById('adminEmpUsername').value.trim().toLowerCase();
+var password = document.getElementById('adminEmpPass').value;
+var sucursal = document.getElementById('adminEmpSucursal').value.trim();
+
+if (!nombre || !username || !password) { showToast('Completa todos los campos', 'error'); return; }
+
+try {
+var docRef = _db.collection('negocios').doc(negocioUser);
+var doc = await docRef.get();
+var data = doc.exists ? doc.data() : JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
+
+data.empleados = data.empleados || [];
+if (data.empleados.find(function(e){ return e.username === username; })) {
+showToast('Ese usuario ya existe en este negocio', 'error'); return;
+}
+
+var passHash = await _h(password);
+data.empleados.push({ nombre: nombre, username: username, passwordHash: passHash, sucursal: sucursal, ultimoAcceso: null });
+
+await docRef.set(data, { merge: true });
+localStorage.setItem('data_' + negocioUser, JSON.stringify(data));
+
+document.getElementById('adminEmpModal').remove();
+showToast('Empleado agregado a ' + negocioUser);
+renderAdminEmpleados();
+} catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function adminCambiarPassEmpleadoGlobal(negocioUser, empUsername) {
+if(!_isAdmin)return;
+var newPass = prompt('Nueva contrasena para ' + empUsername + ':');
+if (!newPass || newPass.length < 4) { showToast('Contrasena muy corta (minimo 4 caracteres)', 'error'); return; }
+try {
+var docRef = _db.collection('negocios').doc(negocioUser);
+var doc = await docRef.get();
+var data = doc.exists ? doc.data() : JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
+data.empleados = data.empleados || [];
+var emp = data.empleados.find(function(e){ return e.username === empUsername; });
+if (!emp) { showToast('Empleado no encontrado', 'error'); return; }
+emp.passwordHash = await _h(newPass);
+delete emp.password;
+await docRef.set(data, { merge: true });
+localStorage.setItem('data_' + negocioUser, JSON.stringify(data));
+showToast('Contrasena actualizada');
+renderAdminPasswords();
+} catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
 async function renderAdminPasswords() { if(!_isAdmin)return;
 var container = document.getElementById('adminPasswords');
 if (!container) return;
@@ -752,6 +832,27 @@ html += '<div style="background:var(--bg2); border:1px solid var(--border); bord
 '</div>' +
 '</div>';
 });
+html += '<h3 style="font-family:\'Bebas Neue\'; font-size:1.3rem; color:var(--white); margin:2rem 0 1rem;">Empleados</h3>';
+var anyEmp = false;
+clientes.forEach(function(c) {
+try {
+var data = JSON.parse(localStorage.getItem('data_' + c.username) || '{}');
+var empleados = data.empleados || [];
+empleados.forEach(function(emp) {
+anyEmp = true;
+html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">' +
+'<div>' +
+'<div style="font-weight:700; color:var(--white);">' + escapeHTML(emp.nombre || emp.username) + '</div>' +
+'<div style="font-size:0.78rem; color:var(--muted);">Usuario: ' + escapeHTML(emp.username) + ' &middot; Negocio: <span style="color:var(--orange);">' + escapeHTML(c.negocio) + '</span></div>' +
+'</div>' +
+'<button onclick="adminCambiarPassEmpleadoGlobal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(emp.username) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Cambiar contrasena</button>' +
+'</div>';
+});
+} catch(e2) {}
+});
+if (!anyEmp) {
+html += '<div style="color:var(--muted); padding:1rem; text-align:center;">No hay empleados registrados.</div>';
+}
 container.innerHTML = html;
 } catch(e) {
 container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
@@ -816,15 +917,62 @@ html += '<div style="background:var(--bg2); border:1px solid var(--border); bord
 '<div style="font-weight:700; color:var(--white); margin-bottom:0.6rem;">Firebase</div>' +
 '<div style="font-size:0.85rem; color:var(--muted);">Estado: <span style="color:' + fbColor + '; font-weight:600;">' + fbStatus + '</span></div>' +
 '</div>';
-html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
+html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:1rem;">' +
 '<div style="font-weight:700; color:var(--white); margin-bottom:0.6rem;">Seguridad</div>' +
 '<button onclick="adminCambiarPassAdmin()" style="background:var(--orange); color:#fff; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Cambiar contrasena admin</button>' +
 '</div>';
+html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:1rem;">' +
+'<div style="font-weight:700; color:var(--white); margin-bottom:0.8rem;">Registro de Actividad</div>' +
+'<div id="adminLogContainer" style="color:var(--muted); font-size:0.85rem;">Cargando logs...</div>' +
+'</div>';
+html += '<div style="background:var(--bg2); border:1px solid #f8717133; border-radius:10px; padding:1.2rem;">' +
+'<div style="font-weight:700; color:#f87171; margin-bottom:0.6rem;">Zona de Peligro</div>' +
+'<p style="font-size:0.82rem; color:var(--muted); margin-bottom:0.8rem;">Resetear borra TODOS los datos de un cliente (ventas, gastos, citas, productos, inventario). Esta accion no se puede deshacer.</p>' +
+'<button onclick="adminResetearCliente()" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.82rem; font-weight:700; min-height:36px;">Resetear datos de cliente</button>' +
+'</div>';
 container.innerHTML = html;
+try {
+var logsSnap = await _db.collection('logs').orderBy('timestamp', 'desc').limit(10).get();
+var logEl = document.getElementById('adminLogContainer');
+if (logEl) {
+if (logsSnap.empty) {
+logEl.innerHTML = '<span style="color:var(--muted);">No hay registros aun.</span>';
+} else {
+var logHtml = '';
+logsSnap.forEach(function(doc) {
+var l = doc.data();
+var icon = l.tipo === 'login' ? '&#x1F511;' : '&#x1F4CB;';
+logHtml += '<div style="padding:0.5rem 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">' +
+'<div><span style="margin-right:0.4rem;">' + icon + '</span>' +
+'<span style="color:var(--white);">' + escapeHTML(l.usuario || '') + '</span>' +
+'<span style="color:var(--muted);"> (' + escapeHTML(l.rol || '') + ')' + (l.empleado ? ' - ' + escapeHTML(l.empleado) : '') + '</span></div>' +
+'<span style="font-size:0.75rem; color:var(--muted); white-space:nowrap;">' + escapeHTML(l.fecha || '') + '</span>' +
+'</div>';
+});
+logEl.innerHTML = logHtml;
+}
+}
+} catch(e2) {
+var logEl2 = document.getElementById('adminLogContainer');
+if (logEl2) logEl2.innerHTML = '<span style="color:#f87171;">Error cargando logs: ' + escapeHTML(e2.message) + '</span>';
+}
 } catch(e) {
 container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
 }
 }
+async function adminResetearCliente() {
+if(!_isAdmin)return;
+var negocio = prompt('CUIDADO: Esto borrara TODOS los datos del cliente.\n\nEscribe el usuario del negocio para confirmar:');
+if (!negocio) return;
+if (!confirm('SEGURO? Se borraran todas las ventas, gastos, citas, productos e inventario de "' + negocio + '". Esta accion NO se puede deshacer.')) return;
+try {
+await _db.collection('negocios').doc(negocio).delete();
+localStorage.removeItem('data_' + negocio);
+showToast('Datos de ' + negocio + ' borrados');
+renderAdminConfig();
+} catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
 async function renderAdminAnaliticas() { if(!_isAdmin)return;
 var el = document.getElementById('adminAnaliticas');
 if (!el) return;
@@ -1282,6 +1430,7 @@ renderCostos();
 
 localStorage.setItem(`welcomed_${user}_${rol}`, '1');
 _generarToken(user, rol);
+try { _db.collection('logs').add({ tipo: 'login', usuario: user, rol: rol, empleado: window.currentEmpleado ? window.currentEmpleado.nombre : null, fecha: new Date().toLocaleString('es-MX'), timestamp: Date.now() }); } catch(e){}
 var localData = cargarDatos(user);
 if (localData && Object.keys(localData).length > 0) {
 guardarDatos(user, localData);
