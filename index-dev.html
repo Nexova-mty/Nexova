@@ -3485,6 +3485,8 @@ async function validarLogin() {
             return e.username === user && (e.passwordHash ? e.passwordHash === passHash : e.password === pass);
         });
         if (emp) {
+            // Verificar si el negocio está desactivado
+            try { var chkEmp = await _db.collection('clientes').doc(neg).get(); if (chkEmp.exists && chkEmp.data().activo === false) { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); loginOK = true; break; } } catch(e6){}
             if (!emp.passwordHash) { emp.passwordHash = passHash; delete emp.password; }
             emp.ultimoAcceso = new Date().toLocaleString('es-MX');
             guardarDatos(neg, data);
