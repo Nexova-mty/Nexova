@@ -666,7 +666,7 @@ function detenerSyncFirestore() {
 <div id="toastContainer"></div>
 
 <!-- LOGIN MODAL (estático para autofill de contraseñas) -->
-<div id="loginModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); align-items:flex-start; justify-content:center; z-index:9999; backdrop-filter:blur(5px); overflow-y:auto; padding:5vh 1rem 2rem;">
+<div id="loginModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.75); display:flex; align-items:flex-start; justify-content:center; z-index:9999; backdrop-filter:blur(5px); overflow-y:auto; padding:5vh 1rem 2rem; visibility:hidden; opacity:0; pointer-events:none; transition:opacity 0.2s, visibility 0.2s;">
     <div style="position:relative; background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:clamp(1.5rem, 5vw, 2.5rem); max-width:420px; width:100%; margin:auto;">
         <button onclick="cerrarLogin()" style="position:absolute; top:0.75rem; right:0.75rem; background:var(--bg3); border:1px solid var(--border); color:var(--muted); font-size:1rem; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:1;">✕</button>
         <h2 style="font-family:'Bebas Neue'; font-size:clamp(1.5rem, 6vw, 1.8rem); margin-bottom:0.4rem; color:var(--white); padding-right:2.5rem;">Acceso <span style="color:var(--orange);">Exclusivo</span></h2>
@@ -3189,7 +3189,9 @@ function mostrarAcceso() {
     document.getElementById('loginPass').value = '';
     var errorEl = document.getElementById('loginError');
     if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
-    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
     document.getElementById('landing').style.visibility = 'hidden';
     document.body.style.overflow = 'hidden';
     setTimeout(function() {
@@ -3200,7 +3202,11 @@ function mostrarAcceso() {
 
 function cerrarLogin() {
     var modal = document.getElementById('loginModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+    }
     document.body.style.overflow = '';
     if (!window.currentUser) {
         var landing = document.getElementById('landing');
