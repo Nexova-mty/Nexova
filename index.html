@@ -828,24 +828,21 @@ container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + esca
 async function renderAdminAnaliticas() { if(!_isAdmin)return;
 var el = document.getElementById('adminAnaliticas');
 if (!el) return;
-el.innerHTML = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Analiticas — Google Analytics</h2>' +
-'<div style="background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:1.5rem;">' +
-'<p style="color:var(--orange); font-weight:600; font-size:1rem; margin-bottom:1rem;">Estado: No configurado</p>' +
-'<p style="color:var(--muted); font-size:0.9rem; line-height:1.7; margin-bottom:1.2rem;">Para activar Google Analytics:</p>' +
-'<ol style="color:var(--muted); font-size:0.88rem; line-height:2; padding-left:1.2rem; margin-bottom:1.5rem;">' +
-'<li>Ve a <span style="color:var(--white);">analytics.google.com</span></li>' +
-'<li>Crea una propiedad para <span style="color:var(--white);">nexova-mty.github.io</span></li>' +
-'<li>Copia tu ID de medicion (G-XXXXXXXXXX)</li>' +
-'<li>Contacta a tu desarrollador para agregarlo</li>' +
-'</ol>' +
-'<div style="background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.2rem; margin-top:1rem;">' +
-'<p style="color:var(--white); font-weight:600; font-size:0.9rem; margin-bottom:0.8rem;">Una vez activado, aqui veras:</p>' +
-'<ul style="color:var(--muted); font-size:0.85rem; line-height:1.8; padding-left:1rem;">' +
-'<li>Visitantes en tiempo real</li>' +
-'<li>De donde vienen tus visitantes</li>' +
-'<li>Que paginas ven mas</li>' +
-'<li>Cuanto tiempo pasan en la pagina</li>' +
-'</ul></div></div>';
+el.innerHTML = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Analiticas — <span style=\'color:var(--orange)\'>Google Analytics</span></h2>' +
+'<div style="background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">' +
+'<div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">' +
+'<div style="width:12px; height:12px; border-radius:50%; background:var(--green);"></div>' +
+'<span style="color:var(--green); font-weight:700; font-size:1rem;">Conectado — G-N1DRB0NWDS</span>' +
+'</div>' +
+'<p style="color:var(--muted); font-size:0.88rem; line-height:1.7;">Google Analytics esta activo y recopilando datos de tu pagina. Los datos tardan 24-48 horas en aparecer la primera vez.</p>' +
+'</div>' +
+'<a href="https://analytics.google.com" target="_blank" style="display:block; background:var(--orange); color:#fff; text-align:center; padding:1rem; border-radius:8px; font-weight:700; font-size:1rem; text-decoration:none; margin-bottom:1.5rem; min-height:48px;">Abrir Google Analytics</a>' +
+'<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">' +
+'<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; text-align:center;"><div style="font-size:1.5rem; font-weight:800; color:var(--orange);">—</div><div style="color:var(--muted); font-size:0.82rem; margin-top:0.3rem;">Visitantes hoy</div></div>' +
+'<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; text-align:center;"><div style="font-size:1.5rem; font-weight:800; color:var(--green);">—</div><div style="color:var(--muted); font-size:0.82rem; margin-top:0.3rem;">Paginas vistas</div></div>' +
+'<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; text-align:center;"><div style="font-size:1.5rem; font-weight:800; color:var(--white);">—</div><div style="color:var(--muted); font-size:0.82rem; margin-top:0.3rem;">Tiempo promedio</div></div>' +
+'</div>' +
+'<p style="color:var(--muted); font-size:0.8rem; margin-top:1.5rem; text-align:center;">Para ver los datos completos, abre Google Analytics desde el boton de arriba.</p>';
 }
 
 function abrirHistorialCliente() {
