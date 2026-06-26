@@ -869,28 +869,45 @@ function detenerSyncFirestore() {
         <div class="sec-label">Paquetes</div>
         <h2 class="sec-title">Precios claros.<br><em>Sin sorpresas.</em></h2>
         <div class="pricing-grid">
-            <div class="pricing-card featured">
-                <div class="pricing-name">Plan NEXOVA</div>
-                <div class="pricing-price"><sup>$</sup>2,500<span style="font-family: 'Hanken Grotesk'; font-size: 0.95rem; font-weight: 300; color: var(--muted);"> MXN</span></div>
-                <div class="pricing-sub">+ $1,200 MXN/mes software</div>
-                <div class="pricing-desc">Sistema integrado completo. Todo lo que tu negocio necesita para automatizar y crecer sin complicaciones.</div>
+            <div class="pricing-card">
+                <div class="pricing-name">Plan Esencial</div>
+                <div class="pricing-price"><sup>$</sup>1,500<span style="font-family: 'Hanken Grotesk'; font-size: 0.95rem; font-weight: 300; color: var(--muted);"> MXN</span></div>
+                <div class="pricing-sub">+ $700 MXN/mes software</div>
+                <div class="pricing-desc">Ideal para negocios de 1 persona o emprendedores que quieren orden desde el día uno.</div>
                 <div class="pricing-features">
-                    <div class="pf">Punto de venta con múltiples cajas</div>
+                    <div class="pf">Punto de venta (1 caja)</div>
                     <div class="pf">Control de inventario automático</div>
                     <div class="pf">Agenda de citas con recordatorio WhatsApp</div>
                     <div class="pf">Reportes y gráficas en tiempo real</div>
                     <div class="pf">Control de gastos fijos y variables</div>
-                    <div class="pf">Costeos y márgenes de ganancia</div>
-                    <div class="pf">Cotizaciones en PDF con tu logo</div>
-                    <div class="pf">Multi-usuario: dueño y empleados</div>
-                    <div class="pf">Sincronización en tiempo real (celular, tablet, PC)</div>
                     <div class="pf">Exportar datos a Google Sheets</div>
+                    <div class="pf">Funciona en celular, tablet y PC</div>
                     <div class="pf">Tema claro y oscuro</div>
                     <div class="pf">Entrega en <strong>3 a 5 días hábiles</strong></div>
+                    <div class="pf">Capacitación incluida</div>
+                    <div class="pf">Garantía de 30 días</div>
+                </div>
+                <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20me%20interesa%20el%20Plan%20Esencial.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" class="btn-primary" style="width: 100%; text-align: center; margin-top: 1.5rem; display:block; background:var(--bg4); color:var(--white); border:1px solid var(--border);">Solicitar por WhatsApp →</a>
+            </div>
+            <div class="pricing-card featured">
+                <div class="pricing-name">Plan Completo</div>
+                <div style="font-size:0.7rem; color:var(--green); font-weight:700; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:0.5rem;">Más popular</div>
+                <div class="pricing-price"><sup>$</sup>2,500<span style="font-family: 'Hanken Grotesk'; font-size: 0.95rem; font-weight: 300; color: var(--muted);"> MXN</span></div>
+                <div class="pricing-sub">+ $1,200 MXN/mes software</div>
+                <div class="pricing-desc">Para negocios con empleados o múltiples sucursales. Todo incluido, sin límites.</div>
+                <div class="pricing-features">
+                    <div class="pf">Todo lo del Plan Esencial, más:</div>
+                    <div class="pf">Múltiples cajas de cobro</div>
+                    <div class="pf">Multi-usuario: dueño y empleados</div>
+                    <div class="pf">Sucursales con control por ubicación</div>
+                    <div class="pf">Costeos y márgenes de ganancia</div>
+                    <div class="pf">Cotizaciones en PDF con tu logo</div>
+                    <div class="pf">Control de actividad por empleado</div>
+                    <div class="pf">Sincronización en tiempo real entre dispositivos</div>
                     <div class="pf">Capacitación completa al equipo</div>
                     <div class="pf">Garantía de 30 días</div>
                 </div>
-                <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20me%20interesa%20el%20Plan%20NEXOVA.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" class="btn-primary" style="width: 100%; text-align: center; margin-top: 1.5rem; display:block;">Solicitar por WhatsApp →</a>
+                <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20me%20interesa%20el%20Plan%20Completo.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" class="btn-primary" style="width: 100%; text-align: center; margin-top: 1.5rem; display:block;">Solicitar por WhatsApp →</a>
             </div>
         </div>
     </section>
@@ -2667,7 +2684,9 @@ var _adminHash = null;
 })();
 var _adminMonitorInterval = null;
 
+var _isAdmin = false;
 function iniciarAdmin() {
+    _isAdmin = true;
     var checkbox = document.getElementById('loginRecordar');
     if (checkbox && checkbox.checked) {
         localStorage.setItem('_nexova_remember_user', 'admin');
@@ -2684,6 +2703,7 @@ function iniciarAdmin() {
 }
 
 function cerrarAdmin() {
+    _isAdmin = false;
     if (_adminMonitorInterval) { clearInterval(_adminMonitorInterval); _adminMonitorInterval = null; }
     document.body.classList.remove('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
@@ -2699,6 +2719,7 @@ function cerrarAdmin() {
 }
 
 function adminTab(tab) {
+    if (!_isAdmin) return;
     if (_adminMonitorInterval && tab !== 'monitor') { clearInterval(_adminMonitorInterval); _adminMonitorInterval = null; }
     var tabs = ['clientes','monitor','empleados','passwords','config'];
     var idMap = { clientes: 'adminClientes', monitor: 'adminMonitor', empleados: 'adminEmpleados', passwords: 'adminPasswords', config: 'adminConfig' };
@@ -2738,7 +2759,7 @@ async function _getAllClients() {
     return clientes;
 }
 
-async function renderAdminClientes() {
+async function renderAdminClientes() { if(!_isAdmin)return;
     var container = document.getElementById('adminClientes');
     if (!container) return;
     container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando clientes...</div>';
@@ -2874,7 +2895,7 @@ async function eliminarCliente(id) {
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
-async function renderAdminMonitor() {
+async function renderAdminMonitor() { if(!_isAdmin)return;
     var container = document.getElementById('adminMonitor');
     if (!container) return;
     container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando datos en vivo...</div>';
@@ -2928,7 +2949,7 @@ async function renderAdminMonitor() {
     _adminMonitorInterval = setInterval(loadMonitor, 30000);
 }
 
-async function renderAdminEmpleados() {
+async function renderAdminEmpleados() { if(!_isAdmin)return;
     var container = document.getElementById('adminEmpleados');
     if (!container) return;
     container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando empleados...</div>';
@@ -3011,7 +3032,7 @@ async function adminEliminarEmpleado(negocioUser, empUsername) {
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
-async function renderAdminPasswords() {
+async function renderAdminPasswords() { if(!_isAdmin)return;
     var container = document.getElementById('adminPasswords');
     if (!container) return;
     container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando...</div>';
@@ -3055,7 +3076,7 @@ async function adminCambiarPassCliente(id, tipo) {
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
-async function adminCambiarPassAdmin() {
+async function adminCambiarPassAdmin() { if(!_isAdmin)return;
     var currentPass = prompt('Contrasena actual del admin:');
     if (!currentPass) return;
     var currentHash = await _h(currentPass);
@@ -3071,7 +3092,7 @@ async function adminCambiarPassAdmin() {
     } catch(e) { showToast('Error guardando: ' + e.message, 'error'); }
 }
 
-async function renderAdminConfig() {
+async function renderAdminConfig() { if(!_isAdmin)return;
     var container = document.getElementById('adminConfig');
     if (!container) return;
     container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando configuracion...</div>';
