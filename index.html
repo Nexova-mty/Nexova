@@ -438,19 +438,26 @@ else if (tab === 'analiticas') renderAdminAnaliticas();
 
 async function _getAllClients() {
 var clientes = [];
-Object.keys(CRED_HASHES).forEach(function(username) {
-var clienteName = (CLIENTS[username] && CLIENTS[username].name) || username;
-clientes.push({ id: '_hc_' + username, username: username, negocio: clienteName, tipo: 'hardcoded', activo: true });
-});
+var firestoreClients = {};
 try {
 var snapshot = await _db.collection('clientes').get();
 snapshot.forEach(function(doc) {
-var d = doc.data();
-if (!clientes.find(function(c){ return c.username === d.username; })) {
-clientes.push({ id: doc.id, username: d.username, negocio: d.negocio || d.username, creado: d.creado, tipo: 'firestore', activo: d.activo !== false });
-}
+firestoreClients[doc.id] = doc.data();
+firestoreClients[doc.id]._docId = doc.id;
 });
 } catch(e) { console.warn('Error fetching clients:', e); }
+Object.keys(CRED_HASHES).forEach(function(username) {
+var clienteName = (CLIENTS[username] && CLIENTS[username].name) || username;
+var fsData = firestoreClients[username];
+var activo = fsData ? fsData.activo !== false : true;
+var negocio = (fsData && fsData.negocio) || clienteName;
+clientes.push({ id: username, username: username, negocio: negocio, tipo: 'hardcoded', activo: activo });
+delete firestoreClients[username];
+});
+Object.keys(firestoreClients).forEach(function(key) {
+var d = firestoreClients[key];
+clientes.push({ id: d._docId, username: d.username || key, negocio: d.negocio || key, creado: d.creado, tipo: 'firestore', activo: d.activo !== false });
+});
 return clientes;
 }
 
@@ -498,7 +505,15 @@ container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + esca
 
 async function toggleClienteActivo(id, currentState) {
 try {
-await _db.collection('clientes').doc(id).update({ activo: !currentState });
+var realId = id.replace('_hc_', '');
+var docRef = _db.collection('clientes').doc(realId);
+var doc = await docRef.get();
+if (doc.exists) {
+await docRef.update({ activo: !currentState });
+} else {
+var clienteName = (CLIENTS[realId] && CLIENTS[realId].name) || realId;
+await docRef.set({ username: realId, negocio: clienteName, activo: !currentState });
+}
 showToast(currentState ? 'Cliente desactivado' : 'Cliente activado');
 renderAdminClientes();
 } catch(e) { showToast('Error: ' + e.message, 'error'); }
@@ -860,26 +875,35 @@ container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + esca
 }
 
 async function adminCambiarPassCliente(id, tipo) {
+var realId = id.replace('_hc_', '');
 var label = tipo === 'dueno' ? 'dueno' : 'trabajador';
-var newPass = prompt('Nueva contrasena de ' + label + ':');
+var newPass = prompt('Nueva contrasena de ' + label + ' para ' + realId + ':');
 if (!newPass || newPass.length < 4) { showToast('Contrasena muy corta (minimo 4 caracteres)', 'error'); return; }
 try {
 var newHash = await _h(newPass);
 var field = tipo === 'dueno' ? 'duenoHash' : 'trabajadorHash';
+var docRef = _db.collection('clientes').doc(realId);
+var doc = await docRef.get();
 var updateData = {};
 updateData[field] = newHash;
-try { await _db.collection('clientes').doc(id).update(updateData); } catch(e2) {}
+if (doc.exists) {
+await docRef.update(updateData);
+} else {
+updateData.username = realId;
+updateData.negocio = (CLIENTS[realId] && CLIENTS[realId].name) || realId;
+await docRef.set(updateData);
+}
 try {
 var credsDoc = await _db.collection('config').doc('creds').get();
 if (credsDoc.exists) {
 var creds = credsDoc.data();
-if (creds[id]) {
-creds[id][tipo === 'dueno' ? 'dueno' : 'trabajador'] = newHash;
+if (creds[realId]) {
+creds[realId][tipo === 'dueno' ? 'dueno' : 'trabajador'] = newHash;
 await _db.collection('config').doc('creds').set(creds);
 }
 }
 } catch(e3) {}
-showToast('Contrasena de ' + label + ' actualizada para ' + id);
+showToast('Contrasena de ' + label + ' actualizada para ' + realId);
 renderAdminPasswords();
 } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
@@ -1133,6 +1157,7 @@ const passHash = await _h(pass);
 
 const creds = CRED_HASHES[user];
 if (creds && passHash === creds.dueno) {
+try { var chk = await _db.collection('clientes').doc(user).get(); if (chk.exists && chk.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); return; } } catch(e4){}
 window.currentEmpleado = null;
 iniciarDashboard(user, 'dueno');
 cerrarLogin();
@@ -1140,6 +1165,7 @@ return;
 }
 
 if (creds && passHash === creds.trabajador) {
+try { var chk2 = await _db.collection('clientes').doc(user).get(); if (chk2.exists && chk2.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); return; } } catch(e5){}
 window.currentEmpleado = null;
 iniciarDashboard(user, 'trabajador');
 cerrarLogin();
