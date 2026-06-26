@@ -680,6 +680,10 @@ function detenerSyncFirestore() {
                 <label for="loginPass" style="display:block; font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.45rem;">Contraseña</label>
                 <input type="password" id="loginPass" name="password" autocomplete="current-password" placeholder="Tu contraseña" style="width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:0.9rem 0.8rem; color:var(--white); font-family:'Hanken Grotesk'; font-size:1rem; outline:none; -webkit-appearance:none;">
             </div>
+            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; margin-top:0.2rem;">
+                <input type="checkbox" id="loginRecordar" checked style="width:18px; height:18px; accent-color:var(--orange); cursor:pointer;">
+                <span style="font-size:0.82rem; color:var(--muted);">Recordar mi usuario</span>
+            </label>
             <button type="submit" style="background:var(--orange); color:#fff; border:none; padding:1rem; border-radius:6px; cursor:pointer; font-weight:600; font-size:1rem; transition:background 0.2s; margin-top:0.25rem; min-height:48px;">Acceder →</button>
             <div id="loginError" style="color:var(--red); font-size:0.85rem; text-align:center; display:none; padding:0.5rem; background:rgba(239,68,68,0.1); border-radius:3px;"></div>
         </form>
@@ -2660,6 +2664,12 @@ var _adminHash = null;
 var _adminMonitorInterval = null;
 
 function iniciarAdmin() {
+    var checkbox = document.getElementById('loginRecordar');
+    if (checkbox && checkbox.checked) {
+        localStorage.setItem('_nexova_remember_user', 'admin');
+    } else {
+        localStorage.removeItem('_nexova_remember_user');
+    }
     document.body.classList.add('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'adminPanel' && el.id !== 'toastContainer') el.style.display = 'none';
@@ -3185,8 +3195,11 @@ function togglePriv(btn) {
 function mostrarAcceso() {
     var modal = document.getElementById('loginModal');
     if (!modal) return;
-    document.getElementById('loginUser').value = '';
+    var savedUser = localStorage.getItem('_nexova_remember_user') || '';
+    document.getElementById('loginUser').value = savedUser;
     document.getElementById('loginPass').value = '';
+    var checkbox = document.getElementById('loginRecordar');
+    if (checkbox) checkbox.checked = !!savedUser || true;
     var errorEl = document.getElementById('loginError');
     if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
     modal.style.visibility = 'visible';
@@ -3195,8 +3208,11 @@ function mostrarAcceso() {
     document.getElementById('landing').style.visibility = 'hidden';
     document.body.style.overflow = 'hidden';
     setTimeout(function() {
-        var input = document.getElementById('loginUser');
-        if (input) input.focus();
+        if (savedUser) {
+            document.getElementById('loginPass').focus();
+        } else {
+            document.getElementById('loginUser').focus();
+        }
     }, 100);
 }
 
@@ -3516,6 +3532,13 @@ function migrarDatos(user) {
 
 function iniciarDashboard(user, rol) {
     _stopAutodemo();
+    // Guardar usuario si "Recordar" está marcado
+    var checkbox = document.getElementById('loginRecordar');
+    if (checkbox && checkbox.checked) {
+        localStorage.setItem('_nexova_remember_user', document.getElementById('loginUser')?.value || user);
+    } else {
+        localStorage.removeItem('_nexova_remember_user');
+    }
     rol = rol || 'dueno';
     var clientInfo = getClientInfo(user);
     if (!clientInfo) {
