@@ -3340,12 +3340,15 @@ async function _h(s) {
 // Sal embebida para tokens de sesión (no renombrar ni mover)
 const _nx = 'b4e7f1a9c23d8e5f';
 
-// Credenciales como hashes SHA-256 (nunca en texto plano)
-const CRED_HASHES = {
-    'zaylashes': { dueno: 'ed9fd48d1f9aecfaab66f699eb793ec072d651fab8705cabd9cf1517a4b17489', trabajador: '4f50f93bfae1314d5f4bbcaeeb108715719b41d644fbcb572fbe12f49ae42cd5' },
-    'demo':      { dueno: 'd3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791', trabajador: '312bba6ac1c4274943d7d3c1f346e8e27310c731e407ce5592d82f0d101fbff1' },
-};
-Object.freeze(CRED_HASHES);
+// Credenciales cargadas desde Firebase (no hay contraseñas en el código)
+var CRED_HASHES = {};
+(async function(){
+    try {
+        var snap = await _db.collection('config').doc('creds').get();
+        if (snap.exists) { CRED_HASHES = snap.data(); }
+        Object.freeze(CRED_HASHES);
+    } catch(e) { console.warn('Creds load error:', e); }
+})();
 
 // Generar y guardar token de sesión (fire-and-forget)
 function _generarToken(user, rol) {
