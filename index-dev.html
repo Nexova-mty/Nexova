@@ -1713,30 +1713,36 @@ gtag('config', 'G-N1DRB0NWDS');
                     </div>
                 </div>
 
-                <!-- Nombre del negocio -->
+                <!-- Negocio: info visible para todos, editable solo dueño -->
                 <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
-                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; text-transform:uppercase; letter-spacing:0.05em;">Nombre del Negocio</h3>
-                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Aparece en tus PDFs de reportes, gráficas y cotizaciones.</p>
-                    <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-                        <input type="text" id="inputNombreNegocio" placeholder="Nombre de tu negocio" style="flex:1; min-width:180px; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem 1rem; border-radius:6px; font-size:0.95rem;">
-                        <button onclick="guardarNombreNegocio()" style="background:var(--orange); color:#fff; border:none; padding:0.7rem 1.4rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem; min-height:44px;">Guardar</button>
-                    </div>
-                </div>
-
-                <!-- Logo del negocio -->
-                <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
-                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; text-transform:uppercase; letter-spacing:0.05em;">Logo del Negocio</h3>
-                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Aparecerá en tus documentos PDF: Reportes, Gráficas y Cotizaciones.</p>
-                    <div style="display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; text-transform:uppercase; letter-spacing:0.05em;">Mi Negocio</h3>
+                    <div style="display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; margin-bottom:1rem;">
                         <div id="logoPreviewBoxAjustes" style="width:64px; height:64px; border-radius:8px; background:var(--bg3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
                             <span style="color:var(--muted); font-size:0.7rem; text-align:center;">Sin logo</span>
                         </div>
-                        <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-                            <label style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px; display:flex; align-items:center;">
-                                Subir logo
-                                <input type="file" accept="image/*" onchange="subirLogoNegocio(this)" style="display:none;">
-                            </label>
-                            <button onclick="quitarLogoNegocio()" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">Quitar logo</button>
+                        <div>
+                            <div id="ajusteNegocioDisplay" style="font-weight:700; color:var(--white); font-size:1.1rem;">--</div>
+                            <div id="ajusteUsuarioDisplay" style="font-size:0.82rem; color:var(--muted); margin-top:0.2rem;"></div>
+                        </div>
+                    </div>
+                    <div id="ajustesNombreLogoDueno" style="display:none;">
+                        <div style="margin-bottom:1rem;">
+                            <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:0.4rem; text-transform:uppercase;">Nombre del negocio</label>
+                            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+                                <input type="text" id="inputNombreNegocio" placeholder="Nombre de tu negocio" style="flex:1; min-width:180px; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem 1rem; border-radius:6px; font-size:0.95rem;">
+                                <button onclick="guardarNombreNegocio()" style="background:var(--orange); color:#fff; border:none; padding:0.7rem 1.4rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem; min-height:44px;">Guardar</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:0.4rem; text-transform:uppercase;">Logo del negocio</label>
+                            <p style="color:var(--muted); font-size:0.82rem; margin-bottom:0.8rem;">Aparece en cotizaciones, reportes y PDFs.</p>
+                            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+                                <label style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px; display:flex; align-items:center;">
+                                    Subir logo
+                                    <input type="file" accept="image/*" onchange="subirLogoNegocio(this)" style="display:none;">
+                                </label>
+                                <button onclick="quitarLogoNegocio()" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">Quitar logo</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6818,6 +6824,12 @@ function renderAjustes() {
     if (n) n.textContent = data.nombreNegocio || (getClientInfo(user) && getClientInfo(user).name) || '--';
     const inp = document.getElementById('inputNombreNegocio');
     if (inp) inp.value = data.nombreNegocio || '';
+    var negDisplay = document.getElementById('ajusteNegocioDisplay');
+    if (negDisplay) negDisplay.textContent = data.nombreNegocio || (getClientInfo(user) && getClientInfo(user).name) || '--';
+    var userDisplay2 = document.getElementById('ajusteUsuarioDisplay');
+    if (userDisplay2) userDisplay2.textContent = 'Usuario: ' + user;
+    var nombreLogoDueno = document.getElementById('ajustesNombreLogoDueno');
+    if (nombreLogoDueno) nombreLogoDueno.style.display = esDueno ? '' : 'none';
     const metaInp = document.getElementById('inputMetaVenta');
     if (metaInp) metaInp.value = data.metaVentaMensual || '';
     const duenoOnly = document.getElementById('ajustesDuenoOnly');
