@@ -1796,6 +1796,54 @@ function detenerSyncFirestore() {
     </div>
 </div>
 
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none; min-height:100vh; background:var(--bg);">
+    <div style="background:var(--bg2); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-family:'Bebas Neue'; font-size:1.5rem; color:var(--white);">NEX<span style="color:var(--orange);">OVA</span> <span style="font-size:0.9rem; color:var(--muted); font-family:'Hanken Grotesk';">Admin</span></div>
+        <button onclick="cerrarAdmin()" style="background:var(--red,#f87171); color:#fff; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.85rem; min-height:40px;">Cerrar sesión</button>
+    </div>
+    <div style="padding:2rem; max-width:900px; margin:0 auto;">
+        <h2 class="section-title">Gestión de <em>Clientes</em></h2>
+        <button onclick="abrirModalNuevoCliente()" style="background:var(--orange); color:#fff; border:none; padding:0.7rem 1.5rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.95rem; margin-bottom:1.5rem; min-height:44px;">+ Nuevo Cliente</button>
+        <div id="listaClientesAdmin"></div>
+    </div>
+</div>
+
+<!-- MODAL NUEVO/EDITAR CLIENTE (ADMIN) -->
+<div id="modalNuevoCliente" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1100; align-items:flex-start; justify-content:center; overflow-y:auto; padding:5vh 1rem;">
+    <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2rem; max-width:460px; width:100%; margin:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+            <h3 id="tituloModalCliente" style="color:var(--white); font-size:1.1rem; margin:0;">Nuevo Cliente</h3>
+            <button onclick="cerrarModalNuevoCliente()" style="background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; min-width:36px; min-height:36px;">✕</button>
+        </div>
+        <input type="hidden" id="clienteEditId" value="">
+        <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Nombre del negocio</label>
+            <input type="text" id="clienteNegocio" placeholder="Ej. Mi Barbería" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Usuario (para iniciar sesión)</label>
+            <input type="text" id="clienteUsername" placeholder="Ej. mibarberia (sin espacios)" oninput="this.value=this.value.replace(/\s/g,'').toLowerCase()" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Contraseña del Dueño</label>
+            <input type="text" id="clientePassDueno" placeholder="Contraseña para el dueño" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:1.2rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Contraseña del Trabajador (opcional)</label>
+            <input type="text" id="clientePassTrabajador" placeholder="Contraseña genérica para trabajadores" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Productos iniciales (nombre:precio, uno por línea)</label>
+            <textarea id="clienteProductos" rows="4" placeholder="Corte de cabello:80&#10;Tinte completo:350&#10;Shampoo:180" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:0.9rem; box-sizing:border-box; font-family:'Hanken Grotesk',sans-serif; resize:vertical;"></textarea>
+        </div>
+        <div style="display:flex; gap:0.8rem;">
+            <button onclick="guardarCliente()" style="flex:1; background:var(--orange); color:#fff; border:none; padding:0.75rem; border-radius:6px; cursor:pointer; font-weight:700; min-height:48px;">Guardar</button>
+            <button onclick="cerrarModalNuevoCliente()" style="flex:1; background:var(--bg3); color:var(--muted); border:1px solid var(--border); padding:0.75rem; border-radius:6px; cursor:pointer; min-height:48px;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL DE BIENVENIDA -->
 <div id="modalBienvenida" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.75); z-index:1100; align-items:center; justify-content:center; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:5vh 1rem; backdrop-filter: blur(5px);">
     <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:2rem; max-width:460px; width:100%; margin:auto; text-align:center;">
@@ -2558,6 +2606,170 @@ function doLogout() {
     localStorage.removeItem('_nxv');
 }
 
+// ═══ ADMIN PANEL ═══
+var _adminHash = null;
+(async function(){ _adminHash = await _h('NexovaAdmin2026!'); })();
+
+function iniciarAdmin() {
+    document.body.classList.add('sesion-activa');
+    Array.from(document.body.children).forEach(function(el) {
+        if (el.id !== 'adminPanel' && el.id !== 'toastContainer') el.style.display = 'none';
+    });
+    document.getElementById('adminPanel').style.display = 'block';
+    window.scrollTo(0,0);
+    cargarClientesAdmin();
+}
+
+function cerrarAdmin() {
+    document.body.classList.remove('sesion-activa');
+    Array.from(document.body.children).forEach(function(el) {
+        if (el.id !== 'adminPanel' && el.id !== 'toastContainer' && el.id !== 'dashboard') el.style.display = '';
+    });
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+    var landingEl = document.getElementById('landing');
+    if (landingEl) landingEl.style.visibility = '';
+    var waBtn = document.querySelector('.wa-float');
+    if (waBtn) waBtn.style.display = '';
+    window.scrollTo(0,0);
+}
+
+async function cargarClientesAdmin() {
+    var container = document.getElementById('listaClientesAdmin');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando clientes...</div>';
+    try {
+        var clientes = [];
+        Object.keys(CRED_HASHES).forEach(function(username) {
+            var clienteName = (CLIENTS[username] && CLIENTS[username].name) || username;
+            clientes.push({ id: '_hc_' + username, username: username, negocio: clienteName, tipo: 'hardcoded' });
+        });
+        var snapshot = await _db.collection('clientes').get();
+        snapshot.forEach(function(doc) {
+            var d = doc.data();
+            if (!clientes.find(function(c){ return c.username === d.username; })) {
+                clientes.push({ id: doc.id, username: d.username, negocio: d.negocio, creado: d.creado, tipo: 'firestore' });
+            }
+        });
+        if (clientes.length === 0) {
+            container.innerHTML = '<div style="color:var(--muted); padding:2rem; text-align:center;">No hay clientes registrados.</div>';
+            return;
+        }
+        container.innerHTML = clientes.map(function(c) {
+            var isHC = c.tipo === 'hardcoded';
+            return '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">' +
+                '<div>' +
+                    '<div style="font-weight:700; color:var(--white); font-size:1rem;">' + escapeHTML(c.negocio) + '</div>' +
+                    '<div style="font-size:0.82rem; color:var(--muted); margin-top:0.2rem;">Usuario: <span style="color:var(--orange); font-family:monospace;">' + escapeHTML(c.username) + '</span></div>' +
+                    (c.creado ? '<div style="font-size:0.75rem; color:var(--muted);">Creado: ' + escapeHTML(c.creado) + '</div>' : '') +
+                    (isHC ? '<div style="font-size:0.72rem; color:var(--muted); margin-top:0.2rem; opacity:0.6;">Cliente original (código)</div>' : '') +
+                '</div>' +
+                (!isHC ? '<div style="display:flex; gap:0.5rem;">' +
+                    '<button onclick="editarCliente(\'' + escapeHTML(c.id) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Editar</button>' +
+                    '<button onclick="eliminarCliente(\'' + escapeHTML(c.id) + '\')" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Eliminar</button>' +
+                '</div>' : '') +
+            '</div>';
+        }).join('');
+    } catch(e) {
+        container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
+    }
+}
+
+function abrirModalNuevoCliente() {
+    document.getElementById('tituloModalCliente').textContent = 'Nuevo Cliente';
+    document.getElementById('clienteEditId').value = '';
+    document.getElementById('clienteNegocio').value = '';
+    document.getElementById('clienteUsername').value = '';
+    document.getElementById('clientePassDueno').value = '';
+    document.getElementById('clientePassTrabajador').value = '';
+    document.getElementById('clienteProductos').value = '';
+    document.getElementById('modalNuevoCliente').style.display = 'flex';
+    setTimeout(function(){ document.getElementById('clienteNegocio').focus(); }, 80);
+}
+
+function cerrarModalNuevoCliente() {
+    document.getElementById('modalNuevoCliente').style.display = 'none';
+}
+
+async function editarCliente(id) {
+    try {
+        var doc = await _db.collection('clientes').doc(id).get();
+        if (!doc.exists) { showToast('Cliente no encontrado', 'error'); return; }
+        var c = doc.data();
+        document.getElementById('tituloModalCliente').textContent = 'Editar Cliente';
+        document.getElementById('clienteEditId').value = id;
+        document.getElementById('clienteNegocio').value = c.negocio || '';
+        document.getElementById('clienteUsername').value = c.username || '';
+        document.getElementById('clientePassDueno').value = '';
+        document.getElementById('clientePassTrabajador').value = '';
+        var prodText = (c.productos || []).map(function(p){ return p.nombre + ':' + p.precio; }).join('\n');
+        document.getElementById('clienteProductos').value = prodText;
+        document.getElementById('modalNuevoCliente').style.display = 'flex';
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function _parseProductos(text) {
+    if (!text.trim()) return [{ id: 1, nombre: 'Producto 1', precio: 100 }, { id: 2, nombre: 'Producto 2', precio: 200 }];
+    return text.trim().split('\n').map(function(line, i) {
+        var parts = line.split(':');
+        var nombre = (parts[0] || '').trim();
+        var precio = parseFloat(parts[1]) || 0;
+        if (!nombre) return null;
+        return { id: i + 1, nombre: nombre, precio: precio };
+    }).filter(Boolean);
+}
+
+async function guardarCliente() {
+    var negocio = document.getElementById('clienteNegocio').value.trim();
+    var username = document.getElementById('clienteUsername').value.trim().toLowerCase();
+    var passDueno = document.getElementById('clientePassDueno').value;
+    var passTrabajador = document.getElementById('clientePassTrabajador').value;
+    var productosText = document.getElementById('clienteProductos').value;
+    var editId = document.getElementById('clienteEditId').value;
+
+    if (!negocio || !username) { showToast('Completa nombre y usuario', 'error'); return; }
+    if (!editId && !passDueno) { showToast('La contraseña del dueño es obligatoria', 'error'); return; }
+    if (/\s/.test(username)) { showToast('El usuario no puede tener espacios', 'error'); return; }
+    if (username === 'admin') { showToast('Usuario reservado', 'error'); return; }
+
+    try {
+        var clienteData = {
+            negocio: negocio,
+            username: username,
+            updatedAt: new Date().toLocaleString('es-MX')
+        };
+        if (passDueno) clienteData.duenoHash = await _h(passDueno);
+        if (passTrabajador) clienteData.trabajadorHash = await _h(passTrabajador);
+        clienteData.productos = _parseProductos(productosText);
+
+        if (editId) {
+            await _db.collection('clientes').doc(editId).update(clienteData);
+            showToast('Cliente actualizado');
+        } else {
+            var existing = await _db.collection('clientes').where('username', '==', username).get();
+            if (!existing.empty) { showToast('Ese usuario ya existe', 'error'); return; }
+            if (CRED_HASHES[username]) { showToast('Ese usuario ya existe (cliente original)', 'error'); return; }
+            clienteData.creado = new Date().toLocaleString('es-MX');
+            await _db.collection('clientes').doc(username).set(clienteData);
+            showToast('Cliente creado: ' + negocio);
+        }
+        cerrarModalNuevoCliente();
+        cargarClientesAdmin();
+    } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+    }
+}
+
+async function eliminarCliente(id) {
+    if (!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
+    try {
+        await _db.collection('clientes').doc(id).delete();
+        showToast('Cliente eliminado');
+        cargarClientesAdmin();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+// ═══ FIN ADMIN PANEL ═══
+
 function abrirHistorialCliente() {
     const overlay = document.createElement('div');
     overlay.id = 'historialClienteOverlay';
@@ -2724,7 +2936,14 @@ async function validarLogin() {
         return;
     }
 
-    // 3. Intentar como empleado registrado — buscar en todos los negocios
+    // 3. Intentar como admin
+    if (user === 'admin' && _adminHash && passHash === _adminHash) {
+        iniciarAdmin();
+        cerrarLogin();
+        return;
+    }
+
+    // 4. Intentar como empleado registrado — buscar en todos los negocios
     var loginOK = false;
     var negocios = Object.keys(CRED_HASHES);
     for (var i = 0; i < negocios.length; i++) {
@@ -2744,6 +2963,31 @@ async function validarLogin() {
             loginOK = true;
             break;
         }
+    }
+
+    // 5. Intentar como cliente de Firestore
+    if (!loginOK) {
+        try {
+            var clientDoc = await _db.collection('clientes').doc(user).get();
+            if (clientDoc.exists) {
+                var clientData = clientDoc.data();
+                if (clientData.duenoHash === passHash) {
+                    window._dynamicClients = window._dynamicClients || {};
+                    window._dynamicClients[user] = { name: clientData.negocio, productos: clientData.productos || [] };
+                    window.currentEmpleado = null;
+                    iniciarDashboard(user, 'dueno');
+                    cerrarLogin();
+                    loginOK = true;
+                } else if (clientData.trabajadorHash && clientData.trabajadorHash === passHash) {
+                    window._dynamicClients = window._dynamicClients || {};
+                    window._dynamicClients[user] = { name: clientData.negocio, productos: clientData.productos || [] };
+                    window.currentEmpleado = null;
+                    iniciarDashboard(user, 'trabajador');
+                    cerrarLogin();
+                    loginOK = true;
+                }
+            }
+        } catch(e) { console.warn('Firestore client check:', e); }
     }
 
     if (!loginOK) {
@@ -2873,6 +3117,10 @@ const CLIENTS = {
 };
 Object.freeze(CLIENTS);
 
+function getClientInfo(user) {
+    return CLIENTS[user] || (window._dynamicClients && window._dynamicClients[user]) || null;
+}
+
 function seleccionarRol(btn) {
     document.querySelectorAll('.rol-btn').forEach(b => {
         b.classList.remove('active-rol');
@@ -2949,7 +3197,8 @@ function migrarDatos(user) {
 function iniciarDashboard(user, rol) {
     _stopAutodemo();
     rol = rol || 'dueno';
-    if (!CLIENTS[user]) {
+    var clientInfo = getClientInfo(user);
+    if (!clientInfo) {
         showToast('Usuario no válido', 'error');
         return;
     }
@@ -2967,12 +3216,12 @@ function iniciarDashboard(user, rol) {
     if (mobileMenu) mobileMenu.classList.remove('show');
     const waBtn = document.querySelector('.wa-float');
     if (waBtn) waBtn.style.display = 'none';
-    document.getElementById('userDisplay').textContent = CLIENTS[user].name;
+    document.getElementById('userDisplay').textContent = clientInfo.name;
 
     if (!localStorage.getItem(`data_${user}`)) {
         const data = {
             cajas: [{id:1, nombre:'Caja 1', vendedor:'Vendedor A', ventas:0, efectivo:0}],
-            productos: CLIENTS[user].productos.map(p => ({...p, stock:0})),
+            productos: (clientInfo.productos || []).map(p => ({...p, stock:0})),
             ventas: [],
             gastos: [],
             citas: []
@@ -3277,7 +3526,7 @@ function imprimirTicket(carrito, total, metodo, fechaHora, cajaNombre) {
     try {
         const user = window.currentUser;
         const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
-        const negocio = (CLIENTS[user] && CLIENTS[user].name) || 'Mi Negocio';
+        const negocio = (getClientInfo(user) && getClientInfo(user).name) || 'Mi Negocio';
         const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
 
         let itemsHTML = '';
@@ -4644,7 +4893,7 @@ function descargarGraficaPDF(canvasId, titulo) {
     const img = canvas.toDataURL('image/png');
     const periodo = getPeriodoLabel();
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-    const negocio = (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
+    const negocio = (getClientInfo(window.currentUser) && getClientInfo(window.currentUser).name) || 'Mi Negocio';
     const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
     const fecha = new Date().toLocaleString('es-MX');
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -5030,7 +5279,7 @@ function generarPDF() {
         const fecha = new Date().toLocaleString('es-MX');
         const nombreArchivo = `Reporte_NEXOVA_${new Date().toISOString().slice(0,10)}.html`;
         const esMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-        const negocio = (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
+        const negocio = (getClientInfo(window.currentUser) && getClientInfo(window.currentUser).name) || 'Mi Negocio';
         const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
         const periodo = getPeriodoLabel();
 
@@ -5107,7 +5356,7 @@ function abrirEnGoogleSheets() {
         const ventas = data.ventas || [];
         const gastos = data.gastos || [];
         const productos = data.productos || [];
-        const negocio = data.nombreNegocio || (CLIENTS[window.currentUser] && CLIENTS[window.currentUser].name) || 'Mi Negocio';
+        const negocio = data.nombreNegocio || (getClientInfo(window.currentUser) && getClientInfo(window.currentUser).name) || 'Mi Negocio';
 
         const totalVentas = ventas.reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
         const totalGastos = gastos.reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
@@ -5490,7 +5739,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
     const savedUser = localStorage.getItem('currentUser');
     const savedRole = localStorage.getItem('currentRole') || 'dueno';
-    if (savedUser && CLIENTS[savedUser]) {
+    if (savedUser && getClientInfo(savedUser)) {
         // Verificar que la sesión no fue manipulada manualmente
         const tokenOk = await _verificarToken(savedUser, savedRole);
         if (!tokenOk) {
@@ -5512,7 +5761,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('dashboard').style.display = 'flex';
         const waBtnInit = document.querySelector('.wa-float');
         if (waBtnInit) waBtnInit.style.display = 'none';
-        document.getElementById('userDisplay').textContent = CLIENTS[savedUser].name;
+        document.getElementById('userDisplay').textContent = getClientInfo(savedUser).name;
         aplicarRol(savedRole);
         switchTab('inicio', document.querySelector('.nav-btn[onclick*="inicio"]'));
         renderCajas();
@@ -5952,7 +6201,7 @@ function renderAjustes() {
     const n = document.getElementById('ajusteNegocio');
     const r = document.getElementById('ajusteRol');
     if (u) u.textContent = user;
-    if (n) n.textContent = data.nombreNegocio || (CLIENTS[user] && CLIENTS[user].name) || '--';
+    if (n) n.textContent = data.nombreNegocio || (getClientInfo(user) && getClientInfo(user).name) || '--';
     const inp = document.getElementById('inputNombreNegocio');
     if (inp) inp.value = data.nombreNegocio || '';
     const metaInp = document.getElementById('inputMetaVenta');
@@ -6685,7 +6934,7 @@ function descargarCotizacionPDF(idx) {
         const c = (data.cotizaciones || [])[idx];
         if (!c) return;
 
-        const negocio = (CLIENTS[user] && CLIENTS[user].name) || 'Mi Negocio';
+        const negocio = (getClientInfo(user) && getClientInfo(user).name) || 'Mi Negocio';
         const logo = (data.logoNegocio && data.logoNegocio.startsWith('data:image/') && !/["'<>]/.test(data.logoNegocio)) ? data.logoNegocio : '';
         const fecha = c.fecha || new Date().toISOString().slice(0,10);
         const generadoEn = new Date().toLocaleString('es-MX');
