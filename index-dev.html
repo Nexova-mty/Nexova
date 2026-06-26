@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://*.firebaseio.com https://*.googleapis.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://*.cloudfunctions.net wss://*.firebaseio.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -11,6 +11,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NEXOVA">
     <title>NEXOVA — Automatización No-Code para negocios en Monterrey</title>
+    <meta name="description" content="Sistema completo para administrar tu negocio desde el celular: ventas, inventario, citas, gastos, reportes. Hecho en Monterrey para negocios reales. Desde $800 MXN.">
+    <meta name="keywords" content="sistema punto de venta monterrey, software negocios monterrey, control inventario, agenda citas, reportes ventas, automatización negocios, NEXOVA, sistema POS">
+    <meta property="og:title" content="NEXOVA — Sistema de gestión para tu negocio">
+    <meta property="og:description" content="Administra ventas, inventario, citas, gastos y reportes desde tu celular. Hecho en Monterrey.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nexova-mty.github.io/Nexova/">
+    <meta property="og:image" content="https://nexova-mty.github.io/Nexova/demo-nexova.mp4">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NEXOVA — Sistema de gestión para tu negocio">
+    <meta name="twitter:description" content="Administra ventas, inventario, citas, gastos y reportes desde tu celular.">
+    <link rel="canonical" href="https://nexova-mty.github.io/Nexova/">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="NEXOVA">
+    <meta name="geo.region" content="MX-NLE">
+    <meta name="geo.placename" content="Monterrey">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Hanken+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -662,6 +677,14 @@ function iniciarSyncFirestore(user) {
 function detenerSyncFirestore() {
   if (_unsubscribeSnapshot) { _unsubscribeSnapshot(); _unsubscribeSnapshot = null; }
 }
+</script>
+<!-- Google Analytics - replace G-PLACEHOLDER with your measurement ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PLACEHOLDER"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-PLACEHOLDER');
 </script>
 </head>
 <body>
@@ -1343,6 +1366,7 @@ function detenerSyncFirestore() {
                             <button class="pago-btn pago-efectivo" onclick="completarVenta('efectivo')">✓ Efectivo</button>
                             <button class="pago-btn pago-transferencia" onclick="completarVenta('transferencia')">✓ Tarjeta / Transfer.</button>
                         </div>
+                        <button onclick="imprimirUltimoTicket()" style="width:100%; background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.6rem; border-radius:3px; cursor:pointer; font-size:0.82rem; margin-top:0.5rem; min-height:40px;">Imprimir ultimo ticket</button>
                     </div>
                 </div>
 
@@ -1740,6 +1764,7 @@ function detenerSyncFirestore() {
                     <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Solo disponible en la versión completa con Firebase.</p>
                     <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
                         <button onclick="exportarDatos()" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.65rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">Exportar datos (JSON)</button>
+                        <button onclick="verRespaldos()" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.65rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">Ver respaldos</button>
                         <button onclick="confirmarResetDemo()" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.65rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">Resetear datos demo</button>
                     </div>
                 </div>
@@ -1798,6 +1823,7 @@ function detenerSyncFirestore() {
             <button onclick="adminTab('empleados')" class="admin-nav-btn" data-tab="empleados" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Empleados</button>
             <button onclick="adminTab('passwords')" class="admin-nav-btn" data-tab="passwords" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Contrasenas</button>
             <button onclick="adminTab('config')" class="admin-nav-btn" data-tab="config" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Configuracion</button>
+            <button onclick="adminTab('analiticas')" class="admin-nav-btn" data-tab="analiticas" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Analiticas</button>
         </div>
         <div style="overflow-y:auto; padding:1.5rem;" id="adminContent">
             <div id="adminClientes"></div>
@@ -1805,6 +1831,7 @@ function detenerSyncFirestore() {
             <div id="adminEmpleados" style="display:none;"></div>
             <div id="adminPasswords" style="display:none;"></div>
             <div id="adminConfig" style="display:none;"></div>
+            <div id="adminAnaliticas" style="display:none;"></div>
         </div>
     </div>
 </div>
@@ -2659,8 +2686,8 @@ function cerrarAdmin() {
 function adminTab(tab) {
     if (!_isAdmin) return;
     if (_adminMonitorInterval && tab !== 'monitor') { clearInterval(_adminMonitorInterval); _adminMonitorInterval = null; }
-    var tabs = ['clientes','monitor','empleados','passwords','config'];
-    var idMap = { clientes: 'adminClientes', monitor: 'adminMonitor', empleados: 'adminEmpleados', passwords: 'adminPasswords', config: 'adminConfig' };
+    var tabs = ['clientes','monitor','empleados','passwords','config','analiticas'];
+    var idMap = { clientes: 'adminClientes', monitor: 'adminMonitor', empleados: 'adminEmpleados', passwords: 'adminPasswords', config: 'adminConfig', analiticas: 'adminAnaliticas' };
     tabs.forEach(function(t) {
         var el = document.getElementById(idMap[t]);
         if (el) el.style.display = t === tab ? 'block' : 'none';
@@ -2677,6 +2704,7 @@ function adminTab(tab) {
     else if (tab === 'empleados') renderAdminEmpleados();
     else if (tab === 'passwords') renderAdminPasswords();
     else if (tab === 'config') renderAdminConfig();
+    else if (tab === 'analiticas') renderAdminAnaliticas();
 }
 
 async function _getAllClients() {
@@ -3067,6 +3095,28 @@ async function renderAdminConfig() { if(!_isAdmin)return;
     } catch(e) {
         container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
     }
+}
+async function renderAdminAnaliticas() { if(!_isAdmin)return;
+    var el = document.getElementById('adminAnaliticas');
+    if (!el) return;
+    el.innerHTML = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Analiticas — Google Analytics</h2>' +
+        '<div style="background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:1.5rem;">' +
+        '<p style="color:var(--orange); font-weight:600; font-size:1rem; margin-bottom:1rem;">Estado: No configurado</p>' +
+        '<p style="color:var(--muted); font-size:0.9rem; line-height:1.7; margin-bottom:1.2rem;">Para activar Google Analytics:</p>' +
+        '<ol style="color:var(--muted); font-size:0.88rem; line-height:2; padding-left:1.2rem; margin-bottom:1.5rem;">' +
+        '<li>Ve a <span style="color:var(--white);">analytics.google.com</span></li>' +
+        '<li>Crea una propiedad para <span style="color:var(--white);">nexova-mty.github.io</span></li>' +
+        '<li>Copia tu ID de medicion (G-XXXXXXXXXX)</li>' +
+        '<li>Contacta a tu desarrollador para agregarlo</li>' +
+        '</ol>' +
+        '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.2rem; margin-top:1rem;">' +
+        '<p style="color:var(--white); font-weight:600; font-size:0.9rem; margin-bottom:0.8rem;">Una vez activado, aqui veras:</p>' +
+        '<ul style="color:var(--muted); font-size:0.85rem; line-height:1.8; padding-left:1rem;">' +
+        '<li>Visitantes en tiempo real</li>' +
+        '<li>De donde vienen tus visitantes</li>' +
+        '<li>Que paginas ven mas</li>' +
+        '<li>Cuanto tiempo pasan en la pagina</li>' +
+        '</ul></div></div>';
 }
 // ═══ FIN ADMIN PANEL ═══
 
@@ -3557,6 +3607,25 @@ function iniciarDashboard(user, rol) {
       guardarDatos(user, localData);
     }
     iniciarSyncFirestore(user);
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    // Auto backup check
+    var lastBackup = localStorage.getItem('_nexova_lastbackup_' + user);
+    var today = new Date().toISOString().slice(0,10);
+    if (lastBackup !== today && window.currentRole === 'dueno') {
+        localStorage.setItem('_nexova_lastbackup_' + user, today);
+        var backupData = localStorage.getItem('data_' + user);
+        if (backupData) {
+            localStorage.setItem('_nexova_backup_' + user + '_' + today, backupData);
+            // Keep only last 7 backups
+            var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith('_nexova_backup_' + user + '_'); }).sort();
+            while (keys.length > 7) { localStorage.removeItem(keys.shift()); }
+        }
+    }
 }
 
 function cerrarBienvenida() {
@@ -3889,6 +3958,37 @@ function imprimirTicket(carrito, total, metodo, fechaHora, cajaNombre) {
     }
 }
 
+function imprimirUltimoTicket() {
+    if (!window._lastTicketData) { showToast('No hay ticket para imprimir', 'error'); return; }
+    var d = window._lastTicketData;
+    imprimirTicket(d.carrito, d.total, d.metodo, d.fecha, d.caja);
+}
+
+function verRespaldos() {
+    var user = window.currentUser;
+    var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith('_nexova_backup_' + user + '_'); }).sort().reverse();
+    if (keys.length === 0) { showToast('No hay respaldos guardados', 'info'); return; }
+    var html = keys.map(function(k) {
+        var date = k.split('_').pop();
+        return '<div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px solid var(--border);"><span style="color:var(--white);">' + escapeHTML(date) + '</span><button onclick="restaurarRespaldo(\'' + escapeHTML(k) + '\')" style="background:var(--orange); color:#fff; border:none; padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.8rem;">Restaurar</button></div>';
+    }).join('');
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:400px;width:100%;"><h3 style="color:var(--white);margin-bottom:1rem;">Respaldos automaticos</h3>' + html + '<button onclick="this.closest(\'div[style*=inset]\').remove()" style="width:100%;margin-top:1rem;background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.7rem;border-radius:6px;cursor:pointer;">Cerrar</button></div>';
+    document.body.appendChild(overlay);
+}
+
+function restaurarRespaldo(key) {
+    if (!confirm('Restaurar este respaldo? Los datos actuales se reemplazaran.')) return;
+    var backupData = localStorage.getItem(key);
+    if (!backupData) { showToast('Respaldo no encontrado', 'error'); return; }
+    var user = window.currentUser;
+    localStorage.setItem('data_' + user, backupData);
+    guardarDatos(user, JSON.parse(backupData));
+    showToast('Respaldo restaurado');
+    switchTab('inicio', document.querySelector('.nav-btn[onclick*="inicio"]'));
+}
+
 function completarVenta(metodo) {
     const carrito = JSON.parse(localStorage.getItem(getCarritoKey()) || '[]');
     if (carrito.length === 0) {
@@ -3964,11 +4064,8 @@ function completarVenta(metodo) {
 
     showToast(`Venta registrada: $${total.toFixed(2)}`, "success");
 
-    // Impresión de tickets (función imprimirTicket) deshabilitada por ahora.
-    // Para activarla: descomentar las 3 líneas siguientes.
-    // if (confirm('¿Imprimir ticket de esta venta?')) {
-    //     imprimirTicket(carrito, total, metodo, fechaHoraMonterrey, data.cajas[cajaIdx].nombre);
-    // }
+    // Save last ticket data for printing
+    window._lastTicketData = { carrito: [...carrito], total: total, metodo: metodo, fecha: fechaHoraMonterrey, caja: data.cajas[cajaIdx].nombre };
 
     localStorage.removeItem(getCarritoKey());
     document.getElementById('pagoEfectivo').value = '';
@@ -5389,7 +5486,34 @@ function guardarNuevaCita() {
     
     data.citas.push(cita);
     guardarDatos(window.currentUser, data);
-    
+
+    // Schedule notification reminder 30 min before
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            var partes = fechaDDMMYYYY.split('/');
+            var citaDate = new Date(parseInt(partes[2]), parseInt(partes[1])-1, parseInt(partes[0]));
+            var timeParts = fechaTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (timeParts) {
+                var h = parseInt(timeParts[1]);
+                var m = parseInt(timeParts[2]);
+                var ampm = timeParts[3].toUpperCase();
+                if (ampm === 'PM' && h !== 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+                citaDate.setHours(h, m, 0, 0);
+                var reminderTime = citaDate.getTime() - 30 * 60 * 1000;
+                var now = Date.now();
+                if (reminderTime > now) {
+                    setTimeout(function() {
+                        new Notification('NEXOVA - Recordatorio de Cita', {
+                            body: nombre + ' - ' + fechaDDMMYYYY + ' ' + fechaTime,
+                            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">📅</text></svg>'
+                        });
+                    }, reminderTime - now);
+                }
+            }
+        } catch(e) {}
+    }
+
     cerrarModalCita();
     renderCitas();
 }
