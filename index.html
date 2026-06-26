@@ -1112,10 +1112,12 @@ var checkbox = document.getElementById('loginRecordar');
 if (checkbox) checkbox.checked = !!savedUser || true;
 var errorEl = document.getElementById('loginError');
 if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+var landingEl = document.getElementById('landing');
+if (landingEl) { landingEl.style.display = ''; landingEl.style.visibility = 'visible'; }
 modal.style.visibility = 'visible';
 modal.style.opacity = '1';
 modal.style.pointerEvents = 'auto';
-document.getElementById('landing').style.visibility = 'hidden';
+if (landingEl) landingEl.style.visibility = 'hidden';
 document.body.style.overflow = 'hidden';
 setTimeout(function() {
 if (savedUser) {
