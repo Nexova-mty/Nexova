@@ -399,21 +399,7 @@ adminTab('clientes');
 function cerrarAdmin() {
 _isAdmin = false;
 if (_adminMonitorInterval) { clearInterval(_adminMonitorInterval); _adminMonitorInterval = null; }
-document.body.classList.remove('sesion-activa');
-Array.from(document.body.children).forEach(function(el) {
-if (el.id === 'landing' || el.id === 'toastContainer' || el.id === 'loginModal' || el.tagName === 'SCRIPT' || el.tagName === 'A') return;
-el.style.display = 'none';
-});
-document.getElementById('adminPanel').classList.remove('admin-visible');
-var landingEl = document.getElementById('landing');
-if (landingEl) { landingEl.style.display = ''; landingEl.style.visibility = 'visible'; }
-var loginModal = document.getElementById('loginModal');
-if (loginModal) { loginModal.style.visibility = 'hidden'; loginModal.style.opacity = '0'; loginModal.style.pointerEvents = 'none'; }
-var adminModals = document.querySelectorAll('#adminEmpModal, #pbiModal, #excelModal');
-adminModals.forEach(function(m){ m.remove(); });
-var waBtn = document.querySelector('.wa-float');
-if (waBtn) waBtn.style.display = '';
-window.scrollTo(0,0);
+location.reload();
 }
 
 function adminTab(tab) {
