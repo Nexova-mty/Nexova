@@ -557,6 +557,8 @@
         }
     body.sesion-activa #landing { display: none !important; visibility: hidden !important; }
     body.sesion-activa .wa-float { display: none !important; }
+    #adminPanel { display: none !important; }
+    #adminPanel.admin-visible { display: block !important; }
 
         /* ── Very small screens (≤ 320px) ── */
         @media (max-width: 320px) {
@@ -1803,7 +1805,7 @@ function detenerSyncFirestore() {
 </div>
 
 <!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none; height:100vh; background:var(--bg); overflow:hidden;">
+<div id="adminPanel" style="height:100vh; background:var(--bg); overflow:hidden;">
     <div style="background:var(--bg2); border-bottom:1px solid var(--border); padding:0.8rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
         <div style="display:flex; align-items:center; gap:0.8rem;">
             <div style="font-family:'Bebas Neue'; font-size:1.3rem; color:var(--white);">NEX<span style="color:var(--orange);">OVA</span></div>
@@ -2600,7 +2602,7 @@ function doLogout() {
     clearTimeout(_inactivityTimer);
     document.body.classList.remove('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
-        if (el.id !== 'dashboard' && el.id !== 'toastContainer'
+        if (el.id !== 'dashboard' && el.id !== 'adminPanel' && el.id !== 'toastContainer'
             && !el.id.startsWith('modal')
             && el.tagName !== 'SCRIPT'
             && el.tagName !== 'A') {
@@ -2608,6 +2610,8 @@ function doLogout() {
         }
     });
     document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('adminPanel').classList.remove('admin-visible');
+    _isAdmin = false;
     var landingEl = document.getElementById('landing');
     if (landingEl) landingEl.style.visibility = '';
     const hamburger = document.getElementById('hamburger');
@@ -2651,7 +2655,7 @@ function iniciarAdmin() {
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'adminPanel' && el.id !== 'toastContainer') el.style.display = 'none';
     });
-    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('adminPanel').classList.add('admin-visible');
     window.scrollTo(0,0);
     adminTab('clientes');
 }
@@ -2663,7 +2667,7 @@ function cerrarAdmin() {
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'adminPanel' && el.id !== 'toastContainer' && el.id !== 'dashboard') el.style.display = '';
     });
-    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('adminPanel').classList.remove('admin-visible');
     document.getElementById('dashboard').style.display = 'none';
     var landingEl = document.getElementById('landing');
     if (landingEl) landingEl.style.visibility = '';
