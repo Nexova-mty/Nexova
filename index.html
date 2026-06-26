@@ -2625,7 +2625,14 @@ function doLogout() {
 
 // ═══ ADMIN PANEL ═══
 var _adminHash = null;
-(async function(){ _adminHash = await _h('NexovaAdmin2026!'); })();
+(async function(){
+    try {
+        var adminDoc = await _db.collection('config').doc('admin').get();
+        if (adminDoc.exists && adminDoc.data().hash) {
+            _adminHash = adminDoc.data().hash;
+        }
+    } catch(e) {}
+})();
 var _adminMonitorInterval = null;
 
 function iniciarAdmin() {
@@ -3020,7 +3027,10 @@ async function adminCambiarPassAdmin() {
     var confirmPass = prompt('Confirmar nueva contrasena:');
     if (newPass !== confirmPass) { showToast('Las contrasenas no coinciden', 'error'); return; }
     _adminHash = await _h(newPass);
-    showToast('Contrasena de admin actualizada (solo para esta sesion)');
+    try {
+        await _db.collection('config').doc('admin').set({ hash: _adminHash });
+        showToast('Contrasena de admin actualizada');
+    } catch(e) { showToast('Error guardando: ' + e.message, 'error'); }
 }
 
 async function renderAdminConfig() {
