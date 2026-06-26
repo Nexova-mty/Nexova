@@ -3166,18 +3166,18 @@ function mostrarAcceso() {
                 <h2 style="font-family: 'Bebas Neue'; font-size: clamp(1.5rem, 6vw, 1.8rem); margin-bottom: 0.4rem; color: var(--white); padding-right: 2.5rem;">Acceso <span style="color: var(--orange);">Exclusivo</span></h2>
                 <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.6;">Ingresa con tu usuario y contraseña</p>
 
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <form id="loginForm" onsubmit="event.preventDefault(); validarLogin();" method="post" action="#" style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Usuario</label>
-                        <input type="text" id="loginUser" autocomplete="username" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
+                        <label for="loginUser" style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Usuario</label>
+                        <input type="text" id="loginUser" name="username" autocomplete="username" placeholder="Tu usuario" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
                     </div>
                     <div>
-                        <label style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Contraseña</label>
-                        <input type="password" id="loginPass" autocomplete="current-password" placeholder="Tu contraseña" onkeydown="if(event.key==='Enter')validarLogin()" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
+                        <label for="loginPass" style="display: block; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem;">Contraseña</label>
+                        <input type="password" id="loginPass" name="password" autocomplete="current-password" placeholder="Tu contraseña" style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 0.8rem; color: var(--white); font-family: 'Hanken Grotesk'; font-size: 1rem; outline: none; -webkit-appearance: none;">
                     </div>
-                    <button onclick="validarLogin()" style="background: var(--orange); color: #fff; border: none; padding: 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: background 0.2s; margin-top: 0.25rem; min-height: 48px;">Acceder →</button>
+                    <button type="submit" style="background: var(--orange); color: #fff; border: none; padding: 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: background 0.2s; margin-top: 0.25rem; min-height: 48px;">Acceder →</button>
                     <div id="loginError" style="color: var(--red); font-size: 0.85rem; text-align: center; display: none; padding: 0.5rem; background: rgba(239,68,68,0.1); border-radius: 3px;"></div>
-                </div>
+                </form>
             </div>
         </div>
     `;
