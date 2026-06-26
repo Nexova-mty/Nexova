@@ -548,6 +548,9 @@
             .dashboard-content { grid-template-rows: 1fr !important; }
             .main-content { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important; }
             #toastContainer { bottom: 70px; }
+            #adminPanel > div:last-child { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr !important; }
+            #adminPanel .admin-nav-btn { display: inline-block !important; width: auto !important; padding: 0.5rem 0.8rem !important; font-size: 0.78rem !important; white-space: nowrap !important; }
+            #adminPanel > div:last-child > div:first-child { display: flex !important; overflow-x: auto !important; border-right: none !important; border-bottom: 1px solid var(--border) !important; padding: 0.5rem !important; gap: 0.3rem !important; }
         }
     body.sesion-activa #landing { display: none !important; visibility: hidden !important; }
     body.sesion-activa .wa-float { display: none !important; }
@@ -1797,15 +1800,29 @@ function detenerSyncFirestore() {
 </div>
 
 <!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none; min-height:100vh; background:var(--bg);">
-    <div style="background:var(--bg2); border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-family:'Bebas Neue'; font-size:1.5rem; color:var(--white);">NEX<span style="color:var(--orange);">OVA</span> <span style="font-size:0.9rem; color:var(--muted); font-family:'Hanken Grotesk';">Admin</span></div>
-        <button onclick="cerrarAdmin()" style="background:var(--red,#f87171); color:#fff; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.85rem; min-height:40px;">Cerrar sesión</button>
+<div id="adminPanel" style="display:none; height:100vh; background:var(--bg); overflow:hidden;">
+    <div style="background:var(--bg2); border-bottom:1px solid var(--border); padding:0.8rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:0.8rem;">
+            <div style="font-family:'Bebas Neue'; font-size:1.3rem; color:var(--white);">NEX<span style="color:var(--orange);">OVA</span></div>
+            <span style="background:rgba(239,68,68,0.15); color:#f87171; font-size:0.7rem; font-weight:700; padding:0.2rem 0.6rem; border-radius:4px;">ADMIN</span>
+        </div>
+        <button onclick="cerrarAdmin()" style="background:var(--bg3); color:var(--muted); border:1px solid var(--border); padding:0.4rem 1rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Cerrar sesion</button>
     </div>
-    <div style="padding:2rem; max-width:900px; margin:0 auto;">
-        <h2 class="section-title">Gestión de <em>Clientes</em></h2>
-        <button onclick="abrirModalNuevoCliente()" style="background:var(--orange); color:#fff; border:none; padding:0.7rem 1.5rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.95rem; margin-bottom:1.5rem; min-height:44px;">+ Nuevo Cliente</button>
-        <div id="listaClientesAdmin"></div>
+    <div style="display:grid; grid-template-columns:200px 1fr; height:calc(100vh - 52px); overflow:hidden;">
+        <div style="background:var(--bg2); border-right:1px solid var(--border); padding:1rem 0; overflow-y:auto;">
+            <button onclick="adminTab('clientes')" class="admin-nav-btn admin-nav-active" data-tab="clientes" style="width:100%; text-align:left; background:var(--orange); color:#fff; border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem; font-weight:600;">Clientes</button>
+            <button onclick="adminTab('monitor')" class="admin-nav-btn" data-tab="monitor" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Monitor en Vivo</button>
+            <button onclick="adminTab('empleados')" class="admin-nav-btn" data-tab="empleados" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Empleados</button>
+            <button onclick="adminTab('passwords')" class="admin-nav-btn" data-tab="passwords" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Contrasenas</button>
+            <button onclick="adminTab('config')" class="admin-nav-btn" data-tab="config" style="width:100%; text-align:left; background:none; color:var(--muted); border:none; padding:0.8rem 1.2rem; cursor:pointer; font-size:0.88rem;">Configuracion</button>
+        </div>
+        <div style="overflow-y:auto; padding:1.5rem;" id="adminContent">
+            <div id="adminClientes"></div>
+            <div id="adminMonitor" style="display:none;"></div>
+            <div id="adminEmpleados" style="display:none;"></div>
+            <div id="adminPasswords" style="display:none;"></div>
+            <div id="adminConfig" style="display:none;"></div>
+        </div>
     </div>
 </div>
 
@@ -2609,6 +2626,7 @@ function doLogout() {
 // ═══ ADMIN PANEL ═══
 var _adminHash = null;
 (async function(){ _adminHash = await _h('NexovaAdmin2026!'); })();
+var _adminMonitorInterval = null;
 
 function iniciarAdmin() {
     document.body.classList.add('sesion-activa');
@@ -2617,10 +2635,11 @@ function iniciarAdmin() {
     });
     document.getElementById('adminPanel').style.display = 'block';
     window.scrollTo(0,0);
-    cargarClientesAdmin();
+    adminTab('clientes');
 }
 
 function cerrarAdmin() {
+    if (_adminMonitorInterval) { clearInterval(_adminMonitorInterval); _adminMonitorInterval = null; }
     document.body.classList.remove('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'adminPanel' && el.id !== 'toastContainer' && el.id !== 'dashboard') el.style.display = '';
@@ -2634,45 +2653,94 @@ function cerrarAdmin() {
     window.scrollTo(0,0);
 }
 
-async function cargarClientesAdmin() {
-    var container = document.getElementById('listaClientesAdmin');
-    if (!container) return;
-    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando clientes...</div>';
+function adminTab(tab) {
+    if (_adminMonitorInterval && tab !== 'monitor') { clearInterval(_adminMonitorInterval); _adminMonitorInterval = null; }
+    var tabs = ['clientes','monitor','empleados','passwords','config'];
+    var idMap = { clientes: 'adminClientes', monitor: 'adminMonitor', empleados: 'adminEmpleados', passwords: 'adminPasswords', config: 'adminConfig' };
+    tabs.forEach(function(t) {
+        var el = document.getElementById(idMap[t]);
+        if (el) el.style.display = t === tab ? 'block' : 'none';
+    });
+    document.querySelectorAll('.admin-nav-btn').forEach(function(btn) {
+        var isActive = btn.dataset.tab === tab;
+        btn.style.background = isActive ? 'var(--orange)' : 'none';
+        btn.style.color = isActive ? '#fff' : 'var(--muted)';
+        btn.style.fontWeight = isActive ? '600' : '400';
+        btn.classList.toggle('admin-nav-active', isActive);
+    });
+    if (tab === 'clientes') renderAdminClientes();
+    else if (tab === 'monitor') renderAdminMonitor();
+    else if (tab === 'empleados') renderAdminEmpleados();
+    else if (tab === 'passwords') renderAdminPasswords();
+    else if (tab === 'config') renderAdminConfig();
+}
+
+async function _getAllClients() {
+    var clientes = [];
+    Object.keys(CRED_HASHES).forEach(function(username) {
+        var clienteName = (CLIENTS[username] && CLIENTS[username].name) || username;
+        clientes.push({ id: '_hc_' + username, username: username, negocio: clienteName, tipo: 'hardcoded', activo: true });
+    });
     try {
-        var clientes = [];
-        Object.keys(CRED_HASHES).forEach(function(username) {
-            var clienteName = (CLIENTS[username] && CLIENTS[username].name) || username;
-            clientes.push({ id: '_hc_' + username, username: username, negocio: clienteName, tipo: 'hardcoded' });
-        });
         var snapshot = await _db.collection('clientes').get();
         snapshot.forEach(function(doc) {
             var d = doc.data();
             if (!clientes.find(function(c){ return c.username === d.username; })) {
-                clientes.push({ id: doc.id, username: d.username, negocio: d.negocio, creado: d.creado, tipo: 'firestore' });
+                clientes.push({ id: doc.id, username: d.username, negocio: d.negocio || d.username, creado: d.creado, tipo: 'firestore', activo: d.activo !== false });
             }
         });
+    } catch(e) { console.warn('Error fetching clients:', e); }
+    return clientes;
+}
+
+async function renderAdminClientes() {
+    var container = document.getElementById('adminClientes');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando clientes...</div>';
+    try {
+        var clientes = await _getAllClients();
+        var html = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">' +
+            '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin:0;">Gestion de <span style="color:var(--orange);">Clientes</span></h2>' +
+            '<button onclick="abrirModalNuevoCliente()" style="background:var(--orange); color:#fff; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem; min-height:40px;">+ Nuevo Cliente</button>' +
+        '</div>';
         if (clientes.length === 0) {
-            container.innerHTML = '<div style="color:var(--muted); padding:2rem; text-align:center;">No hay clientes registrados.</div>';
-            return;
+            html += '<div style="color:var(--muted); padding:2rem; text-align:center;">No hay clientes registrados.</div>';
+        } else {
+            html += clientes.map(function(c) {
+                var isHC = c.tipo === 'hardcoded';
+                var statusBadge = c.activo
+                    ? '<span style="background:rgba(34,197,94,0.15); color:#4ade80; font-size:0.72rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:4px;">Activo</span>'
+                    : '<span style="background:rgba(239,68,68,0.15); color:#f87171; font-size:0.72rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:4px;">Inactivo</span>';
+                return '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">' +
+                    '<div>' +
+                        '<div style="display:flex; align-items:center; gap:0.6rem;">' +
+                            '<span style="font-weight:700; color:var(--white); font-size:1rem;">' + escapeHTML(c.negocio) + '</span>' +
+                            statusBadge +
+                        '</div>' +
+                        '<div style="font-size:0.82rem; color:var(--muted); margin-top:0.2rem;">Usuario: <span style="color:var(--orange); font-family:monospace;">' + escapeHTML(c.username) + '</span></div>' +
+                        (c.creado ? '<div style="font-size:0.75rem; color:var(--muted);">Creado: ' + escapeHTML(c.creado) + '</div>' : '') +
+                        (isHC ? '<div style="font-size:0.72rem; color:var(--muted); margin-top:0.2rem; opacity:0.6;">Cliente original (codigo)</div>' : '') +
+                    '</div>' +
+                    '<div style="display:flex; gap:0.5rem; flex-wrap:wrap;">' +
+                        (!isHC ? '<button onclick="toggleClienteActivo(\'' + escapeHTML(c.id) + '\',' + c.activo + ')" style="background:' + (c.activo ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)') + '; color:' + (c.activo ? '#f87171' : '#4ade80') + '; border:1px solid ' + (c.activo ? '#f87171' : '#4ade80') + '; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">' + (c.activo ? 'Desactivar' : 'Activar') + '</button>' : '') +
+                        (!isHC ? '<button onclick="editarCliente(\'' + escapeHTML(c.id) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Editar</button>' : '') +
+                        (!isHC ? '<button onclick="eliminarCliente(\'' + escapeHTML(c.id) + '\')" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Eliminar</button>' : '') +
+                    '</div>' +
+                '</div>';
+            }).join('');
         }
-        container.innerHTML = clientes.map(function(c) {
-            var isHC = c.tipo === 'hardcoded';
-            return '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">' +
-                '<div>' +
-                    '<div style="font-weight:700; color:var(--white); font-size:1rem;">' + escapeHTML(c.negocio) + '</div>' +
-                    '<div style="font-size:0.82rem; color:var(--muted); margin-top:0.2rem;">Usuario: <span style="color:var(--orange); font-family:monospace;">' + escapeHTML(c.username) + '</span></div>' +
-                    (c.creado ? '<div style="font-size:0.75rem; color:var(--muted);">Creado: ' + escapeHTML(c.creado) + '</div>' : '') +
-                    (isHC ? '<div style="font-size:0.72rem; color:var(--muted); margin-top:0.2rem; opacity:0.6;">Cliente original (código)</div>' : '') +
-                '</div>' +
-                (!isHC ? '<div style="display:flex; gap:0.5rem;">' +
-                    '<button onclick="editarCliente(\'' + escapeHTML(c.id) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Editar</button>' +
-                    '<button onclick="eliminarCliente(\'' + escapeHTML(c.id) + '\')" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Eliminar</button>' +
-                '</div>' : '') +
-            '</div>';
-        }).join('');
+        container.innerHTML = html;
     } catch(e) {
         container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
     }
+}
+
+async function toggleClienteActivo(id, currentState) {
+    try {
+        await _db.collection('clientes').doc(id).update({ activo: !currentState });
+        showToast(currentState ? 'Cliente desactivado' : 'Cliente activado');
+        renderAdminClientes();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 function abrirModalNuevoCliente() {
@@ -2726,22 +2794,15 @@ async function guardarCliente() {
     var passTrabajador = document.getElementById('clientePassTrabajador').value;
     var productosText = document.getElementById('clienteProductos').value;
     var editId = document.getElementById('clienteEditId').value;
-
     if (!negocio || !username) { showToast('Completa nombre y usuario', 'error'); return; }
-    if (!editId && !passDueno) { showToast('La contraseña del dueño es obligatoria', 'error'); return; }
+    if (!editId && !passDueno) { showToast('La contrasena del dueno es obligatoria', 'error'); return; }
     if (/\s/.test(username)) { showToast('El usuario no puede tener espacios', 'error'); return; }
     if (username === 'admin') { showToast('Usuario reservado', 'error'); return; }
-
     try {
-        var clienteData = {
-            negocio: negocio,
-            username: username,
-            updatedAt: new Date().toLocaleString('es-MX')
-        };
+        var clienteData = { negocio: negocio, username: username, updatedAt: new Date().toLocaleString('es-MX') };
         if (passDueno) clienteData.duenoHash = await _h(passDueno);
         if (passTrabajador) clienteData.trabajadorHash = await _h(passTrabajador);
         clienteData.productos = _parseProductos(productosText);
-
         if (editId) {
             await _db.collection('clientes').doc(editId).update(clienteData);
             showToast('Cliente actualizado');
@@ -2750,23 +2811,255 @@ async function guardarCliente() {
             if (!existing.empty) { showToast('Ese usuario ya existe', 'error'); return; }
             if (CRED_HASHES[username]) { showToast('Ese usuario ya existe (cliente original)', 'error'); return; }
             clienteData.creado = new Date().toLocaleString('es-MX');
+            clienteData.activo = true;
             await _db.collection('clientes').doc(username).set(clienteData);
             showToast('Cliente creado: ' + negocio);
         }
         cerrarModalNuevoCliente();
-        cargarClientesAdmin();
-    } catch(e) {
-        showToast('Error: ' + e.message, 'error');
-    }
+        renderAdminClientes();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 async function eliminarCliente(id) {
-    if (!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
+    if (!confirm('Eliminar este cliente? Esta accion no se puede deshacer.')) return;
     try {
         await _db.collection('clientes').doc(id).delete();
         showToast('Cliente eliminado');
-        cargarClientesAdmin();
+        renderAdminClientes();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function renderAdminMonitor() {
+    var container = document.getElementById('adminMonitor');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando datos en vivo...</div>';
+    if (_adminMonitorInterval) clearInterval(_adminMonitorInterval);
+    async function loadMonitor() {
+        try {
+            var clientes = await _getAllClients();
+            var html = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">' +
+                '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin:0;">Monitor <span style="color:var(--orange);">en Vivo</span></h2>' +
+                '<span style="font-size:0.78rem; color:var(--muted);">Auto-refresh: 30s</span>' +
+            '</div>';
+            html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1rem;">';
+            for (var i = 0; i < clientes.length; i++) {
+                var c = clientes[i];
+                if (!c.activo) continue;
+                var data = {};
+                try {
+                    var localData = localStorage.getItem('data_' + c.username);
+                    if (localData) { data = JSON.parse(localData); }
+                    else {
+                        var fsDoc = await _db.collection('negocios').doc(c.username).get();
+                        if (fsDoc.exists) data = fsDoc.data();
+                    }
+                } catch(e2) {}
+                var ventas = 0, gastos = 0;
+                (data.ventas || []).forEach(function(v) { ventas += parseFloat(v.total || v.monto || 0); });
+                (data.gastos || []).forEach(function(g) { gastos += parseFloat(g.monto || 0); });
+                var numProductos = (data.productos || []).length;
+                var numCitas = (data.citas || []).length;
+                var numEmpleados = (data.empleados || []).length;
+                var ganancia = ventas - gastos;
+                html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
+                    '<div style="font-weight:700; color:var(--white); font-size:1rem; margin-bottom:0.8rem;">' + escapeHTML(c.negocio) + '</div>' +
+                    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem;">' +
+                        '<div style="color:var(--muted);">Ventas: <span style="color:#4ade80; font-weight:600;">$' + ventas.toLocaleString() + '</span></div>' +
+                        '<div style="color:var(--muted);">Gastos: <span style="color:#f87171; font-weight:600;">$' + gastos.toLocaleString() + '</span></div>' +
+                        '<div style="color:var(--muted);">Ganancia: <span style="color:' + (ganancia >= 0 ? '#4ade80' : '#f87171') + '; font-weight:600;">$' + ganancia.toLocaleString() + '</span></div>' +
+                        '<div style="color:var(--muted);">Productos: <span style="color:var(--white);">' + numProductos + '</span></div>' +
+                        '<div style="color:var(--muted);">Citas: <span style="color:var(--white);">' + numCitas + '</span></div>' +
+                        '<div style="color:var(--muted);">Empleados: <span style="color:var(--white);">' + numEmpleados + '</span></div>' +
+                    '</div>' +
+                '</div>';
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
+        }
+    }
+    await loadMonitor();
+    _adminMonitorInterval = setInterval(loadMonitor, 30000);
+}
+
+async function renderAdminEmpleados() {
+    var container = document.getElementById('adminEmpleados');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando empleados...</div>';
+    try {
+        var clientes = await _getAllClients();
+        var allEmps = [];
+        clientes.forEach(function(c) {
+            try {
+                var data = JSON.parse(localStorage.getItem('data_' + c.username) || '{}');
+                var empleados = data.empleados || [];
+                empleados.forEach(function(emp) {
+                    allEmps.push({
+                        nombre: emp.nombre || emp.username || 'Sin nombre',
+                        username: emp.username || '',
+                        negocio: c.negocio,
+                        negocioUser: c.username,
+                        sucursal: emp.sucursal || 'Principal',
+                        ultimoAcceso: emp.ultimoAcceso || 'Nunca',
+                        empId: emp.id || emp.username
+                    });
+                });
+            } catch(e2) {}
+        });
+        var html = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Empleados <span style="color:var(--orange);">Global</span></h2>';
+        if (allEmps.length === 0) {
+            html += '<div style="color:var(--muted); padding:2rem; text-align:center;">No hay empleados registrados.</div>';
+        } else {
+            html += '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:0.85rem;">' +
+                '<thead><tr style="border-bottom:2px solid var(--border);">' +
+                    '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Empleado</th>' +
+                    '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Negocio</th>' +
+                    '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Sucursal</th>' +
+                    '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Ultimo acceso</th>' +
+                    '<th style="text-align:right; padding:0.8rem; color:var(--muted); font-weight:600;">Acciones</th>' +
+                '</tr></thead><tbody>';
+            allEmps.forEach(function(emp) {
+                html += '<tr style="border-bottom:1px solid var(--border);">' +
+                    '<td style="padding:0.8rem; color:var(--white);">' + escapeHTML(emp.nombre) + '<div style="font-size:0.75rem; color:var(--muted);">' + escapeHTML(emp.username) + '</div></td>' +
+                    '<td style="padding:0.8rem; color:var(--orange);">' + escapeHTML(emp.negocio) + '</td>' +
+                    '<td style="padding:0.8rem; color:var(--muted);">' + escapeHTML(emp.sucursal) + '</td>' +
+                    '<td style="padding:0.8rem; color:var(--muted);">' + escapeHTML(emp.ultimoAcceso) + '</td>' +
+                    '<td style="padding:0.8rem; text-align:right;">' +
+                        '<button onclick="adminCambiarPassEmpleado(\'' + escapeHTML(emp.negocioUser) + '\',\'' + escapeHTML(emp.username) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.3rem 0.7rem; border-radius:5px; cursor:pointer; font-size:0.78rem; margin-right:0.3rem; min-height:32px;">Cambiar pass</button>' +
+                        '<button onclick="adminEliminarEmpleado(\'' + escapeHTML(emp.negocioUser) + '\',\'' + escapeHTML(emp.username) + '\')" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.3rem 0.7rem; border-radius:5px; cursor:pointer; font-size:0.78rem; min-height:32px;">Eliminar</button>' +
+                    '</td>' +
+                '</tr>';
+            });
+            html += '</tbody></table></div>';
+        }
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
+    }
+}
+
+async function adminCambiarPassEmpleado(negocioUser, empUsername) {
+    var newPass = prompt('Nueva contrasena para empleado ' + empUsername + ':');
+    if (!newPass) return;
+    try {
+        var data = JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
+        var empleados = data.empleados || [];
+        var emp = empleados.find(function(e) { return e.username === empUsername; });
+        if (!emp) { showToast('Empleado no encontrado', 'error'); return; }
+        emp.passwordHash = await _h(newPass);
+        delete emp.password;
+        guardarDatos(negocioUser, data);
+        showToast('Contrasena actualizada');
+        renderAdminEmpleados();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function adminEliminarEmpleado(negocioUser, empUsername) {
+    if (!confirm('Eliminar empleado ' + empUsername + '?')) return;
+    try {
+        var data = JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
+        data.empleados = (data.empleados || []).filter(function(e) { return e.username !== empUsername; });
+        guardarDatos(negocioUser, data);
+        showToast('Empleado eliminado');
+        renderAdminEmpleados();
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function renderAdminPasswords() {
+    var container = document.getElementById('adminPasswords');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando...</div>';
+    try {
+        var clientes = await _getAllClients();
+        var html = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Gestion de <span style="color:var(--orange);">Contrasenas</span></h2>';
+        html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:1.5rem;">' +
+            '<div style="font-weight:700; color:var(--white); margin-bottom:0.6rem;">Administrador</div>' +
+            '<button onclick="adminCambiarPassAdmin()" style="background:var(--orange); color:#fff; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Cambiar contrasena admin</button>' +
+        '</div>';
+        clientes.forEach(function(c) {
+            var isHC = c.tipo === 'hardcoded';
+            html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:0.8rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">' +
+                '<div>' +
+                    '<div style="font-weight:700; color:var(--white);">' + escapeHTML(c.negocio) + '</div>' +
+                    '<div style="font-size:0.78rem; color:var(--muted);">Usuario: ' + escapeHTML(c.username) + '</div>' +
+                '</div>' +
+                '<div style="display:flex; gap:0.5rem; flex-wrap:wrap;">' +
+                    (!isHC ? '<button onclick="adminCambiarPassCliente(\'' + escapeHTML(c.id) + '\',\'dueno\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Pass dueno</button>' : '') +
+                    (!isHC ? '<button onclick="adminCambiarPassCliente(\'' + escapeHTML(c.id) + '\',\'trabajador\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Pass trabajador</button>' : '') +
+                    (isHC ? '<span style="font-size:0.75rem; color:var(--muted); opacity:0.6;">Gestionado en codigo</span>' : '') +
+                '</div>' +
+            '</div>';
+        });
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
+    }
+}
+
+async function adminCambiarPassCliente(id, tipo) {
+    var label = tipo === 'dueno' ? 'dueno' : 'trabajador';
+    var newPass = prompt('Nueva contrasena de ' + label + ':');
+    if (!newPass) return;
+    try {
+        var field = tipo === 'dueno' ? 'duenoHash' : 'trabajadorHash';
+        var updateData = {};
+        updateData[field] = await _h(newPass);
+        await _db.collection('clientes').doc(id).update(updateData);
+        showToast('Contrasena de ' + label + ' actualizada');
+    } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function adminCambiarPassAdmin() {
+    var currentPass = prompt('Contrasena actual del admin:');
+    if (!currentPass) return;
+    var currentHash = await _h(currentPass);
+    if (currentHash !== _adminHash) { showToast('Contrasena actual incorrecta', 'error'); return; }
+    var newPass = prompt('Nueva contrasena del admin:');
+    if (!newPass || newPass.length < 6) { showToast('La contrasena debe tener al menos 6 caracteres', 'error'); return; }
+    var confirmPass = prompt('Confirmar nueva contrasena:');
+    if (newPass !== confirmPass) { showToast('Las contrasenas no coinciden', 'error'); return; }
+    _adminHash = await _h(newPass);
+    showToast('Contrasena de admin actualizada (solo para esta sesion)');
+}
+
+async function renderAdminConfig() {
+    var container = document.getElementById('adminConfig');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--muted); padding:1rem;">Cargando configuracion...</div>';
+    try {
+        var clientes = await _getAllClients();
+        var totalActive = clientes.filter(function(c) { return c.activo; }).length;
+        var totalInactive = clientes.filter(function(c) { return !c.activo; }).length;
+        var fbStatus = _db ? 'Conectado' : 'Desconectado';
+        var fbColor = _db ? '#4ade80' : '#f87171';
+        var html = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Configuracion</h2>';
+        html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem; margin-bottom:2rem;">' +
+            '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; text-align:center;">' +
+                '<div style="font-size:2rem; font-weight:700; color:var(--orange);">' + clientes.length + '</div>' +
+                '<div style="font-size:0.82rem; color:var(--muted);">Total Clientes</div>' +
+            '</div>' +
+            '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; text-align:center;">' +
+                '<div style="font-size:2rem; font-weight:700; color:#4ade80;">' + totalActive + '</div>' +
+                '<div style="font-size:0.82rem; color:var(--muted);">Activos</div>' +
+            '</div>' +
+            '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; text-align:center;">' +
+                '<div style="font-size:2rem; font-weight:700; color:#f87171;">' + totalInactive + '</div>' +
+                '<div style="font-size:0.82rem; color:var(--muted);">Inactivos</div>' +
+            '</div>' +
+        '</div>';
+        html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem; margin-bottom:1rem;">' +
+            '<div style="font-weight:700; color:var(--white); margin-bottom:0.6rem;">Firebase</div>' +
+            '<div style="font-size:0.85rem; color:var(--muted);">Estado: <span style="color:' + fbColor + '; font-weight:600;">' + fbStatus + '</span></div>' +
+        '</div>';
+        html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
+            '<div style="font-weight:700; color:var(--white); margin-bottom:0.6rem;">Seguridad</div>' +
+            '<button onclick="adminCambiarPassAdmin()" style="background:var(--orange); color:#fff; border:none; padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Cambiar contrasena admin</button>' +
+        '</div>';
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = '<div style="color:#f87171; padding:1rem;">Error: ' + escapeHTML(e.message) + '</div>';
+    }
 }
 // ═══ FIN ADMIN PANEL ═══
 
@@ -2971,7 +3264,10 @@ async function validarLogin() {
             var clientDoc = await _db.collection('clientes').doc(user).get();
             if (clientDoc.exists) {
                 var clientData = clientDoc.data();
-                if (clientData.duenoHash === passHash) {
+                if (clientData.activo === false) {
+                    mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.');
+                    loginOK = true;
+                } else if (clientData.duenoHash === passHash) {
                     window._dynamicClients = window._dynamicClients || {};
                     window._dynamicClients[user] = { name: clientData.negocio, productos: clientData.productos || [] };
                     window.currentEmpleado = null;
