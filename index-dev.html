@@ -2751,12 +2751,12 @@ async function renderAdminClientes() { if(!_isAdmin)return;
                         '</div>' +
                         '<div style="font-size:0.82rem; color:var(--muted); margin-top:0.2rem;">Usuario: <span style="color:var(--orange); font-family:monospace;">' + escapeHTML(c.username) + '</span></div>' +
                         (c.creado ? '<div style="font-size:0.75rem; color:var(--muted);">Creado: ' + escapeHTML(c.creado) + '</div>' : '') +
-                        (isHC ? '<div style="font-size:0.72rem; color:var(--muted); margin-top:0.2rem; opacity:0.6;">Cliente original (codigo)</div>' : '') +
+                        
                     '</div>' +
                     '<div style="display:flex; gap:0.5rem; flex-wrap:wrap;">' +
-                        (!isHC ? '<button onclick="toggleClienteActivo(\'' + escapeHTML(c.id) + '\',' + c.activo + ')" style="background:' + (c.activo ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)') + '; color:' + (c.activo ? '#f87171' : '#4ade80') + '; border:1px solid ' + (c.activo ? '#f87171' : '#4ade80') + '; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">' + (c.activo ? 'Desactivar' : 'Activar') + '</button>' : '') +
-                        (!isHC ? '<button onclick="editarCliente(\'' + escapeHTML(c.id) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Editar</button>' : '') +
-                        (!isHC ? '<button onclick="eliminarCliente(\'' + escapeHTML(c.id) + '\')" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Eliminar</button>' : '') +
+                        '<button onclick="toggleClienteActivo(\'' + escapeHTML(c.id) + '\',' + c.activo + ')" style="background:' + (c.activo ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)') + '; color:' + (c.activo ? '#f87171' : '#4ade80') + '; border:1px solid ' + (c.activo ? '#f87171' : '#4ade80') + '; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">' + (c.activo ? 'Desactivar' : 'Activar') + '</button>' +
+                        '<button onclick="editarCliente(\'' + escapeHTML(c.id) + '\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Editar</button>' +
+                        '<button onclick="eliminarCliente(\'' + escapeHTML(c.id) + '\')" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.82rem; min-height:36px;">Eliminar</button>' +
                     '</div>' +
                 '</div>';
             }).join('');
@@ -3097,9 +3097,9 @@ async function renderAdminPasswords() { if(!_isAdmin)return;
                     '<div style="font-size:0.78rem; color:var(--muted);">Usuario: ' + escapeHTML(c.username) + '</div>' +
                 '</div>' +
                 '<div style="display:flex; gap:0.5rem; flex-wrap:wrap;">' +
-                    (!isHC ? '<button onclick="adminCambiarPassCliente(\'' + escapeHTML(c.id) + '\',\'dueno\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Pass dueno</button>' : '') +
-                    (!isHC ? '<button onclick="adminCambiarPassCliente(\'' + escapeHTML(c.id) + '\',\'trabajador\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Pass trabajador</button>' : '') +
-                    (isHC ? '<span style="font-size:0.75rem; color:var(--muted); opacity:0.6;">Gestionado en codigo</span>' : '') +
+                    '<button onclick="adminCambiarPassCliente(\'' + escapeHTML(c.id) + '\',\'dueno\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Pass dueno</button>' +
+                    '<button onclick="adminCambiarPassCliente(\'' + escapeHTML(c.id) + '\',\'trabajador\')" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.8rem; border-radius:6px; cursor:pointer; font-size:0.78rem; min-height:36px;">Pass trabajador</button>' +
+                    
                 '</div>' +
             '</div>';
         });
@@ -3134,13 +3134,27 @@ async function renderAdminPasswords() { if(!_isAdmin)return;
 async function adminCambiarPassCliente(id, tipo) {
     var label = tipo === 'dueno' ? 'dueno' : 'trabajador';
     var newPass = prompt('Nueva contrasena de ' + label + ':');
-    if (!newPass) return;
+    if (!newPass || newPass.length < 4) { showToast('Contrasena muy corta (minimo 4 caracteres)', 'error'); return; }
     try {
+        var newHash = await _h(newPass);
         var field = tipo === 'dueno' ? 'duenoHash' : 'trabajadorHash';
+        // Update in clientes collection
         var updateData = {};
-        updateData[field] = await _h(newPass);
-        await _db.collection('clientes').doc(id).update(updateData);
-        showToast('Contrasena de ' + label + ' actualizada');
+        updateData[field] = newHash;
+        try { await _db.collection('clientes').doc(id).update(updateData); } catch(e2) {}
+        // Also update in config/creds for hardcoded clients
+        try {
+            var credsDoc = await _db.collection('config').doc('creds').get();
+            if (credsDoc.exists) {
+                var creds = credsDoc.data();
+                if (creds[id]) {
+                    creds[id][tipo === 'dueno' ? 'dueno' : 'trabajador'] = newHash;
+                    await _db.collection('config').doc('creds').set(creds);
+                }
+            }
+        } catch(e3) {}
+        showToast('Contrasena de ' + label + ' actualizada para ' + id);
+        renderAdminPasswords();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
