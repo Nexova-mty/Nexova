@@ -3000,7 +3000,8 @@ async function adminCambiarPassEmpleado(negocioUser, empUsername) {
 }
 
 async function adminEliminarEmpleado(negocioUser, empUsername) {
-    if (!confirm('Eliminar empleado ' + empUsername + '?')) return;
+    var confirmName = prompt('Para eliminar a este empleado, escribe su usuario: ' + empUsername);
+    if (confirmName !== empUsername) { showToast('No se eliminó. El usuario no coincide.', 'error'); return; }
     try {
         var data = JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
         data.empleados = (data.empleados || []).filter(function(e) { return e.username !== empUsername; });
@@ -6873,7 +6874,7 @@ function renderEmpleadosAjustes() {
             </div>
             <div style="display:flex; gap:0.5rem; flex-shrink:0;">
                 <button onclick="abrirModalEditarEmpleado(${idx})" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.8rem; min-height:36px;">Editar</button>
-                <button onclick="eliminarEmpleado(${idx})" style="background:transparent; color:#f87171; border:1px solid #f87171; padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.8rem; min-height:36px;">Eliminar</button>
+                
             </div>
         </div>`).join('');
 }
@@ -6996,7 +6997,7 @@ async function guardarEmpleado() {
 }
 
 function eliminarEmpleado(idx) {
-    if (!confirm('¿Eliminar este empleado? Ya no podrá iniciar sesión.')) return;
+    showToast('Los empleados solo se pueden eliminar desde el panel de administración', 'info'); return;
     const user = window.currentUser;
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
     data.empleados = data.empleados || [];
