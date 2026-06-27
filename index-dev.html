@@ -1366,7 +1366,7 @@ gtag('config', 'G-N1DRB0NWDS');
                             <button class="pago-btn pago-efectivo" onclick="completarVenta('efectivo')">✓ Efectivo</button>
                             <button class="pago-btn pago-transferencia" onclick="completarVenta('transferencia')">✓ Tarjeta / Transfer.</button>
                         </div>
-                        <button onclick="imprimirUltimoTicket()" style="width:100%; background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.6rem; border-radius:3px; cursor:pointer; font-size:0.82rem; margin-top:0.5rem; min-height:40px;">Imprimir ultimo ticket</button>
+                        <button onclick="imprimirUltimoTicket()" style="width:100%; background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.6rem; border-radius:3px; cursor:pointer; font-size:0.82rem; margin-top:0.5rem; min-height:40px;">Imprimir último ticket</button>
                     </div>
                 </div>
 
@@ -2960,7 +2960,7 @@ async function renderAdminEmpleados() { if(!_isAdmin)return;
                     '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Empleado</th>' +
                     '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Negocio</th>' +
                     '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Sucursal</th>' +
-                    '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Ultimo acceso</th>' +
+                    '<th style="text-align:left; padding:0.8rem; color:var(--muted); font-weight:600;">Último acceso</th>' +
                     '<th style="text-align:right; padding:0.8rem; color:var(--muted); font-weight:600;">Acciones</th>' +
                 '</tr></thead><tbody>';
             allEmps.forEach(function(emp) {
@@ -2994,7 +2994,7 @@ async function adminCambiarPassEmpleado(negocioUser, empUsername) {
         emp.passwordHash = await _h(newPass);
         delete emp.password;
         guardarDatos(negocioUser, data);
-        showToast('Contrasena actualizada');
+        showToast('Contraseña actualizada');
         renderAdminEmpleados();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
@@ -3026,8 +3026,8 @@ async function adminAgregarEmpleado() {
         '<input type="text" id="adminEmpNombre" placeholder="Ej. Ana Garcia" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Usuario</label>' +
         '<input type="text" id="adminEmpUsername" placeholder="Ej. ana" oninput="this.value=this.value.replace(/\\s/g,\'\').toLowerCase()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
-        '<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Contrasena</label>' +
-        '<input type="text" id="adminEmpPass" placeholder="Contrasena del empleado" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
+        '<div style="margin-bottom:1rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Contraseña</label>' +
+        '<input type="text" id="adminEmpPass" placeholder="Contraseña del empleado" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:1.2rem;"><label style="display:block;font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;text-transform:uppercase;">Sucursal (opcional)</label>' +
         '<input type="text" id="adminEmpSucursal" placeholder="Ej. Sucursal Centro" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.75rem;border-radius:6px;font-size:1rem;box-sizing:border-box;"></div>' +
         '<div style="display:flex;gap:0.8rem;">' +
@@ -3072,7 +3072,7 @@ async function adminGuardarEmpleado() {
 async function adminCambiarPassEmpleadoGlobal(negocioUser, empUsername) {
     if(!_isAdmin)return;
     var newPass = prompt('Nueva contraseña para ' + empUsername + ':');
-    if (!newPass || newPass.length < 4) { showToast('Contrasena muy corta (minimo 4 caracteres)', 'error'); return; }
+    if (!newPass || newPass.length < 4) { showToast('Contraseña muy corta (mínimo 4 caracteres)', 'error'); return; }
     try {
         var docRef = _db.collection('negocios').doc(negocioUser);
         var doc = await docRef.get();
@@ -3084,7 +3084,7 @@ async function adminCambiarPassEmpleadoGlobal(negocioUser, empUsername) {
         delete emp.password;
         await docRef.set(data, { merge: true });
         localStorage.setItem('data_' + negocioUser, JSON.stringify(data));
-        showToast('Contrasena actualizada');
+        showToast('Contraseña actualizada');
         renderAdminPasswords();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
@@ -3146,7 +3146,7 @@ async function adminCambiarPassCliente(id, tipo) {
     var realId = id.replace('_hc_', '');
     var label = tipo === 'dueno' ? 'dueno' : 'trabajador';
     var newPass = prompt('Nueva contraseña de ' + label + ' para ' + realId + ':');
-    if (!newPass || newPass.length < 4) { showToast('Contrasena muy corta (minimo 4 caracteres)', 'error'); return; }
+    if (!newPass || newPass.length < 4) { showToast('Contraseña muy corta (mínimo 4 caracteres)', 'error'); return; }
     try {
         var newHash = await _h(newPass);
         var field = tipo === 'dueno' ? 'duenoHash' : 'trabajadorHash';
@@ -3173,16 +3173,16 @@ async function adminCambiarPassCliente(id, tipo) {
                 }
             }
         } catch(e3) {}
-        showToast('Contrasena de ' + label + ' actualizada para ' + realId);
+        showToast('Contraseña de ' + label + ' actualizada para ' + realId);
         renderAdminPasswords();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 async function adminCambiarPassAdmin() { if(!_isAdmin)return;
-    var currentPass = prompt('Contrasena actual del admin:');
+    var currentPass = prompt('Contraseña actual del admin:');
     if (!currentPass) return;
     var currentHash = await _h(currentPass);
-    if (currentHash !== _adminHash) { showToast('Contrasena actual incorrecta', 'error'); return; }
+    if (currentHash !== _adminHash) { showToast('Contraseña actual incorrecta', 'error'); return; }
     var newPass = prompt('Nueva contraseña del admin:');
     if (!newPass || newPass.length < 6) { showToast('La contraseña debe tener al menos 6 caracteres', 'error'); return; }
     var confirmPass = prompt('Confirmar nueva contraseña:');
@@ -3190,7 +3190,7 @@ async function adminCambiarPassAdmin() { if(!_isAdmin)return;
     _adminHash = await _h(newPass);
     try {
         await _db.collection('config').doc('admin').set({ hash: _adminHash });
-        showToast('Contrasena de admin actualizada');
+        showToast('Contraseña de admin actualizada');
     } catch(e) { showToast('Error guardando: ' + e.message, 'error'); }
 }
 
@@ -6914,7 +6914,7 @@ function renderActividadEmpleados() {
             '<div style="flex:1; min-width:120px;">' +
                 '<div style="font-weight:700; color:var(--white); font-size:0.95rem;">' + escapeHTML(nombre) + '</div>' +
                 (s.sucursal ? '<div style="font-size:0.78rem; color:var(--orange); margin-top:0.15rem;">' + escapeHTML(s.sucursal) + '</div>' : '') +
-                (isEmp && s.ultimoAcceso ? '<div style="font-size:0.75rem; color:var(--muted); margin-top:0.1rem;">Ultimo acceso: ' + escapeHTML(s.ultimoAcceso) + '</div>' : '') +
+                (isEmp && s.ultimoAcceso ? '<div style="font-size:0.75rem; color:var(--muted); margin-top:0.1rem;">Último acceso: ' + escapeHTML(s.ultimoAcceso) + '</div>' : '') +
             '</div>' +
             '<div style="display:flex; gap:1.2rem; flex-shrink:0;">' +
                 '<div style="text-align:center;"><div style="font-size:1.1rem; font-weight:800; color:var(--green);">' + s.ventas + '</div><div style="font-size:0.7rem; color:var(--muted);">Ventas</div></div>' +
