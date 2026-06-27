@@ -10,6 +10,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NEXOVA">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#f46a1f">
     <title>NEXOVA — Automatización No-Code para negocios en Monterrey</title>
     <meta name="description" content="Sistema completo para administrar tu negocio desde el celular: ventas, inventario, citas, gastos, reportes. Hecho en Monterrey para negocios reales. Desde $800 MXN.">
     <meta name="keywords" content="sistema punto de venta monterrey, software negocios monterrey, control inventario, agenda citas, reportes ventas, automatización negocios, NEXOVA, sistema POS">
@@ -7696,6 +7700,9 @@ document.addEventListener('DOMContentLoaded',function(){
     D(800,tryStart);
     } // fin if(false)
 });
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function(e) {});
+}
 </script>
 </body>
 </html>
