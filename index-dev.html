@@ -173,8 +173,8 @@
         html { scroll-behavior: smooth; }
         body { background: var(--bg); color: var(--white); font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; line-height: 1.65; overflow-x: hidden; }
         
-        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 1rem 5vw; background: rgba(10,10,11,0.94); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
-        .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.85rem; letter-spacing: 0.06em; color: var(--white); text-decoration: none; }
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: calc(0.8rem + env(safe-area-inset-top, 0px)) 5vw 0.8rem; background: rgba(10,10,11,0.94); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+        .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.85rem; letter-spacing: 0.06em; color: var(--white); text-decoration: none; } @media(max-width:768px) { .logo { font-size: 1.4rem; } }
         .logo span { color: var(--orange); }
         .nav-center { display: flex; gap: 1.6rem; align-items: center; }
         .nav-link { font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
@@ -209,7 +209,7 @@
         .btn-ghost { background: transparent; color: var(--white); font-weight: 500; font-size: 1rem; padding: 0.95rem 2.2rem; border: 1px solid var(--border2); border-radius: 3px; cursor: pointer; text-decoration: none; transition: border-color 0.2s, color 0.2s; display: inline-block; }
         .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
         
-        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 9rem 5vw 5rem; position: relative; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: calc(7rem + env(safe-area-inset-top, 0px)) 5vw 5rem; position: relative; }
         .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem, 10vw, 9rem); line-height: 0.92; max-width: 950px; margin-bottom: 1.8rem; }
         .hero h1 em { color: var(--orange); font-style: normal; }
         .hero-sub { font-size: clamp(0.95rem, 1.8vw, 1.15rem); color: rgba(240,237,232,0.62); max-width: 520px; font-weight: 300; line-height: 1.72; margin-bottom: 2.6rem; }
@@ -347,7 +347,7 @@
         .table-wrapper { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 1.5rem; }
         
         @media(max-width: 768px) {
-            nav { padding: 0.9rem 4vw; }
+            nav { padding: calc(0.6rem + env(safe-area-inset-top, 0px)) 4vw 0.6rem; }
             .nav-center { display: none; }
             .nav-cta { display: none; }
             .hamburger { display: flex; }
