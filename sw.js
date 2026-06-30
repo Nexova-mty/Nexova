@@ -1,4 +1,4 @@
-var CACHE_NAME = 'nexova-v3';
+var CACHE_NAME = 'nexova-v4';
 var urlsToCache = [
   './',
   './index.html',
