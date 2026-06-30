@@ -7,9 +7,6 @@
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta name="referrer" content="no-referrer-when-downgrade">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NEXOVA">
@@ -212,8 +209,8 @@
         .btn-ghost { background: transparent; color: var(--white); font-weight: 500; font-size: 1rem; padding: 0.95rem 2.2rem; border: 1px solid var(--border2); border-radius: 3px; cursor: pointer; text-decoration: none; transition: border-color 0.2s, color 0.2s; display: inline-block; }
         .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
         
-        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: calc(8rem + env(safe-area-inset-top, 0px)) clamp(2rem, 10vw, 8rem) 5rem; position: relative; overflow: hidden; }
-        .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem, 4.5vw, 4.5rem); line-height: 1.05; max-width: 800px; margin-bottom: 1.8rem; word-break: break-word; overflow-wrap: break-word; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 8rem 5vw 5rem; padding-top: 8rem; position: relative; overflow: hidden; }
+        .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5.5vw, 5.5rem); line-height: 0.95; max-width: 800px; margin-bottom: 1.8rem; }
         .hero h1 em { color: var(--orange); font-style: normal; }
         .hero-sub { font-size: clamp(0.95rem, 1.8vw, 1.15rem); color: rgba(240,237,232,0.62); max-width: 520px; font-weight: 300; line-height: 1.72; margin-bottom: 2.6rem; }
         
@@ -356,7 +353,7 @@
             .hamburger { display: flex; }
             #btnTemaLanding { display: none; }
             section { padding: 4.5rem 4vw; }
-            .hero { padding: 5.5rem clamp(1.5rem, 8vw, 4rem) 3rem; }
+            .hero { padding: 5.5rem 5vw 3rem; }
             .demo-wrap { grid-template-columns: 1fr; }
             .pricing-grid { grid-template-columns: 1fr; max-width: 100%; }
             .testi-grid { grid-template-columns: 1fr; }
@@ -585,7 +582,7 @@
 
         /* ── Very small screens (≤ 320px) ── */
         @media (max-width: 320px) {
-            .hero h1 { font-size: 1.5rem; }
+            .hero h1 { font-size: 2rem; }
             .sec-title { font-size: 1.8rem; }
             .guarantee-box { padding: 1.2rem; }
             .form-box { padding: 1.2rem; }
