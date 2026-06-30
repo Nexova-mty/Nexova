@@ -1,12 +1,10 @@
-var CACHE_NAME = 'nexova-v4';
+var CACHE_NAME = 'nexova-v5';
 var urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
   './splash.mp4',
   './demo-nexova.mp4',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './manifest.json'
 ];
 
 self.addEventListener('install', function(event) {
@@ -34,25 +32,28 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
+  var url = new URL(event.request.url);
+  var isHtml = event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/Nexova/');
+
+  if (isHtml) {
+    // HTML siempre desde red, fallback a caché
+    event.respondWith(
+      fetch(event.request).catch(function() {
+        return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
+  // Archivos grandes (video, imágenes): caché primero
   event.respondWith(
-    caches.match(event.request).then(function(cachedResponse) {
-      if (cachedResponse) {
-        // Serve from cache instantly, update in background
-        fetch(event.request).then(function(response) {
-          if (response && response.status === 200) {
-            caches.open(CACHE_NAME).then(function(cache) {
-              cache.put(event.request, response);
-            });
-          }
-        }).catch(function() {});
-        return cachedResponse;
-      }
-      // Not in cache — fetch from network and cache it
+    caches.match(event.request).then(function(cached) {
+      if (cached) return cached;
       return fetch(event.request).then(function(response) {
         if (response && response.status === 200) {
-          var responseClone = response.clone();
+          var clone = response.clone();
           caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(event.request, responseClone);
+            cache.put(event.request, clone);
           });
         }
         return response;
