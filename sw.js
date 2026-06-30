@@ -1,9 +1,12 @@
-var CACHE_NAME = 'nexova-v1';
+var CACHE_NAME = 'nexova-v3';
 var urlsToCache = [
   './',
   './index.html',
+  './manifest.json',
+  './splash.mp4',
   './demo-nexova.mp4',
-  './manifest.json'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', function(event) {
@@ -31,19 +34,29 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  // Network first, fallback to cache
   event.respondWith(
-    fetch(event.request).then(function(response) {
-      // Clone and cache successful responses
-      if (response && response.status === 200) {
-        var responseClone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(event.request, responseClone);
-        });
+    caches.match(event.request).then(function(cachedResponse) {
+      if (cachedResponse) {
+        // Serve from cache instantly, update in background
+        fetch(event.request).then(function(response) {
+          if (response && response.status === 200) {
+            caches.open(CACHE_NAME).then(function(cache) {
+              cache.put(event.request, response);
+            });
+          }
+        }).catch(function() {});
+        return cachedResponse;
       }
-      return response;
-    }).catch(function() {
-      return caches.match(event.request);
+      // Not in cache — fetch from network and cache it
+      return fetch(event.request).then(function(response) {
+        if (response && response.status === 200) {
+          var responseClone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      });
     })
   );
 });
