@@ -199,6 +199,12 @@
         @keyframes pulse { 0%,100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); } 50% { box-shadow: 0 4px 32px rgba(37,211,102,0.65); } }
         
         section { padding: 6rem 5vw; }
+        /* ── Scroll animations ── */
+        .fade-in { opacity: 0; transform: translateY(28px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .fade-in.visible { opacity: 1; transform: none; }
+        .fade-in-delay1 { transition-delay: 0.1s; }
+        .fade-in-delay2 { transition-delay: 0.2s; }
+        .fade-in-delay3 { transition-delay: 0.3s; }
         .sec-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--orange); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
         .sec-label::before { content: ''; display: inline-block; width: 20px; height: 2px; background: var(--orange); }
         .sec-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.05; letter-spacing: 0.02em; max-width: 700px; }
@@ -781,8 +787,8 @@ setTimeout(function() { cerrarSplash(); }, 6000);
 
     <!-- DEMO VENTA EN VIVO -->
     <section style="padding:5rem 5vw; background:var(--bg2);" id="demo-venta">
-        <div class="sec-label">Sistema en uso</div>
-        <h2 class="sec-title">Así se ve por dentro.<br><em>En tiempo real.</em></h2>
+        <div class="sec-label fade-in">Sistema en uso</div>
+        <h2 class="sec-title fade-in fade-in-delay1">Así se ve por dentro.<br><em>En tiempo real.</em></h2>
         <p style="color:var(--muted); font-size:0.92rem; font-weight:300; margin-top:0.8rem; max-width:560px; margin-bottom:2.5rem;">Mira cómo funciona el sistema completo: punto de venta, inventario, citas, reportes y más.</p>
 
         <div style="border-radius:10px; overflow:hidden; max-width:860px; border:1px solid var(--border); box-shadow:0 4px 40px rgba(0,0,0,0.4);">
@@ -896,8 +902,8 @@ setTimeout(function() { cerrarSplash(); }, 6000);
 
     <!-- DEMO -->
     <section class="demo-section" id="demo">
-        <div class="sec-label">WhatsApp Automatizado</div>
-        <h2 class="sec-title">Así funciona<br>en <em>tiempo real.</em></h2>
+        <div class="sec-label fade-in">WhatsApp Automatizado</div>
+        <h2 class="sec-title fade-in fade-in-delay1">Así funciona<br>en <em>tiempo real.</em></h2>
         <p style="color: var(--muted); font-size: 0.92rem; font-weight: 300; margin-top: 0.8rem; max-width: 560px;">Mira cómo el bot responde automáticamente a consultas, genera cotizaciones y agenda citas sin intervención humana.</p>
         <div class="demo-wrap">
             <div class="demo-left">
@@ -913,10 +919,10 @@ setTimeout(function() { cerrarSplash(); }, 6000);
 
     <!-- PRECIOS -->
     <section class="pricing-section" id="precios">
-        <div class="sec-label">Paquetes</div>
-        <h2 class="sec-title">Precios claros.<br><em>Sin sorpresas.</em></h2>
+        <div class="sec-label fade-in">Paquetes</div>
+        <h2 class="sec-title fade-in fade-in-delay1">Precios claros.<br><em>Sin sorpresas.</em></h2>
         <div class="pricing-grid">
-            <div class="pricing-card">
+            <div class="pricing-card fade-in fade-in-delay1">
                 <div class="pricing-name">Plan Esencial</div>
                 <div class="pricing-price"><sup>$</sup>800<span style="font-family: 'Hanken Grotesk'; font-size: 0.95rem; font-weight: 300; color: var(--muted);"> MXN</span></div>
                 <div class="pricing-sub">+ $1,000 MXN/mes software</div>
@@ -936,8 +942,9 @@ setTimeout(function() { cerrarSplash(); }, 6000);
                     <div class="pf">Garantía de 30 días</div>
                 </div>
                 <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20me%20interesa%20el%20Plan%20Esencial.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" class="btn-primary" style="width: 100%; text-align: center; margin-top: 1.5rem; display:block; background:var(--bg4); color:var(--white); border:1px solid var(--border);">Solicitar por WhatsApp →</a>
+                <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20quiero%20pagar%20el%20Plan%20Esencial%20en%20l%C3%ADnea.%20%C2%BFC%C3%B3mo%20procedo%3F" target="_blank" style="width:100%; text-align:center; margin-top:0.6rem; display:block; padding:0.75rem; border:1px dashed rgba(244,106,31,0.4); border-radius:3px; color:var(--muted); font-size:0.82rem; text-decoration:none; transition:border-color 0.2s, color 0.2s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='rgba(244,106,31,0.4)';this.style.color='var(--muted)'">💳 Pagar en línea →</a>
             </div>
-            <div class="pricing-card featured">
+            <div class="pricing-card featured fade-in fade-in-delay2">
                 <div class="pricing-name">Plan Premium</div>
                 <div style="font-size:0.7rem; color:var(--green); font-weight:700; letter-spacing:0.05em; text-transform:uppercase; margin-bottom:0.5rem;">Más popular</div>
                 <div class="pricing-price"><sup>$</sup>1,300<span style="font-family: 'Hanken Grotesk'; font-size: 0.95rem; font-weight: 300; color: var(--muted);"> MXN</span></div>
@@ -956,6 +963,7 @@ setTimeout(function() { cerrarSplash(); }, 6000);
                     <div class="pf">Garantía de 30 días</div>
                 </div>
                 <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20me%20interesa%20el%20Plan%20Completo.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" class="btn-primary" style="width: 100%; text-align: center; margin-top: 1.5rem; display:block;">Solicitar por WhatsApp →</a>
+                <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20quiero%20pagar%20el%20Plan%20Premium%20en%20l%C3%ADnea.%20%C2%BFC%C3%B3mo%20procedo%3F" target="_blank" style="width:100%; text-align:center; margin-top:0.6rem; display:block; padding:0.75rem; border:1px dashed rgba(244,106,31,0.4); border-radius:3px; color:var(--muted); font-size:0.82rem; text-decoration:none; transition:border-color 0.2s, color 0.2s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='rgba(244,106,31,0.4)';this.style.color='var(--muted)'">💳 Pagar en línea →</a>
             </div>
         </div>
     </section>
@@ -3824,9 +3832,15 @@ function iniciarDashboard(user, rol) {
     }
     iniciarSyncFirestore(user);
 
-    // Request notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
+    // Notificaciones push para citas
+    if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(function(p) {
+                if (p === 'granted') programarRecordatoriosCitas(user);
+            });
+        } else if (Notification.permission === 'granted') {
+            programarRecordatoriosCitas(user);
+        }
     }
 
     // Auto backup check
@@ -7721,6 +7735,49 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function(e) {});
+}
+
+// ── Scroll fade-in animation ──
+(function() {
+    if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('.fade-in').forEach(function(el) { el.classList.add('visible'); });
+        return;
+    }
+    var io = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+        });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.fade-in').forEach(function(el) { io.observe(el); });
+})();
+
+// ── Recordatorios push para citas próximas ──
+function programarRecordatoriosCitas(user) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+        var data = cargarDatos(user);
+        if (!data || !data.citas) return;
+        var ahora = Date.now();
+        var en25h = ahora + 25 * 60 * 60 * 1000;
+        data.citas.forEach(function(cita) {
+            var dt = parseCitaFecha(cita);
+            if (!dt || isNaN(dt)) return;
+            var citaMs = dt.getTime();
+            if (citaMs < ahora || citaMs > en25h) return;
+            // Notificar 1 hora antes
+            var delay = citaMs - 60 * 60 * 1000 - ahora;
+            if (delay < 0) delay = 0;
+            setTimeout(function() {
+                try {
+                    new Notification('📅 Cita en 1 hora — NEXOVA', {
+                        body: (cita.nombre || 'Cliente') + ' · ' + (cita.hora || ''),
+                        icon: 'icon-192.png',
+                        tag: 'cita-' + (cita.id || cita.nombre)
+                    });
+                } catch(e) {}
+            }, delay);
+        });
+    } catch(e) {}
 }
 </script>
 </body>
