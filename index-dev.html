@@ -2497,23 +2497,6 @@ function toggleMenu() {
     document.getElementById('mobileMenu').classList.toggle('show');
 }
 
-// iOS PWA fallback: attach touchend listeners to nav buttons
-document.addEventListener('DOMContentLoaded', function() {
-    var hambBtn = document.getElementById('hamburger');
-    var ctaBtn = document.getElementById('btnAcceso');
-    if (hambBtn) {
-        hambBtn.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            toggleMenu();
-        }, {passive: false});
-    }
-    if (ctaBtn) {
-        ctaBtn.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            mostrarAcceso();
-        }, {passive: false});
-    }
-});
 
 function toggleTema() {
     const esClaro = document.body.classList.toggle('light-theme');
