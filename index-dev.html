@@ -215,7 +215,7 @@
         .btn-ghost { background: transparent; color: var(--white); font-weight: 500; font-size: 1rem; padding: 0.95rem 2.2rem; border: 1px solid var(--border2); border-radius: 3px; cursor: pointer; text-decoration: none; transition: border-color 0.2s, color 0.2s; display: inline-block; }
         .btn-ghost:hover { border-color: var(--orange); color: var(--orange); }
         
-        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 8rem 5vw 5rem; position: relative; overflow: hidden; box-sizing: border-box; width: 100%; }
+        .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: calc(8rem + env(safe-area-inset-top, 0px)) 5vw 5rem; position: relative; overflow: hidden; box-sizing: border-box; width: 100%; }
         .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 5.5vw, 5.5rem); line-height: 1; max-width: 800px; width: 100%; margin-bottom: 1.8rem; word-break: break-word; overflow-wrap: break-word; }
         .hero h1 em { color: var(--orange); font-style: normal; }
         .hero-sub { font-size: clamp(0.95rem, 1.8vw, 1.15rem); color: rgba(240,237,232,0.62); max-width: 520px; font-weight: 300; line-height: 1.72; margin-bottom: 2.6rem; }
@@ -552,12 +552,12 @@
             .sidebar {
                 position: fixed !important;
                 bottom: 0 !important; left: 0 !important; right: 0 !important;
-                width: 100% !important; height: 58px !important;
+                width: 100% !important; height: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
                 border-top: 1px solid var(--border) !important;
                 border-right: none !important; border-bottom: none !important;
                 background: var(--bg2) !important;
                 z-index: 500 !important;
-                padding: 0 !important;
+                padding: 0 0 env(safe-area-inset-bottom, 0px) 0 !important;
                 overflow-x: auto !important; overflow-y: hidden !important;
                 scrollbar-width: none !important;
                 display: flex !important; flex-direction: row !important;
@@ -575,7 +575,7 @@
             }
             #dashboard .sidebar button.nav-btn[style*="margin-top:auto"] { margin-top: 0 !important; border-top: none !important; padding-top: 0.25rem !important; }
             .dashboard-content { grid-template-rows: 1fr !important; }
-            .main-content { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important; }
+            .main-content { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px) * 2) !important; }
             #toastContainer { bottom: 70px; }
             #adminPanel > div:last-child { grid-template-columns: 1fr !important; grid-template-rows: auto 1fr !important; }
             #adminPanel .admin-nav-btn { display: inline-block !important; width: auto !important; padding: 0.5rem 0.8rem !important; font-size: 0.78rem !important; white-space: nowrap !important; }
