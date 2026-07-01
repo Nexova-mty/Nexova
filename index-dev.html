@@ -2440,52 +2440,51 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Demo WhatsApp
+// Demo WhatsApp — CSS animation-delay, sin setTimeout complejos
 const demoMessages = [
     { type: 'client', text: 'Buenas! quiero agendar una cita', delay: 0 },
-    { type: 'bot',    text: '¡Hola! Con gusto te agendo. ¿Para qué día la necesitas?', delay: 1600 },
-    { type: 'client', text: 'Para el viernes, ¿tienen lugar?', delay: 3600 },
-    { type: 'bot',    text: 'Sí, el viernes tenemos disponibilidad. ¿Prefieres a las 10am, 1pm o 4pm?', delay: 5000 },
-    { type: 'client', text: 'A las 4pm me queda bien', delay: 7200 },
-    { type: 'bot',    text: '¡Perfecto! ¿Me dices tu nombre para confirmar?', delay: 8600 },
-    { type: 'client', text: 'Sandra Martínez', delay: 10500 },
-    { type: 'bot',    text: 'Listo Sandra, cita confirmada el viernes a las 4pm. Te recordamos un día antes. ¡Nos vemos!', delay: 11900 },
+    { type: 'bot',    text: '¡Hola! Con gusto te agendo. ¿Para qué día la necesitas?', delay: 1.6 },
+    { type: 'client', text: 'Para el viernes, ¿tienen lugar?', delay: 3.6 },
+    { type: 'bot',    text: 'Sí, tenemos disponibilidad. ¿Prefieres 10am, 1pm o 4pm?', delay: 5.0 },
+    { type: 'client', text: 'A las 4pm me queda bien', delay: 7.2 },
+    { type: 'bot',    text: '¡Perfecto! ¿Me dices tu nombre para confirmar?', delay: 8.6 },
+    { type: 'client', text: 'Sandra Martínez', delay: 10.5 },
+    { type: 'bot',    text: 'Listo Sandra, cita confirmada el viernes a las 4pm. ¡Nos vemos!', delay: 11.9 },
 ];
 
 function startDemo() {
-    const container = document.getElementById('chatContainer');
+    var container = document.getElementById('chatContainer');
     if (!container) return;
     container.innerHTML = '';
-
-    demoMessages.forEach(msg => {
-        setTimeout(() => {
-            const c = document.getElementById('chatContainer');
-            if (!c) return;
-            const el = document.createElement('div');
-            el.className = `message ${msg.type}`;
-            const textDiv = document.createElement('div');
-            textDiv.className = 'text';
-            textDiv.textContent = msg.text;
-            el.appendChild(textDiv);
-            c.appendChild(el);
-            c.scrollTop = c.scrollHeight;
-        }, msg.delay);
+    demoMessages.forEach(function(msg) {
+        var el = document.createElement('div');
+        el.className = 'message ' + msg.type;
+        var textDiv = document.createElement('div');
+        textDiv.className = 'text';
+        textDiv.textContent = msg.text;
+        el.appendChild(textDiv);
+        el.style.animationDelay = msg.delay + 's';
+        el.style.opacity = '0';
+        el.addEventListener('animationend', function() {
+            el.style.opacity = '1';
+            el.style.animationDelay = '';
+            container.scrollTop = container.scrollHeight;
+        }, { once: true });
+        container.appendChild(el);
     });
-
-    // Reiniciar automáticamente en ciclo infinito (2.5s de pausa tras el último mensaje)
-    const lastDelay = demoMessages[demoMessages.length - 1].delay;
-    setTimeout(() => {
-        const c = document.getElementById('chatContainer');
+    // Reiniciar ciclo
+    var cycleDuration = (demoMessages[demoMessages.length - 1].delay + 3) * 1000;
+    setTimeout(function() {
+        var c = document.getElementById('chatContainer');
         if (!c) return;
-        // Fade out suave antes de reiniciar
-        c.style.transition = 'opacity 0.6s ease';
+        c.style.transition = 'opacity 0.5s';
         c.style.opacity = '0';
-        setTimeout(() => {
+        setTimeout(function() {
             c.style.transition = '';
             c.style.opacity = '1';
             startDemo();
-        }, 650);
-    }, lastDelay + 2500);
+        }, 600);
+    }, cycleDuration);
 }
 
 // Landing
