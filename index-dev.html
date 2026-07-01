@@ -733,8 +733,9 @@ gtag('config', 'G-N1DRB0NWDS');
 function cerrarSplash() {
     var splash = document.getElementById('splashScreen');
     if (!splash) return;
+    splash.style.pointerEvents = 'none';
     splash.style.opacity = '0';
-    setTimeout(function() { splash.remove(); }, 600);
+    setTimeout(function() { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 600);
 }
 // Fallback: close splash after 6s even if video fails
 setTimeout(function() { cerrarSplash(); }, 6000);
@@ -779,8 +780,8 @@ setTimeout(function() { cerrarSplash(); }, 6000);
             <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20quiero%20un%20diagn%C3%B3stico%20gratuito%20para%20mi%20negocio." target="_blank" class="nav-link">Contacto</a>
         </div>
         <button onclick="toggleTema()" id="btnTemaLanding" style="background:transparent; color:var(--muted); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:3px; cursor:pointer; font-size:0.78rem; white-space:nowrap;">Tema claro</button>
-        <button class="nav-cta" onclick="mostrarAcceso()" style="touch-action:manipulation;">Acceso Clientes →</button>
-        <button class="hamburger" id="hamburger" onclick="toggleMenu()" style="touch-action:manipulation;">
+        <button class="nav-cta" onclick="mostrarAcceso()" ontouchstart="" style="touch-action:manipulation;cursor:pointer;">Acceso Clientes →</button>
+        <button class="hamburger" id="hamburger" onclick="toggleMenu()" ontouchstart="" style="touch-action:manipulation;cursor:pointer;">
             <span></span><span></span><span></span>
         </button>
     </nav>
@@ -791,7 +792,7 @@ setTimeout(function() { cerrarSplash(); }, 6000);
         <a href="#precios" onclick="toggleMenu()">Paquetes</a>
         <a href="#testimonios" onclick="toggleMenu()">Clientes</a>
         <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20quiero%20un%20diagn%C3%B3stico%20gratuito%20para%20mi%20negocio." target="_blank" onclick="toggleMenu()">Contacto</a>
-        <button class="nav-cta" onclick="toggleMenu();mostrarAcceso();" style="width:100%;touch-action:manipulation;">Acceso Clientes →</button>
+        <button class="nav-cta" onclick="toggleMenu();mostrarAcceso();" ontouchstart="" style="width:100%;touch-action:manipulation;cursor:pointer;">Acceso Clientes →</button>
     </div>
 
     <!-- HERO -->
@@ -2480,6 +2481,24 @@ function toggleMenu() {
     document.getElementById('hamburger').classList.toggle('open');
     document.getElementById('mobileMenu').classList.toggle('show');
 }
+
+// iOS PWA fallback: attach touchend listeners to nav buttons
+document.addEventListener('DOMContentLoaded', function() {
+    var hambBtn = document.getElementById('hamburger');
+    var ctaBtn = document.querySelector('nav .nav-cta');
+    if (hambBtn) {
+        hambBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            toggleMenu();
+        }, {passive: false});
+    }
+    if (ctaBtn) {
+        ctaBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            mostrarAcceso();
+        }, {passive: false});
+    }
+});
 
 function toggleTema() {
     const esClaro = document.body.classList.toggle('light-theme');
