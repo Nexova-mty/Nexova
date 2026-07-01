@@ -233,12 +233,21 @@
         .demo-left p { font-size: 0.95rem; color: rgba(240,237,232,0.7); font-weight: 300; line-height: 1.8; }
         .demo-right { background: var(--bg2); padding: 1.5rem; display: block; height: 420px; border-radius: 8px; box-sizing: border-box; }
         .chat-messages { display: flex; flex-direction: column; gap: 1rem; padding: 1rem 0; overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; box-sizing: border-box; }
-        @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .message { animation: msgIn 0.4s ease forwards; }
+        @keyframes msgIn { 0%,100%{opacity:0;transform:translateY(8px)} 8%,88%{opacity:1;transform:translateY(0)} }
         .message.client { display: flex; justify-content: flex-end; }
         .message.client .text { background: #555555; color: #fff; padding: 0.8rem 1rem; border-radius: 12px; max-width: 70%; }
         .message.bot { display: flex; justify-content: flex-start; }
         .message.bot .text { background: var(--orange); color: #fff; padding: 0.8rem 1rem; border-radius: 12px; max-width: 70%; }
+        /* Ciclo total = 18s. Cada mensaje aparece en su ventana y desaparece al final */
+        .dm1,.dm2,.dm3,.dm4,.dm5,.dm6,.dm7,.dm8 { opacity:0; animation: msgIn 18s linear infinite; }
+        .dm1 { animation-delay: 0s; }
+        .dm2 { animation-delay: 1.6s; }
+        .dm3 { animation-delay: 3.2s; }
+        .dm4 { animation-delay: 5.0s; }
+        .dm5 { animation-delay: 6.8s; }
+        .dm6 { animation-delay: 8.4s; }
+        .dm7 { animation-delay: 10.2s; }
+        .dm8 { animation-delay: 11.8s; }
         
         .pricing-section { background: var(--bg2); }
         .pricing-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem; margin-top: 3rem; max-width: 900px; }
@@ -928,7 +937,16 @@ setTimeout(function() { cerrarSplash(); }, 6000);
                 <p style="margin-top: 1.5rem; color: var(--orange); font-weight: 600;">Observa el flujo automático →</p>
             </div>
             <div class="demo-right">
-                <div class="chat-messages" id="chatContainer"></div>
+                <div class="chat-messages" id="chatContainer">
+                    <div class="message client dm1"><div class="text">Buenas! quiero agendar una cita</div></div>
+                    <div class="message bot dm2"><div class="text">¡Hola! Con gusto te agendo. ¿Para qué día la necesitas?</div></div>
+                    <div class="message client dm3"><div class="text">Para el viernes, ¿tienen lugar?</div></div>
+                    <div class="message bot dm4"><div class="text">Sí, tenemos disponibilidad. ¿Prefieres 10am, 1pm o 4pm?</div></div>
+                    <div class="message client dm5"><div class="text">A las 4pm me queda bien</div></div>
+                    <div class="message bot dm6"><div class="text">¡Perfecto! ¿Me dices tu nombre para confirmar?</div></div>
+                    <div class="message client dm7"><div class="text">Sandra Martínez</div></div>
+                    <div class="message bot dm8"><div class="text">Listo Sandra, cita confirmada el viernes a las 4pm. ¡Nos vemos!</div></div>
+                </div>
             </div>
         </div>
     </section>
@@ -2440,52 +2458,7 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Demo WhatsApp — CSS animation-delay, sin setTimeout complejos
-const demoMessages = [
-    { type: 'client', text: 'Buenas! quiero agendar una cita', delay: 0 },
-    { type: 'bot',    text: '¡Hola! Con gusto te agendo. ¿Para qué día la necesitas?', delay: 1.6 },
-    { type: 'client', text: 'Para el viernes, ¿tienen lugar?', delay: 3.6 },
-    { type: 'bot',    text: 'Sí, tenemos disponibilidad. ¿Prefieres 10am, 1pm o 4pm?', delay: 5.0 },
-    { type: 'client', text: 'A las 4pm me queda bien', delay: 7.2 },
-    { type: 'bot',    text: '¡Perfecto! ¿Me dices tu nombre para confirmar?', delay: 8.6 },
-    { type: 'client', text: 'Sandra Martínez', delay: 10.5 },
-    { type: 'bot',    text: 'Listo Sandra, cita confirmada el viernes a las 4pm. ¡Nos vemos!', delay: 11.9 },
-];
-
-function startDemo() {
-    var container = document.getElementById('chatContainer');
-    if (!container) return;
-    container.innerHTML = '';
-    demoMessages.forEach(function(msg) {
-        var el = document.createElement('div');
-        el.className = 'message ' + msg.type;
-        var textDiv = document.createElement('div');
-        textDiv.className = 'text';
-        textDiv.textContent = msg.text;
-        el.appendChild(textDiv);
-        el.style.animationDelay = msg.delay + 's';
-        el.style.opacity = '0';
-        el.addEventListener('animationend', function() {
-            el.style.opacity = '1';
-            el.style.animationDelay = '';
-            container.scrollTop = container.scrollHeight;
-        }, { once: true });
-        container.appendChild(el);
-    });
-    // Reiniciar ciclo
-    var cycleDuration = (demoMessages[demoMessages.length - 1].delay + 3) * 1000;
-    setTimeout(function() {
-        var c = document.getElementById('chatContainer');
-        if (!c) return;
-        c.style.transition = 'opacity 0.5s';
-        c.style.opacity = '0';
-        setTimeout(function() {
-            c.style.transition = '';
-            c.style.opacity = '1';
-            startDemo();
-        }, 600);
-    }, cycleDuration);
-}
+// Demo WhatsApp: animación 100% CSS, sin JS
 
 // Landing
 function toggleMenu() {
@@ -6449,9 +6422,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     })(); // fin async IIFE de restauración de sesión
 
-    if (document.getElementById('chatContainer')) {
-        startDemo();
-    }
 
     // Modo autodemo: carga el dashboard real y anima una venta
     if (location.search.includes('autodemo')) {
