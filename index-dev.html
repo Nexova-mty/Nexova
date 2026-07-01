@@ -641,15 +641,17 @@
 //     }
 //   }
 // }
-firebase.initializeApp({
-  apiKey: "AIzaSyAhStb6vYzd17ff6zH2lppFYAp7B58tr8g",
-  authDomain: "nexova-mty.firebaseapp.com",
-  projectId: "nexova-mty",
-  storageBucket: "nexova-mty.firebasestorage.app",
-  messagingSenderId: "712813418598",
-  appId: "1:712813418598:web:9697a7e39c7987bef4f5a7"
-});
-var _db = firebase.firestore();
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyAhStb6vYzd17ff6zH2lppFYAp7B58tr8g",
+    authDomain: "nexova-mty.firebaseapp.com",
+    projectId: "nexova-mty",
+    storageBucket: "nexova-mty.firebasestorage.app",
+    messagingSenderId: "712813418598",
+    appId: "1:712813418598:web:9697a7e39c7987bef4f5a7"
+  });
+} catch(e) { console.warn('Firebase init:', e.message); }
+var _db = (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) ? firebase.firestore() : null;
 
 function guardarDatos(user, data) {
   var raw = JSON.stringify(data);
@@ -715,8 +717,8 @@ gtag('config', 'G-N1DRB0NWDS');
 </head>
 <body>
 <!-- SPLASH SCREEN -->
-<div id="splashScreen" style="position:fixed; inset:0; z-index:99999; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity 0.6s ease;">
-    <video id="splashVideo" autoplay muted playsinline style="width:100%; height:100%; object-fit:contain;" onended="cerrarSplash()">
+<div id="splashScreen" style="position:fixed; inset:0; z-index:99999; background:#000; display:flex; align-items:center; justify-content:center; transition:opacity 0.6s ease;" onclick="cerrarSplash()" ontouchstart="cerrarSplash()">
+    <video id="splashVideo" autoplay muted playsinline style="width:100%; height:100%; object-fit:contain; pointer-events:none;" onended="cerrarSplash()">
         <source src="splash.mp4" type="video/mp4">
     </video>
 </div>
@@ -728,8 +730,8 @@ function cerrarSplash() {
     splash.style.opacity = '0';
     setTimeout(function() { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 600);
 }
-// Fallback: close splash after 6s even if video fails
-setTimeout(function() { cerrarSplash(); }, 6000);
+// Fallback: close splash after 4s even if video fails
+setTimeout(function() { cerrarSplash(); }, 4000);
 </script>
 
 <div id="toastContainer"></div>
