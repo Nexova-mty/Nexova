@@ -232,7 +232,7 @@
         .demo-left h3 em { color: var(--orange); font-style: normal; }
         .demo-left p { font-size: 0.95rem; color: rgba(240,237,232,0.7); font-weight: 300; line-height: 1.8; }
         .demo-right { background: var(--bg2); padding: 1.5rem; display: block; height: 420px; border-radius: 8px; box-sizing: border-box; }
-        .chat-messages { display: flex; flex-direction: column; gap: 1rem; padding: 1rem 0; overflow-y: auto; -webkit-overflow-scrolling: touch; height: 100%; box-sizing: border-box; }
+        .chat-messages { display: flex; flex-direction: column; gap: 1rem; padding: 1rem 0; overflow-y: hidden; height: 100%; box-sizing: border-box; }
         @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .message.client { display: flex; justify-content: flex-end; }
         .message.client .text { background: #555555; color: #fff; padding: 0.8rem 1rem; border-radius: 12px; max-width: 70%; }
@@ -780,7 +780,7 @@ setTimeout(function() { cerrarSplash(); }, 6000);
             <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20quiero%20un%20diagn%C3%B3stico%20gratuito%20para%20mi%20negocio." target="_blank" class="nav-link">Contacto</a>
         </div>
         <button onclick="toggleTema()" id="btnTemaLanding" style="background:transparent; color:var(--muted); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:3px; cursor:pointer; font-size:0.78rem; white-space:nowrap;">Tema claro</button>
-        <button class="nav-cta" onclick="mostrarAcceso()" ontouchstart="" style="touch-action:manipulation;cursor:pointer;">Acceso Clientes →</button>
+        <button id="btnAcceso" class="nav-cta" onclick="mostrarAcceso()" ontouchstart="" style="touch-action:manipulation;cursor:pointer;">Acceso Clientes →</button>
         <button class="hamburger" id="hamburger" onclick="toggleMenu()" ontouchstart="" style="touch-action:manipulation;cursor:pointer;">
             <span></span><span></span><span></span>
         </button>
@@ -2485,7 +2485,7 @@ function toggleMenu() {
 // iOS PWA fallback: attach touchend listeners to nav buttons
 document.addEventListener('DOMContentLoaded', function() {
     var hambBtn = document.getElementById('hamburger');
-    var ctaBtn = document.querySelector('nav .nav-cta');
+    var ctaBtn = document.getElementById('btnAcceso');
     if (hambBtn) {
         hambBtn.addEventListener('touchend', function(e) {
             e.preventDefault();
