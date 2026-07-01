@@ -730,6 +730,19 @@ gtag('config', 'G-N1DRB0NWDS');
     </video>
 </div>
 <script>
+// Forzar actualización cuando hay versión nueva
+(function(){
+    var V = 'nxv9';
+    if (localStorage.getItem('_nxv') !== V) {
+        localStorage.setItem('_nxv', V);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs){
+                regs.forEach(function(r){ r.unregister(); });
+                location.reload(true);
+            });
+        }
+    }
+})();
 function cerrarSplash() {
     var splash = document.getElementById('splashScreen');
     if (!splash) return;
