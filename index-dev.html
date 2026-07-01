@@ -419,9 +419,16 @@
         /* ── Costos tabla overflow ── */
         .costeo-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
 
+        /* ── Desktop (1025px+): hero posicionado en tercio superior ── */
+        @media (min-width: 1025px) {
+            .hero { justify-content: flex-start; padding: calc(15vh + env(safe-area-inset-top, 0px)) 8vw 5rem; }
+            .hero h1 { font-size: clamp(4rem, 5.5vw, 6rem); max-width: 900px; }
+            .hero-sub { max-width: 580px; }
+        }
         /* ── Monitores grandes: limitar ancho del contenido interno ── */
         @media (min-width: 1400px) {
             .section { max-width: 1300px; margin-left: auto; margin-right: auto; }
+            .hero h1 { font-size: clamp(5rem, 5.5vw, 6.5rem); max-width: 1000px; }
         }
 
         /* ── Tablet (769px – 1024px) ── */
@@ -431,6 +438,14 @@
             .pos-container { grid-template-columns: 1.6fr 1fr; gap: 1rem; }
             .section { padding: 1.5rem; }
             .dona-grid { grid-template-columns: 1fr !important; }
+            /* Landing hero en tablet */
+            .hero h1 { font-size: clamp(3.5rem, 7vw, 5rem); }
+            .hero { justify-content: flex-start; padding: calc(16vh + env(safe-area-inset-top, 0px)) 6vw 4rem; }
+            .hero-sub { font-size: clamp(1rem, 1.8vw, 1.2rem); max-width: 600px; }
+        }
+        /* ── Phablet / teléfonos grandes (481px – 768px) ── */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .hero h1 { font-size: clamp(3rem, 8vw, 3.8rem); }
         }
 
         /* ── Móvil (≤ 768px) ── */
