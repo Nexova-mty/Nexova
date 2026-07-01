@@ -21,7 +21,7 @@ html = re.sub(r'<style>(.*?)</style>', minify_css, html, flags=re.DOTALL)
 # Minify JS blocks
 def minify_js(m):
     js = m.group(1)
-    js = re.sub(r'//[^\n]*', '', js)       # remove single-line comments
+    js = re.sub(r'(?<!:)//[^\n]*', '', js)  # remove // comments but preserve URLs (https://, http://)
     js = re.sub(r'/\*.*?\*/', '', js, flags=re.DOTALL)  # remove block comments
     js = re.sub(r'\s+', ' ', js)           # collapse whitespace
     js = js.strip()
