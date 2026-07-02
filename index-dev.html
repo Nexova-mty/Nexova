@@ -705,7 +705,8 @@ function iniciarSyncFirestore(user) {
     // Comparar por timestamp: si remoto es más nuevo, aplicar
     var remoteTs = remoteData._ts || 0;
     var localTs = localData._ts || 0;
-    if (remoteTs > localTs) {
+    // Fallback legacy: si ninguno tiene _ts, siempre aplicar remoto
+    if (remoteTs > localTs || (remoteTs === 0 && localTs === 0)) {
       _aplicarDatosRemotos(user, remoteData);
     }
   }, function(err) {
@@ -736,7 +737,7 @@ function forzarSyncFirestore(user, mostrarToast) {
     var localData = JSON.parse(localStorage.getItem('data_' + user) || '{}');
     var remoteTs = remoteData._ts || 0;
     var localTs = localData._ts || 0;
-    if (remoteTs > localTs) {
+    if (remoteTs > localTs || (remoteTs === 0 && localTs === 0)) {
       _aplicarDatosRemotos(user, remoteData);
       if (mostrarToast && window.currentUser === user) showToast('Datos sincronizados', 'success');
     }
