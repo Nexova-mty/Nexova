@@ -3538,8 +3538,8 @@ function mostrarAcceso() {
     var modal = document.getElementById('loginModal');
     if (!modal) return;
     var savedUser = localStorage.getItem('_nexova_remember_user') || '';
-    document.getElementById('loginUser').value = savedUser;
-    document.getElementById('loginPass').value = '';
+    if (savedUser) document.getElementById('loginUser').value = savedUser;
+    // NO borrar loginPass — dejar que el navegador/Face ID auto-rellene
     var checkbox = document.getElementById('loginRecordar');
     if (checkbox) checkbox.checked = !!savedUser || true;
     var errorEl = document.getElementById('loginError');
@@ -3575,6 +3575,15 @@ function cerrarLogin() {
     }
 }
 
+// Guarda credenciales en el gestor del navegador/OS → activa Face ID / Huella
+function guardarCredencialesNavegador(user, pass) {
+    if (!window.PasswordCredential) return; // no soportado
+    try {
+        var cred = new PasswordCredential({ id: user, password: pass, name: user });
+        navigator.credentials.store(cred).catch(function(){});
+    } catch(e) {}
+}
+
 async function validarLogin() {
     if (!window._loginAttempts) window._loginAttempts = [];
     var now = Date.now();
@@ -3599,6 +3608,7 @@ async function validarLogin() {
     if (creds && passHash === creds.dueno) {
         try { var chk = await _db.collection('clientes').doc(user).get(); if (chk.exists && chk.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); return; } } catch(e4){}
         window.currentEmpleado = null;
+        guardarCredencialesNavegador(user, pass);
         iniciarDashboard(user, 'dueno');
         cerrarLogin();
         return;
@@ -3608,6 +3618,7 @@ async function validarLogin() {
     if (creds && passHash === creds.trabajador) {
         try { var chk2 = await _db.collection('clientes').doc(user).get(); if (chk2.exists && chk2.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); return; } } catch(e5){}
         window.currentEmpleado = null;
+        guardarCredencialesNavegador(user, pass);
         iniciarDashboard(user, 'trabajador');
         cerrarLogin();
         return;
@@ -3633,6 +3644,7 @@ async function validarLogin() {
         if (emp) {
             // Verificar si el negocio está desactivado
             try { var chkEmp = await _db.collection('clientes').doc(neg).get(); if (chkEmp.exists && chkEmp.data().activo === false) { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); loginOK = true; break; } } catch(e6){}
+            guardarCredencialesNavegador(user, pass);
             if (!emp.passwordHash) { emp.passwordHash = passHash; delete emp.password; }
             emp.ultimoAcceso = new Date().toLocaleString('es-MX');
             guardarDatos(neg, data);
@@ -3657,6 +3669,7 @@ async function validarLogin() {
                     window._dynamicClients = window._dynamicClients || {};
                     window._dynamicClients[user] = { name: clientData.negocio, productos: clientData.productos || [] };
                     window.currentEmpleado = null;
+                    guardarCredencialesNavegador(user, pass);
                     iniciarDashboard(user, 'dueno');
                     cerrarLogin();
                     loginOK = true;
