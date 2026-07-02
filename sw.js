@@ -1,4 +1,4 @@
-var CACHE_NAME = 'nexova-v9';
+var CACHE_NAME = 'nexova-v10';
 var urlsToCache = [
   './splash.mp4',
   './demo-nexova.mp4',
