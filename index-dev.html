@@ -2756,12 +2756,15 @@ function doLogout() {
     document.body.classList.remove('sesion-activa');
     Array.from(document.body.children).forEach(function(el) {
         if (el.id !== 'dashboard' && el.id !== 'adminPanel' && el.id !== 'toastContainer'
+            && el.id !== 'offlineBar'
             && !el.id.startsWith('modal')
             && el.tagName !== 'SCRIPT'
             && el.tagName !== 'A') {
             el.style.display = '';
         }
     });
+    var ob = document.getElementById('offlineBar');
+    if (ob) ob.style.display = 'none';
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('adminPanel').classList.remove('admin-visible');
     _isAdmin = false;
