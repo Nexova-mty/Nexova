@@ -706,6 +706,41 @@ function detenerSyncFirestore() {
   if (_unsubscribeSnapshot) { _unsubscribeSnapshot(); _unsubscribeSnapshot = null; }
 }
 
+// ── Pull forzado desde Firestore (para cuando se vuelve a la app) ──
+function forzarSyncFirestore(user) {
+  if (!_db || !user) return;
+  _db.collection('negocios').doc(user).get().then(function(doc) {
+    if (!doc.exists) return;
+    var remoteData = doc.data();
+    var localStr = localStorage.getItem('data_' + user) || '{}';
+    var remoteStr = JSON.stringify(remoteData);
+    if (remoteStr !== localStr) {
+      localStorage.setItem('data_' + user, remoteStr);
+      if (window.currentUser === user) {
+        var tab = (document.querySelector('.section.active') || {}).id;
+        if (tab === 'inicio') renderInicio();
+        else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
+        else if (tab === 'inventario') renderInventario();
+        else if (tab === 'costos') renderCostos();
+        else if (tab === 'reportes') renderReportes();
+        else if (tab === 'graficas') renderGraficas();
+        else if (tab === 'citas') renderCitas();
+        else if (tab === 'cotizaciones') renderCotizaciones();
+        else if (tab === 'ajustes') renderAjustes();
+        showToast('Datos sincronizados', 'success');
+      }
+    }
+  }).catch(function(e) { console.warn('Sync pull error:', e); });
+}
+
+// Re-sincronizar al volver a la app (cambio de pestaña, abrir PWA, desbloquear pantalla)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && window.currentUser) {
+    iniciarSyncFirestore(window.currentUser); // reactiva el listener si se cayó
+    forzarSyncFirestore(window.currentUser);  // pull inmediato para no esperar el snapshot
+  }
+});
+
 // ── Indicador offline / online ──
 function mostrarBannerOffline(esOffline) {
     var bar = document.getElementById('offlineBar');
