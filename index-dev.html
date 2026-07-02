@@ -4165,8 +4165,9 @@ function aumentarCantidad(idx) {
     if (carrito[idx]) {
         const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
         const prod = (data.productos || []).find(p => p.id === carrito[idx].id);
+        const esIlimitado = prod ? prod.sinLimite : carrito[idx].sinLimite;
         const stockDisponible = prod ? prod.stock : carrito[idx].stock;
-        if (carrito[idx].qty >= stockDisponible) {
+        if (!esIlimitado && carrito[idx].qty >= stockDisponible) {
             showToast('No hay suficiente stock', 'error');
             return;
         }
