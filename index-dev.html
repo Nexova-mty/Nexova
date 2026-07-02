@@ -6180,17 +6180,23 @@ function exportarReportesExcel() { abrirEnGoogleSheets(); }
 // Exportar datos a CSV y abrir Google Sheets
 function abrirEnGoogleSheets() {
     try {
-        const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
-        const ventas = data.ventas || [];
-        const gastos = data.gastos || [];
+        const data = JSON.parse(localStorage.getItem('data_' + window.currentUser) || '{}');
+        const todasVentas = data.ventas || [];
+        const todosGastos = data.gastos || [];
         const productos = data.productos || [];
         const negocio = data.nombreNegocio || (getClientInfo(window.currentUser) && getClientInfo(window.currentUser).name) || 'Mi Negocio';
+        const periodoLabel = getPeriodoLabel();
 
-        const totalVentas = ventas.reduce((s,v) => s + (parseFloat(v.total||v.monto||0)), 0);
-        const totalGastos = gastos.reduce((s,g) => s + (parseFloat(g.monto||0)), 0);
+        // Filtrar por el mismo período seleccionado en Reportes
+        const ventas = todasVentas.filter(function(v) { return matchesPeriodo(v.fecha || v.hora); });
+        const gastos = todosGastos.filter(function(g) { return matchesPeriodo(g.fecha); });
+
+        const totalVentas = ventas.reduce(function(s,v) { return s + parseFloat(v.total||v.monto||0); }, 0);
+        const totalGastos = gastos.reduce(function(s,g) { return s + parseFloat(g.monto||0); }, 0);
 
         var filas = [];
         filas.push([negocio + ' — Reporte NEXOVA', '', '', '', '', '']);
+        filas.push(['Período: ' + periodoLabel, '', '', '', '', '']);
         filas.push(['Generado: ' + new Date().toLocaleString('es-MX'), '', '', '', '', '']);
         filas.push(['', '', '', '', '', '']);
         filas.push(['RESUMEN', '', '', '', '', '']);
@@ -6198,7 +6204,7 @@ function abrirEnGoogleSheets() {
         filas.push(['Total Egresos', totalGastos.toFixed(2)]);
         filas.push(['Ganancia Neta', (totalVentas - totalGastos).toFixed(2)]);
         filas.push(['', '', '', '', '', '']);
-        filas.push(['VENTAS', '', '', '', '', '']);
+        filas.push(['VENTAS (' + ventas.length + ')', '', '', '', '', '']);
         filas.push(['Fecha', 'Caja', 'Producto', 'Cantidad', 'Total', 'Metodo', 'Vendedor']);
         ventas.forEach(function(v) {
             var m = parseFloat(v.total || v.monto || 0);
@@ -6206,17 +6212,17 @@ function abrirEnGoogleSheets() {
             filas.push([v.fecha||'', v.cajaNombre||v.caja||'', prods, v.cantidad||1, m.toFixed(2), v.metodo||'', v.vendedor||'Sin registrar']);
         });
         filas.push(['', '', '', '', '', '']);
-        filas.push(['GASTOS', '', '', '', '', '']);
+        filas.push(['GASTOS (' + gastos.length + ')', '', '', '', '', '']);
         filas.push(['Fecha', 'Concepto', 'Monto', 'Tipo', '', '']);
         gastos.forEach(function(g) {
             filas.push([g.fecha||'', g.concepto||'', parseFloat(g.monto||0).toFixed(2), g.tipo||'', '', '']);
         });
         filas.push(['', '', '', '', '', '']);
         filas.push(['INVENTARIO', '', '', '', '', '']);
-        filas.push(['Producto', 'Precio', 'Stock', 'Vendidos', '', '']);
+        filas.push(['Producto', 'Precio', 'Stock', 'Vendidos en periodo', '', '']);
         productos.forEach(function(p) {
             var vendidos = ventas.filter(function(v){ return v.producto === p.nombre; }).reduce(function(s,v){ return s + (v.cantidad||1); }, 0);
-            filas.push([p.nombre, parseFloat(p.precio||0).toFixed(2), p.stock||0, vendidos, '', '']);
+            filas.push([p.nombre, parseFloat(p.precio||0).toFixed(2), p.sinLimite ? '∞' : (p.stock||0), vendidos, '', '']);
         });
 
         // Enviar datos directo al Apps Script → crea Google Sheet y devuelve la URL
