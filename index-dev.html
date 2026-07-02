@@ -2770,8 +2770,8 @@ function doLogout() {
     _isAdmin = false;
     var landingEl = document.getElementById('landing');
     if (landingEl) { landingEl.style.display = ''; landingEl.style.visibility = 'visible'; }
-    // Mostrar login directamente al cerrar sesión
-    setTimeout(function() { mostrarAcceso(); }, 50);
+    var loginModal = document.getElementById('loginModal');
+    if (loginModal) { loginModal.style.visibility = 'hidden'; loginModal.style.opacity = '0'; loginModal.style.pointerEvents = 'none'; }
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobileMenu');
     if (hamburger) hamburger.classList.remove('open');
