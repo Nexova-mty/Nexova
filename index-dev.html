@@ -2163,9 +2163,15 @@ function cerrarSplash() {
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Precio</label>
             <input type="text" inputmode="decimal" id="precioProducto" placeholder="Ej. 50" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem; border-radius:3px; font-size:1rem;">
         </div>
-        <div style="margin-bottom:1rem;">
+        <div style="margin-bottom:0.6rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Stock Inicial</label>
             <input type="text" inputmode="numeric" id="stockProducto" placeholder="Ej. 100" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem; border-radius:3px; font-size:1rem;">
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; user-select:none;">
+                <input type="checkbox" id="sinLimiteProducto" onchange="document.getElementById('stockProducto').style.opacity=this.checked?'0.3':'1'; document.getElementById('stockProducto').disabled=this.checked;" style="width:18px; height:18px; accent-color:var(--orange); cursor:pointer; flex-shrink:0;">
+                <span style="font-size:0.9rem; color:var(--white);">Stock ilimitado ∞ <span style="color:var(--muted); font-size:0.8rem;">(servicios, cortes, etc.)</span></span>
+            </label>
         </div>
         <div style="margin-bottom:1.2rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Foto del producto (opcional)</label>
@@ -2198,9 +2204,15 @@ function cerrarSplash() {
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Precio</label>
             <input type="text" inputmode="decimal" id="precioProductoEdit" placeholder="Ej. 50" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem; border-radius:3px; font-size:1rem;">
         </div>
-        <div style="margin-bottom:1rem;">
+        <div style="margin-bottom:0.6rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Stock</label>
             <input type="text" inputmode="numeric" id="stockProductoEdit" placeholder="Ej. 100" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem; border-radius:3px; font-size:1rem;">
+        </div>
+        <div style="margin-bottom:1rem;">
+            <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; user-select:none;">
+                <input type="checkbox" id="sinLimiteProductoEdit" onchange="document.getElementById('stockProductoEdit').style.opacity=this.checked?'0.3':'1'; document.getElementById('stockProductoEdit').disabled=this.checked;" style="width:18px; height:18px; accent-color:var(--orange); cursor:pointer; flex-shrink:0;">
+                <span style="font-size:0.9rem; color:var(--white);">Stock ilimitado ∞ <span style="color:var(--muted); font-size:0.8rem;">(servicios, cortes, etc.)</span></span>
+            </label>
         </div>
         <div style="margin-bottom:1.2rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Foto del producto (opcional)</label>
@@ -3975,7 +3987,7 @@ function filtrarProductosPOS() {
             <div style="font-size:0.7rem;color:var(--muted);font-weight:700;margin-bottom:2px;">#${prod.num || prod._idx}</div>
             <div class="producto-nombre">${escapeHTML(prod.nombre)}</div>
             <div class="producto-precio">$${parseFloat(prod.precio||0).toFixed(2)}</div>
-            <div class="producto-stock">Stock: ${escapeHTML(String(prod.stock))}</div>
+            <div class="producto-stock">${prod.sinLimite ? '∞ Sin límite' : 'Stock: ' + escapeHTML(String(prod.stock))}</div>
         `;
         card.onclick = () => agregarAlCarrito(prod);
         grid.appendChild(card);
@@ -4072,7 +4084,7 @@ function renderProductos() {
             <div style="font-size:0.7rem;color:var(--muted);font-weight:700;margin-bottom:2px;">#${prod.num || (idx+1)}</div>
             <div class="producto-nombre">${escapeHTML(prod.nombre)}</div>
             <div class="producto-precio">$${parseFloat(prod.precio||0).toFixed(2)}</div>
-            <div class="producto-stock">Stock: ${escapeHTML(String(prod.stock))}</div>
+            <div class="producto-stock">${prod.sinLimite ? '∞ Sin límite' : 'Stock: ' + escapeHTML(String(prod.stock))}</div>
         `;
         card.onclick = () => agregarAlCarrito(prod);
         grid.appendChild(card);
@@ -4080,14 +4092,14 @@ function renderProductos() {
 }
 
 function agregarAlCarrito(producto) {
-    if ((producto.stock || 0) <= 0) {
+    if (!producto.sinLimite && (producto.stock || 0) <= 0) {
         showToast('Sin stock', 'error');
         return;
     }
     let carrito = JSON.parse(localStorage.getItem(getCarritoKey()) || '[]');
     const existe = carrito.find(i => i.id === producto.id);
     if (existe) {
-        if (existe.qty >= producto.stock) {
+        if (!producto.sinLimite && existe.qty >= producto.stock) {
             showToast('No hay suficiente stock', 'error');
             return;
         }
@@ -4315,7 +4327,7 @@ function completarVenta(metodo) {
     // Validar stock disponible antes de confirmar la venta
     for (const item of carrito) {
         const prod = data.productos.find(p => p.id === item.id);
-        if (prod && item.qty > prod.stock) {
+        if (prod && !prod.sinLimite && item.qty > prod.stock) {
             showToast(`Stock insuficiente para "${prod.nombre}". Disponible: ${prod.stock}`, "error");
             return;
         }
@@ -4339,7 +4351,7 @@ function completarVenta(metodo) {
     carrito.forEach(item => {
         total += item.precio * item.qty;
         const prod = data.productos.find(p => p.id === item.id);
-        if (prod) prod.stock -= item.qty;
+        if (prod && !prod.sinLimite) prod.stock -= item.qty;
         data.ventas.push({
             fecha: fechaHoraMonterrey,
             hora: fechaHoraMonterrey,
@@ -4394,7 +4406,7 @@ function renderInventario() {
             row.innerHTML = `
                 <td><div style="display:flex;align-items:center;gap:0.6rem;">${prod.foto ? `<img src="${prod.foto}" style="width:36px;height:36px;border-radius:4px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">` : ''}<span style="font-size:0.75rem;color:var(--muted);font-weight:700;margin-right:4px;">#${prod.num || (idx+1)}</span><span>${escapeHTML(prod.nombre)}</span></div></td>
                 <td>$${parseFloat(prod.precio||0).toFixed(2)}</td>
-                <td><strong>${escapeHTML(String(prod.stock))}</strong></td>
+                <td><strong>${prod.sinLimite ? '∞' : escapeHTML(String(prod.stock))}</strong></td>
                 <td>${escapeHTML(String(vendidosHoy))}</td>
             `;
             tbody.appendChild(row);
@@ -4495,9 +4507,10 @@ function previsualizarFoto(input, labelId, previewId) {
 function guardarNuevoProducto() {
     const nombre = document.getElementById('nombreProducto').value.trim();
     const precio = parseFloat(document.getElementById('precioProducto').value);
-    const stock = parseInt(document.getElementById('stockProducto').value, 10);
+    const sinLimite = document.getElementById('sinLimiteProducto').checked;
+    const stock = sinLimite ? 0 : parseInt(document.getElementById('stockProducto').value, 10);
 
-    if (!nombre || isNaN(precio) || isNaN(stock) || precio <= 0 || stock < 0) {
+    if (!nombre || isNaN(precio) || precio <= 0 || (!sinLimite && (isNaN(stock) || stock < 0))) {
         showToast('Completa todos los campos correctamente', 'error');
         return;
     }
@@ -4508,12 +4521,15 @@ function guardarNuevoProducto() {
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
     data.productos = data.productos || [];
     const maxNum = (data.productos || []).reduce((max, p) => Math.max(max, p.num || 0), 0);
-    data.productos.push({ id: Date.now(), num: maxNum + 1, nombre, precio, stock, foto });
+    data.productos.push({ id: Date.now(), num: maxNum + 1, nombre, precio, stock, sinLimite, foto });
 
     guardarDatos(window.currentUser, data);
     document.getElementById('nombreProducto').value = '';
     document.getElementById('precioProducto').value = '';
     document.getElementById('stockProducto').value = '';
+    document.getElementById('sinLimiteProducto').checked = false;
+    document.getElementById('stockProducto').style.opacity = '1';
+    document.getElementById('stockProducto').disabled = false;
     document.getElementById('fotoProducto').value = '';
     document.getElementById('fotoProductoLabel').textContent = 'Seleccionar imagen';
     if (fotoEl) { fotoEl.src = ''; fotoEl.style.display = 'none'; }
@@ -6241,7 +6257,12 @@ function abrirModalEditarProducto(idx) {
     document.getElementById('numProductoEdit').value = prod.num || (idx + 1);
     document.getElementById('nombreProductoEdit').value = prod.nombre || '';
     document.getElementById('precioProductoEdit').value = prod.precio || '';
-    document.getElementById('stockProductoEdit').value = prod.stock != null ? prod.stock : '';
+    const sinLimEl = document.getElementById('sinLimiteProductoEdit');
+    const stockEditEl = document.getElementById('stockProductoEdit');
+    sinLimEl.checked = !!prod.sinLimite;
+    stockEditEl.value = prod.sinLimite ? '' : (prod.stock != null ? prod.stock : '');
+    stockEditEl.style.opacity = prod.sinLimite ? '0.3' : '1';
+    stockEditEl.disabled = !!prod.sinLimite;
 
     const preview = document.getElementById('fotoProductoEditPreview');
     const label = document.getElementById('fotoProductoEditLabel');
@@ -6267,9 +6288,12 @@ function guardarEditarProducto() {
     if (!isNaN(nuevoNum) && nuevoNum > 0) prod.num = nuevoNum;
     prod.nombre = document.getElementById('nombreProductoEdit').value.trim();
     const nuevoPrecio = parseFloat(document.getElementById('precioProductoEdit').value);
-    const nuevoStock = parseInt(document.getElementById('stockProductoEdit').value, 10);
     if (!isNaN(nuevoPrecio) && nuevoPrecio > 0) prod.precio = nuevoPrecio;
-    if (!isNaN(nuevoStock) && nuevoStock >= 0) prod.stock = nuevoStock;
+    prod.sinLimite = document.getElementById('sinLimiteProductoEdit').checked;
+    if (!prod.sinLimite) {
+        const nuevoStock = parseInt(document.getElementById('stockProductoEdit').value, 10);
+        if (!isNaN(nuevoStock) && nuevoStock >= 0) prod.stock = nuevoStock;
+    }
 
     const preview = document.getElementById('fotoProductoEditPreview');
     if (preview && preview.style.display !== 'none' && preview.src && preview.src.startsWith('data:')) {
@@ -6614,7 +6638,7 @@ function renderInicio() {
     });
 
     // Bajo stock (stock <= 3)
-    const bajoStock = productos.filter(p => (p.stock||0) <= 3);
+    const bajoStock = productos.filter(p => !p.sinLimite && (p.stock||0) <= 3);
 
     // Cajas activas
     const cajasAbiertas = cajas;
@@ -7323,7 +7347,7 @@ function poblarInventarioEnModalCosteo() {
     if (sel) {
         const cur = sel.value;
         sel.innerHTML = '<option value="">— Sin vincular —</option>' +
-            prods.map((p, i) => `<option value="${i}">${escapeHTML(p.nombre)} — $${parseFloat(p.precio).toFixed(2)} (Stock: ${p.stock})</option>`).join('');
+            prods.map((p, i) => `<option value="${i}">${escapeHTML(p.nombre)} — $${parseFloat(p.precio).toFixed(2)} (Stock: ${p.sinLimite ? '∞' : p.stock})</option>`).join('');
         if (cur !== '' && [...sel.options].some(o => o.value === cur)) sel.value = cur;
     }
 }
@@ -7351,7 +7375,7 @@ function vincularProductoInventario() {
         sum + (v.producto === prod.nombre ? (parseFloat(v.cantidad) || 0) : 0), 0);
 
     info.style.display = 'block';
-    info.innerHTML = `<strong style="color:var(--white);">${escapeHTML(prod.nombre)}</strong> — Stock: <strong style="color:var(--white);">${prod.stock}</strong> uds. · Vendidas (historial): <strong style="color:var(--green);">${unidades}</strong> uds.`;
+    info.innerHTML = `<strong style="color:var(--white);">${escapeHTML(prod.nombre)}</strong> — Stock: <strong style="color:var(--white);">${prod.sinLimite ? '∞' : prod.stock}</strong>${prod.sinLimite ? '' : ' uds.'} · Vendidas (historial): <strong style="color:var(--green);">${unidades}</strong> uds.`;
 }
 
 function quitarIngrediente(id) {
