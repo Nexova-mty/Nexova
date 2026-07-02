@@ -3930,10 +3930,16 @@ function filtrarProductosPOS() {
     const grid = document.getElementById('productosGrid');
     if (!grid) return;
     grid.innerHTML = '';
-    (data.productos || []).filter(p => p.nombre.toLowerCase().includes(busqueda)).forEach(prod => {
+    const prods = data.productos || [];
+    prods.forEach(function(prod, i) { if (!prod.num) prod._idx = i + 1; });
+    prods.filter(function(p, i) {
+        const num = String(p.num || (i+1));
+        return p.nombre.toLowerCase().includes(busqueda) || num === busqueda.trim();
+    }).forEach(function(prod, _, arr) {
         const card = document.createElement('div');
         card.className = 'producto';
         card.innerHTML = `
+            <div style="font-size:0.7rem;color:var(--muted);font-weight:700;margin-bottom:2px;">#${prod.num || prod._idx}</div>
             <div class="producto-nombre">${escapeHTML(prod.nombre)}</div>
             <div class="producto-precio">$${parseFloat(prod.precio||0).toFixed(2)}</div>
             <div class="producto-stock">Stock: ${escapeHTML(String(prod.stock))}</div>
@@ -4026,10 +4032,11 @@ function renderProductos() {
     const grid = document.getElementById('productosGrid');
     if (!grid) return;
     grid.innerHTML = '';
-    (data.productos || []).forEach(prod => {
+    (data.productos || []).forEach((prod, idx) => {
         const card = document.createElement('div');
         card.className = 'producto';
         card.innerHTML = `
+            <div style="font-size:0.7rem;color:var(--muted);font-weight:700;margin-bottom:2px;">#${prod.num || (idx+1)}</div>
             <div class="producto-nombre">${escapeHTML(prod.nombre)}</div>
             <div class="producto-precio">$${parseFloat(prod.precio||0).toFixed(2)}</div>
             <div class="producto-stock">Stock: ${escapeHTML(String(prod.stock))}</div>
@@ -4352,7 +4359,7 @@ function renderInventario() {
             const vendidosHoy = (data.ventas || []).filter(v => v.producto === prod.nombre).reduce((sum, v) => sum + v.cantidad, 0);
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><div style="display:flex;align-items:center;gap:0.6rem;">${prod.foto ? `<img src="${prod.foto}" style="width:36px;height:36px;border-radius:4px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">` : ''}<span>${escapeHTML(prod.nombre)}</span></div></td>
+                <td><div style="display:flex;align-items:center;gap:0.6rem;">${prod.foto ? `<img src="${prod.foto}" style="width:36px;height:36px;border-radius:4px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">` : ''}<span style="font-size:0.75rem;color:var(--muted);font-weight:700;margin-right:4px;">#${prod.num || (idx+1)}</span><span>${escapeHTML(prod.nombre)}</span></div></td>
                 <td>$${parseFloat(prod.precio||0).toFixed(2)}</td>
                 <td><strong>${escapeHTML(String(prod.stock))}</strong></td>
                 <td>${escapeHTML(String(vendidosHoy))}</td>
@@ -4467,7 +4474,8 @@ function guardarNuevoProducto() {
 
     const data = JSON.parse(localStorage.getItem(`data_${window.currentUser}`) || '{}');
     data.productos = data.productos || [];
-    data.productos.push({ id: Date.now(), nombre, precio, stock, foto });
+    const maxNum = (data.productos || []).reduce((max, p) => Math.max(max, p.num || 0), 0);
+    data.productos.push({ id: Date.now(), num: maxNum + 1, nombre, precio, stock, foto });
 
     guardarDatos(window.currentUser, data);
     document.getElementById('nombreProducto').value = '';
