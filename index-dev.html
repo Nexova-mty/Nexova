@@ -705,6 +705,34 @@ function iniciarSyncFirestore(user) {
 function detenerSyncFirestore() {
   if (_unsubscribeSnapshot) { _unsubscribeSnapshot(); _unsubscribeSnapshot = null; }
 }
+
+// ── Indicador offline / online ──
+function mostrarBannerOffline(esOffline) {
+    var bar = document.getElementById('offlineBar');
+    if (!bar) return;
+    if (esOffline) {
+        bar.style.display = 'flex';
+        bar.innerHTML = '📴 Sin conexión — tus datos se guardan localmente y se sincronizarán al reconectar';
+    } else {
+        bar.innerHTML = '✅ Conexión restaurada — sincronizando...';
+        bar.style.background = 'rgba(34,197,94,0.15)';
+        bar.style.borderColor = 'rgba(34,197,94,0.4)';
+        bar.style.color = '#22c55e';
+        setTimeout(function() {
+            bar.style.display = 'none';
+            bar.style.background = '';
+            bar.style.borderColor = '';
+            bar.style.color = '';
+        }, 2500);
+        // Re-sincronizar con Firebase
+        if (window.currentUser) {
+            var data = cargarDatos(window.currentUser);
+            if (_db) _db.collection('negocios').doc(window.currentUser).set(data, { merge: true }).catch(function(e) { console.warn('Sync on reconnect:', e); });
+        }
+    }
+}
+window.addEventListener('offline', function() { mostrarBannerOffline(true); });
+window.addEventListener('online',  function() { mostrarBannerOffline(false); });
 </script>
 <!-- Google Analytics - replace G-N1DRB0NWDS with your measurement ID -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-N1DRB0NWDS"></script>
@@ -1350,6 +1378,7 @@ function cerrarSplash() {
 </div>
 
 <!-- DASHBOARD (oculto inicialmente) -->
+<div id="offlineBar" style="display:none; position:fixed; top:0; left:0; right:0; z-index:9999; background:rgba(244,106,31,0.12); border-bottom:1px solid rgba(244,106,31,0.4); color:var(--orange); padding:0.55rem 1rem; font-size:0.82rem; font-weight:600; align-items:center; justify-content:center; text-align:center;"></div>
 <div id="dashboard" style="display: none;">
     <div class="dashboard-nav" style="gap:0.6rem;">
         <div class="logo" style="font-size: 1.2rem; flex-shrink:0;">NEX<span>OVA</span></div>
@@ -2157,6 +2186,10 @@ function cerrarSplash() {
 <div id="modalEditarProducto" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:flex-start; justify-content:center; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:5vh 1rem env(safe-area-inset-bottom,0) 1rem;">
     <div style="background:var(--bg2); border:1px solid var(--border); border-radius:6px; padding:2rem; max-width:400px; width:100%; margin:auto;">
         <h3 style="margin-bottom:1rem; color:var(--white);">Editar Producto</h3>
+        <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Número de producto (#)</label>
+            <input type="number" inputmode="numeric" id="numProductoEdit" placeholder="Ej. 5" min="1" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--orange); padding:0.7rem; border-radius:3px; font-size:1rem; font-weight:700;">
+        </div>
         <div style="margin-bottom:1rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Nombre</label>
             <input type="text" id="nombreProductoEdit" placeholder="Ej. Café" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.7rem; border-radius:3px; font-size:1rem;">
@@ -6025,20 +6058,20 @@ function generarPDF() {
 
         const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        if (esMobile) {
-            // En móvil descarga el archivo directamente
+        // En todos los dispositivos: abrir en nueva pestaña y auto-imprimir
+        // En iOS/Android el diálogo de impresión permite guardar como PDF o compartir
+        const win = window.open(url, '_blank');
+        if (!win) {
+            // Popup bloqueado — fallback: descargar archivo
+            const link = document.createElement('a');
+            link.href = url;
             link.download = nombreArchivo;
-        } else {
-            // En escritorio abre nueva pestaña con auto-print
-            link.target = '_blank';
-            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Archivo descargado. Ábrelo para imprimir.', 'success');
         }
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(url), 15000);
+        setTimeout(() => URL.revokeObjectURL(url), 20000);
     } catch(e) {
         console.error('Error en PDF:', e);
         showToast('Error al generar PDF: ' + e.message, 'error');
@@ -6206,6 +6239,7 @@ function abrirModalEditarProducto(idx) {
     if (!prod) return;
     indexProductoEditando = idx;
 
+    document.getElementById('numProductoEdit').value = prod.num || (idx + 1);
     document.getElementById('nombreProductoEdit').value = prod.nombre || '';
     document.getElementById('precioProductoEdit').value = prod.precio || '';
     document.getElementById('stockProductoEdit').value = prod.stock != null ? prod.stock : '';
@@ -6230,6 +6264,8 @@ function guardarEditarProducto() {
     const prod = data.productos && data.productos[indexProductoEditando];
     if (!prod) { cerrarModalEditarProducto(); return; }
 
+    const nuevoNum = parseInt(document.getElementById('numProductoEdit').value, 10);
+    if (!isNaN(nuevoNum) && nuevoNum > 0) prod.num = nuevoNum;
     prod.nombre = document.getElementById('nombreProductoEdit').value.trim();
     const nuevoPrecio = parseFloat(document.getElementById('precioProductoEdit').value);
     const nuevoStock = parseInt(document.getElementById('stockProductoEdit').value, 10);
@@ -7794,24 +7830,36 @@ function programarRecordatoriosCitas(user) {
         var data = cargarDatos(user);
         if (!data || !data.citas) return;
         var ahora = Date.now();
-        var en25h = ahora + 25 * 60 * 60 * 1000;
+        var en49h = ahora + 49 * 60 * 60 * 1000;
         data.citas.forEach(function(cita) {
+            if (cita.estado === 'completada') return;
             var dt = parseCitaFecha(cita);
             if (!dt || isNaN(dt)) return;
             var citaMs = dt.getTime();
-            if (citaMs < ahora || citaMs > en25h) return;
+            if (citaMs < ahora || citaMs > en49h) return;
+            var nombre = cita.nombre || cita.cliente || 'Cliente';
+            var hora   = cita.hora || '';
+            // Notificar 24 horas antes
+            var delay24 = citaMs - 24 * 60 * 60 * 1000 - ahora;
+            if (delay24 >= 0) {
+                setTimeout(function() {
+                    try { new Notification('📅 Cita mañana — NEXOVA', { body: nombre + ' · ' + hora, icon: 'icon-192.png', tag: 'cita24-' + (cita.id || nombre) }); } catch(e) {}
+                }, delay24);
+            }
             // Notificar 1 hora antes
-            var delay = citaMs - 60 * 60 * 1000 - ahora;
-            if (delay < 0) delay = 0;
-            setTimeout(function() {
-                try {
-                    new Notification('📅 Cita en 1 hora — NEXOVA', {
-                        body: (cita.nombre || 'Cliente') + ' · ' + (cita.hora || ''),
-                        icon: 'icon-192.png',
-                        tag: 'cita-' + (cita.id || cita.nombre)
-                    });
-                } catch(e) {}
-            }, delay);
+            var delay1 = citaMs - 60 * 60 * 1000 - ahora;
+            if (delay1 >= 0) {
+                setTimeout(function() {
+                    try { new Notification('⏰ Cita en 1 hora — NEXOVA', { body: nombre + ' · ' + hora, icon: 'icon-192.png', tag: 'cita1h-' + (cita.id || nombre) }); } catch(e) {}
+                }, delay1);
+            }
+            // Notificar 15 minutos antes
+            var delay15 = citaMs - 15 * 60 * 1000 - ahora;
+            if (delay15 >= 0) {
+                setTimeout(function() {
+                    try { new Notification('🔔 Cita en 15 min — NEXOVA', { body: nombre + ' · ' + hora, icon: 'icon-192.png', tag: 'cita15m-' + (cita.id || nombre) }); } catch(e) {}
+                }, delay15);
+            }
         });
     } catch(e) {}
 }
