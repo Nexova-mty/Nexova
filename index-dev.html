@@ -654,10 +654,12 @@ try {
 var _db = (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) ? firebase.firestore() : null;
 
 function guardarDatos(user, data) {
+  // Estampar timestamp para comparación de versiones confiable entre dispositivos
+  data._ts = Date.now();
   var raw = JSON.stringify(data);
   localStorage.setItem('data_' + user, raw);
   _h(raw).then(function(hash) { localStorage.setItem('_hash_' + user, hash); });
-  _db.collection('negocios').doc(user).set(data, { merge: true }).catch(function(e) { console.warn('Firestore write error:', e); });
+  _db.collection('negocios').doc(user).set(data).catch(function(e) { console.warn('Firestore write error:', e); });
 }
 
 function cargarDatos(user) {
@@ -667,68 +669,76 @@ function cargarDatos(user) {
 async function verificarIntegridadDatos(user) {
     var raw = localStorage.getItem('data_' + user);
     var storedHash = localStorage.getItem('_hash_' + user);
-    if (!raw || !storedHash) return true; // no data yet
+    if (!raw || !storedHash) return true;
     var currentHash = await _h(raw);
     return currentHash === storedHash;
 }
 
+// Función central para aplicar datos remotos y re-renderizar la vista activa
+function _aplicarDatosRemotos(user, remoteData) {
+  var remoteStr = JSON.stringify(remoteData);
+  localStorage.setItem('data_' + user, remoteStr);
+  _h(remoteStr).then(function(hash) { localStorage.setItem('_hash_' + user, hash); });
+  if (window.currentUser === user) {
+    var tab = (document.querySelector('.section.active') || {}).id;
+    if (tab === 'inicio') renderInicio();
+    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
+    else if (tab === 'inventario') renderInventario();
+    else if (tab === 'costos') renderCostos();
+    else if (tab === 'reportes') renderReportes();
+    else if (tab === 'graficas') renderGraficas();
+    else if (tab === 'citas') renderCitas();
+    else if (tab === 'cotizaciones') renderCotizaciones();
+    else if (tab === 'ajustes') renderAjustes();
+  }
+}
+
 var _unsubscribeSnapshot = null;
+var _syncPollInterval = null;
+
 function iniciarSyncFirestore(user) {
   if (_unsubscribeSnapshot) _unsubscribeSnapshot();
   _unsubscribeSnapshot = _db.collection('negocios').doc(user).onSnapshot(function(doc) {
     if (!doc.exists) return;
     var remoteData = doc.data();
     var localData = JSON.parse(localStorage.getItem('data_' + user) || '{}');
-    var remoteStr = JSON.stringify(remoteData);
-    var localStr = JSON.stringify(localData);
-    if (remoteStr !== localStr) {
-      localStorage.setItem('data_' + user, remoteStr);
-      if (window.currentUser === user) {
-        var activeSection = document.querySelector('.section.active');
-        if (activeSection) {
-          var tab = activeSection.id;
-          if (tab === 'inicio') renderInicio();
-          else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
-          else if (tab === 'inventario') renderInventario();
-          else if (tab === 'costos') renderCostos();
-          else if (tab === 'reportes') renderReportes();
-          else if (tab === 'graficas') renderGraficas();
-          else if (tab === 'citas') renderCitas();
-          else if (tab === 'cotizaciones') renderCotizaciones();
-          else if (tab === 'ajustes') renderAjustes();
-        }
-      }
+    // Comparar por timestamp: si remoto es más nuevo, aplicar
+    var remoteTs = remoteData._ts || 0;
+    var localTs = localData._ts || 0;
+    if (remoteTs > localTs) {
+      _aplicarDatosRemotos(user, remoteData);
     }
-  }, function(err) { console.warn('Firestore listen error:', err); });
+  }, function(err) {
+    console.warn('Firestore listen error:', err);
+    // Si el listener falla, el polling de respaldo cubrirá la brecha
+  });
+
+  // Polling de respaldo cada 30s para cuando iOS/Android mata el WebSocket
+  if (_syncPollInterval) clearInterval(_syncPollInterval);
+  _syncPollInterval = setInterval(function() {
+    if (!window.currentUser || window.currentUser !== user) return;
+    forzarSyncFirestore(user, false); // false = sin toast en polling automático
+  }, 30000);
 }
 
 function detenerSyncFirestore() {
   if (_unsubscribeSnapshot) { _unsubscribeSnapshot(); _unsubscribeSnapshot = null; }
+  if (_syncPollInterval) { clearInterval(_syncPollInterval); _syncPollInterval = null; }
 }
 
-// ── Pull forzado desde Firestore (para cuando se vuelve a la app) ──
-function forzarSyncFirestore(user) {
+// ── Pull forzado desde Firestore (visibilitychange o polling) ──
+function forzarSyncFirestore(user, mostrarToast) {
   if (!_db || !user) return;
+  if (mostrarToast === undefined) mostrarToast = true;
   _db.collection('negocios').doc(user).get().then(function(doc) {
     if (!doc.exists) return;
     var remoteData = doc.data();
-    var localStr = localStorage.getItem('data_' + user) || '{}';
-    var remoteStr = JSON.stringify(remoteData);
-    if (remoteStr !== localStr) {
-      localStorage.setItem('data_' + user, remoteStr);
-      if (window.currentUser === user) {
-        var tab = (document.querySelector('.section.active') || {}).id;
-        if (tab === 'inicio') renderInicio();
-        else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
-        else if (tab === 'inventario') renderInventario();
-        else if (tab === 'costos') renderCostos();
-        else if (tab === 'reportes') renderReportes();
-        else if (tab === 'graficas') renderGraficas();
-        else if (tab === 'citas') renderCitas();
-        else if (tab === 'cotizaciones') renderCotizaciones();
-        else if (tab === 'ajustes') renderAjustes();
-        showToast('Datos sincronizados', 'success');
-      }
+    var localData = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    var remoteTs = remoteData._ts || 0;
+    var localTs = localData._ts || 0;
+    if (remoteTs > localTs) {
+      _aplicarDatosRemotos(user, remoteData);
+      if (mostrarToast && window.currentUser === user) showToast('Datos sincronizados', 'success');
     }
   }).catch(function(e) { console.warn('Sync pull error:', e); });
 }
@@ -736,8 +746,8 @@ function forzarSyncFirestore(user) {
 // Re-sincronizar al volver a la app (cambio de pestaña, abrir PWA, desbloquear pantalla)
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible' && window.currentUser) {
-    iniciarSyncFirestore(window.currentUser); // reactiva el listener si se cayó
-    forzarSyncFirestore(window.currentUser);  // pull inmediato para no esperar el snapshot
+    iniciarSyncFirestore(window.currentUser); // reactiva listener + reinicia polling
+    forzarSyncFirestore(window.currentUser, true); // pull inmediato con toast
   }
 });
 
