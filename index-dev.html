@@ -4703,11 +4703,10 @@ function getThisWeekISO() {
     return `${hoy.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
 }
 function getThisMonthISO() {
-    const hoy = obtenerFechaMonterrey();
-    return `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+    return obtenerFechaMonterrey().toISOString().slice(0, 7);
 }
 function getThisYearISO() {
-    return String(obtenerFechaMonterrey().getFullYear());
+    return obtenerFechaMonterrey().toISOString().slice(0, 4);
 }
 
 function parseFechaStr(fechaStr) {
