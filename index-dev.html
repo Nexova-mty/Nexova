@@ -3584,6 +3584,14 @@ function guardarCredencialesNavegador(user, pass) {
     } catch(e) {}
 }
 
+// Firestore con timeout — si tarda más de 4s continúa sin bloquear
+function _fsGet(ref) {
+    return Promise.race([
+        ref.get(),
+        new Promise(function(res) { setTimeout(function() { res({ exists: false, _timeout: true }); }, 4000); })
+    ]);
+}
+
 async function validarLogin() {
     if (!window._loginAttempts) window._loginAttempts = [];
     var now = Date.now();
@@ -3592,6 +3600,11 @@ async function validarLogin() {
         mostrarErrorLogin('Demasiados intentos. Espera 5 minutos.');
         return;
     }
+
+    // Mostrar spinner en el botón
+    var btnAcceder = document.querySelector('#loginForm button[type="submit"], #loginForm button:not([type="button"])');
+    var textoOriginal = btnAcceder ? btnAcceder.textContent : '';
+    if (btnAcceder) { btnAcceder.disabled = true; btnAcceder.textContent = 'Entrando...'; }
 
     const user = document.getElementById('loginUser').value.trim().toLowerCase();
     const pass = document.getElementById('loginPass').value;
@@ -3603,24 +3616,27 @@ async function validarLogin() {
 
     const passHash = await _h(pass);
 
+    // Helper para resetear botón
+    function resetBtn() { if (btnAcceder) { btnAcceder.disabled = false; btnAcceder.textContent = textoOriginal; } }
+
     // 1. Intentar como dueño de un negocio
     const creds = CRED_HASHES[user];
     if (creds && passHash === creds.dueno) {
-        try { var chk = await _db.collection('clientes').doc(user).get(); if (chk.exists && chk.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); return; } } catch(e4){}
+        try { var chk = await _fsGet(_db.collection('clientes').doc(user)); if (chk.exists && !chk._timeout && chk.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); resetBtn(); return; } } catch(e4){}
         window.currentEmpleado = null;
-        guardarCredencialesNavegador(user, pass);
         iniciarDashboard(user, 'dueno');
-        cerrarLogin();
+        cerrarLogin(); resetBtn();
+        setTimeout(function(){ guardarCredencialesNavegador(user, pass); }, 500);
         return;
     }
 
     // 2. Intentar como contraseña maestra de trabajador
     if (creds && passHash === creds.trabajador) {
-        try { var chk2 = await _db.collection('clientes').doc(user).get(); if (chk2.exists && chk2.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); return; } } catch(e5){}
+        try { var chk2 = await _fsGet(_db.collection('clientes').doc(user)); if (chk2.exists && !chk2._timeout && chk2.data().activo === false) { mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.'); resetBtn(); return; } } catch(e5){}
         window.currentEmpleado = null;
-        guardarCredencialesNavegador(user, pass);
         iniciarDashboard(user, 'trabajador');
-        cerrarLogin();
+        cerrarLogin(); resetBtn();
+        setTimeout(function(){ guardarCredencialesNavegador(user, pass); }, 500);
         return;
     }
 
@@ -3643,14 +3659,14 @@ async function validarLogin() {
         });
         if (emp) {
             // Verificar si el negocio está desactivado
-            try { var chkEmp = await _db.collection('clientes').doc(neg).get(); if (chkEmp.exists && chkEmp.data().activo === false) { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); loginOK = true; break; } } catch(e6){}
-            guardarCredencialesNavegador(user, pass);
+            try { var chkEmp = await _fsGet(_db.collection('clientes').doc(neg)); if (chkEmp.exists && !chkEmp._timeout && chkEmp.data().activo === false) { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); resetBtn(); loginOK = true; break; } } catch(e6){}
             if (!emp.passwordHash) { emp.passwordHash = passHash; delete emp.password; }
             emp.ultimoAcceso = new Date().toLocaleString('es-MX');
             guardarDatos(neg, data);
             window.currentEmpleado = emp;
             iniciarDashboard(neg, 'trabajador');
-            cerrarLogin();
+            cerrarLogin(); resetBtn();
+            setTimeout(function(){ guardarCredencialesNavegador(user, pass); }, 500);
             loginOK = true;
             break;
         }
@@ -3659,26 +3675,27 @@ async function validarLogin() {
     // 5. Intentar como cliente de Firestore
     if (!loginOK) {
         try {
-            var clientDoc = await _db.collection('clientes').doc(user).get();
-            if (clientDoc.exists) {
+            var clientDoc = await _fsGet(_db.collection('clientes').doc(user));
+            if (clientDoc.exists && !clientDoc._timeout) {
                 var clientData = clientDoc.data();
                 if (clientData.activo === false) {
                     mostrarErrorLogin('Tu cuenta esta desactivada. Contacta a NEXOVA.');
-                    loginOK = true;
+                    resetBtn(); loginOK = true;
                 } else if (clientData.duenoHash === passHash) {
                     window._dynamicClients = window._dynamicClients || {};
                     window._dynamicClients[user] = { name: clientData.negocio, productos: clientData.productos || [] };
                     window.currentEmpleado = null;
-                    guardarCredencialesNavegador(user, pass);
                     iniciarDashboard(user, 'dueno');
-                    cerrarLogin();
+                    cerrarLogin(); resetBtn();
+                    setTimeout(function(){ guardarCredencialesNavegador(user, pass); }, 500);
                     loginOK = true;
                 } else if (clientData.trabajadorHash && clientData.trabajadorHash === passHash) {
                     window._dynamicClients = window._dynamicClients || {};
                     window._dynamicClients[user] = { name: clientData.negocio, productos: clientData.productos || [] };
                     window.currentEmpleado = null;
                     iniciarDashboard(user, 'trabajador');
-                    cerrarLogin();
+                    cerrarLogin(); resetBtn();
+                    setTimeout(function(){ guardarCredencialesNavegador(user, pass); }, 500);
                     loginOK = true;
                 }
             }
@@ -3689,6 +3706,7 @@ async function validarLogin() {
         window._loginAttempts.push(Date.now());
         mostrarErrorLogin('Usuario o contraseña incorrectos');
         document.getElementById('loginPass').value = '';
+        resetBtn();
     }
 }
 
