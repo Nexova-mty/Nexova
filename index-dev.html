@@ -8524,42 +8524,206 @@ function mostrarHistorialCambios() {
     overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
 }
 
-// ═══ IDIOMA INGLÉS / ESPAÑOL ═══
+// ═══ IDIOMA INGLÉS / ESPAÑOL — OPCIÓN A (traducción completa) ═══
 var _LANG_MAP = {
-    'Inicio': 'Home', 'Ventas': 'Sales', 'Inventario': 'Inventory', 'Reportes': 'Reports',
-    'Gráficas': 'Charts', 'Citas': 'Appointments', 'Cotizaciones': 'Quotes',
-    'Clientes': 'Clients', 'Ajustes': 'Settings', 'Cerrar sesión': 'Log out',
-    'Buscar...': 'Search...', 'Guardar': 'Save', 'Cancelar': 'Cancel',
-    'Eliminar': 'Delete', 'Editar': 'Edit', 'Agregar': 'Add', 'Nuevo': 'New',
-    'Total': 'Total', 'Fecha': 'Date', 'Nombre': 'Name', 'Precio': 'Price',
-    'Stock': 'Stock', 'Acciones': 'Actions', 'Producto': 'Product',
-    'Categoría': 'Category', 'Descripción': 'Description', 'Cantidad': 'Quantity'
+    // Navegación
+    'Inicio':'Home','Ventas':'Sales','Inventario':'Inventory','Reportes':'Reports',
+    'Gráficas':'Charts','Citas':'Appointments','Cotizaciones':'Quotes',
+    'Clientes':'Clients','Ajustes':'Settings','Costos':'Costs','Cerrar sesión':'Log out',
+    // Acciones comunes
+    'Guardar':'Save','Cancelar':'Cancel','Eliminar':'Delete','Editar':'Edit',
+    'Agregar':'Add','Nuevo':'New','Nueva':'New','Cerrar':'Close','Buscar...':'Search...',
+    'Confirmar':'Confirm','Continuar':'Continue','Aceptar':'Accept','Enviar':'Send',
+    // Campos de formulario
+    'Nombre':'Name','Precio':'Price','Stock':'Stock','Categoría':'Category',
+    'Descripción':'Description','Cantidad':'Quantity','Total':'Total','Fecha':'Date',
+    'Monto':'Amount','Concepto':'Concept','Método de pago':'Payment method',
+    'Teléfono':'Phone','Email':'Email','Cumpleaños':'Birthday','Notas':'Notes',
+    'Usuario':'Username','Contraseña':'Password','Rol':'Role','Sucursal':'Branch',
+    'Tipo':'Type','Hora':'Time','Vendedor':'Seller','Costo':'Cost',
+    'Precio de venta':'Sale price','Sin límite de stock':'Unlimited stock',
+    // Inicio — tarjetas KPI
+    'Ventas hoy':'Today\'s Sales','Gastos hoy':'Today\'s Expenses',
+    'Ganancia neta':'Net Profit','Próx. citas':'Next Appts.',
+    'Stock bajo':'Low Stock','Cajas abiertas':'Open Registers',
+    // Inicio — banners y secciones
+    'Cita próxima':'Upcoming Appointment',
+    'Sin citas próximas':'No upcoming appointments',
+    'Aún no tienes ventas registradas hoy.':'No sales recorded today.',
+    'Agendar una cita →':'Schedule appointment →',
+    'Ir a Ventas →':'Go to Sales →','Ver citas →':'View appointments →',
+    'Productos con stock bajo (≤3 unidades)':'Low stock products (≤3 units)',
+    'Meta de venta mensual':'Monthly Sales Goal',
+    'este mes':'this month','Meta:':'Goal:',
+    'Guardar meta':'Save goal','Actualizar meta':'Update goal','Nueva meta':'New goal',
+    'Define cuánto quieres vender este mes y aquí verás tu progreso.':
+        'Set how much you want to sell this month and track your progress here.',
+    'Actividad de empleados':'Employee Activity',
+    'Últimas ventas de hoy':'Latest sales today',
+    '👥 Empleados trabajando ahora':'👥 Employees currently working',
+    'Ningún empleado ha registrado entrada hoy.':'No employee has clocked in today.',
+    'Ver historial de turnos':'View shift history',
+    // Turnos (empleado)
+    'Mi turno de hoy':'My shift today',
+    'Registrar entrada':'Clock In','Registrar salida':'Clock Out',
+    'Turno completado':'Shift completed','Sin turno hoy':'No shift today',
+    'Entrada:':'In:','Salida:':'Out:','Duración:':'Duration:',
+    // Meta individual empleado
+    'Mi meta del mes':'My monthly goal',
+    'vendido':'sold','de meta':'of goal',
+    // Historial de turnos modal
+    'Historial de turnos de hoy':'Today\'s Shift History',
+    'No hay turnos registrados hoy.':'No shifts recorded today.',
+    'entrada':'in','salida':'out','duración':'duration',
+    // Inventario
+    'Producto':'Product','Vendidos hoy':'Sold today','Acciones':'Actions',
+    '+ Nuevo':'+ New','Editar producto':'Edit product',
+    'Nuevo producto':'New product','Sin productos registrados':'No products registered',
+    '-- Selecciona un producto --':'-- Select a product --',
+    'Sin límite':'Unlimited',
+    // Ventas / POS
+    'Carrito':'Cart','Vaciar carrito':'Clear cart','Cobrar':'Charge',
+    'Efectivo':'Cash','Transferencia':'Transfer','Tarjeta':'Card',
+    'Buscar producto...':'Search product...','Agregar al carrito':'Add to cart',
+    'Venta completada':'Sale completed','Sin productos':'No products',
+    // Reportes
+    'Ventas totales':'Total Sales','Gastos totales':'Total Expenses',
+    'Ganancia':'Profit','Hoy':'Today','Ayer':'Yesterday',
+    '7 Días':'7 Days','30 Días':'30 Days','Mes':'Month','Año':'Year',
+    'Sin ventas':'No sales','Sin gastos':'No expenses',
+    'Período':'Period','Exportar':'Export',
+    // Citas
+    '+ Nueva Cita':'+ New Appointment','Tipo de cita':'Appointment type',
+    'Reservación':'Reservation','Entrega':'Delivery','Recogida':'Pickup',
+    'Consulta':'Consultation','Mantenimiento':'Maintenance','Otro':'Other',
+    'Completar':'Complete','Completada':'Completed','Pendiente':'Pending',
+    'Próximas':'Upcoming','Sin citas':'No appointments',
+    'Crea una nueva cita con el botón de arriba':'Create a new appointment with the button above',
+    'No hay citas próximas':'No upcoming appointments',
+    'No hay citas para este período':'No appointments for this period',
+    // Clientes (CRM)
+    '+ Nuevo Cliente':'+ New Client','Buscar clientes...':'Search clients...',
+    'Total gastado':'Total spent','Compras':'Purchases',
+    'Sin clientes registrados':'No clients registered',
+    'Último contacto':'Last contact','Ver en WhatsApp':'View in WhatsApp',
+    // Cotizaciones
+    '+ Nueva Cotización':'+ New Quote','Vigencia':'Valid until',
+    'Descuento':'Discount','Subtotal':'Subtotal','Descargar PDF':'Download PDF',
+    'Sin cotizaciones':'No quotes','Cotización':'Quote',
+    // Ajustes
+    'Nombre del negocio':'Business name','Logo del negocio':'Business logo',
+    'Apariencia':'Appearance','Tema oscuro':'Dark theme','Tema claro':'Light theme',
+    '+ Agregar Empleado':'+ Add Employee','Agregar Empleado':'Add Employee',
+    'Meta de ventas mensual (opcional)':'Monthly sales goal (optional)',
+    'Meta de ventas mensual':'Monthly sales goal',
+    'El empleado verá su avance vs esta meta en su inicio.':
+        'The employee will see their progress vs this goal on their home screen.',
+    'Historial de cambios':'Change history',
+    '📋 Historial de cambios':'📋 Change history',
+    '❓ Ver tutorial':'❓ View tutorial',
+    '🌐 English / Español':'🌐 English / Español',
+    // Empleados en ajustes
+    '⏱ En turno':'⏱ On shift','último acceso':'last access','Nunca':'Never',
+    'Dueño':'Owner','Empleado':'Employee','Trabajador':'Worker','Administrador':'Admin',
+    // Estados genéricos
+    'Activo':'Active','Inactivo':'Inactive','Sin datos':'No data',
+    'Cargando...':'Loading...','Sin nombre':'No name',
+    'Guardar cambios':'Save changes','Cambiar foto':'Change photo',
+    // Costos
+    '+ Nuevo Costeo':'+ New Costing','Costeo':'Costing','Ingrediente':'Ingredient',
+    'Costo total':'Total cost','Precio sugerido':'Suggested price',
+    'Margen':'Margin','Sin costeos':'No costings',
+    // Gráficas
+    'Ventas y gastos hora por hora':'Sales & expenses hour by hour',
+    'Ventas y gastos por día':'Sales & expenses by day',
+    'Lun':'Mon','Mar':'Tue','Mié':'Wed','Jue':'Thu',
+    'Vie':'Fri','Sáb':'Sat','Dom':'Sun',
+    // Cajas
+    '+ Nueva Caja':'+ New Register','Nombre de la caja':'Register name',
+    'Nombre del vendedor':'Seller name','Sin cajas':'No registers',
+    // Historial de cambios modal
+    'Historial de cambios recientes':'Recent change history',
+    'Sin cambios registrados.':'No changes recorded.',
 };
+
 var _langActual = localStorage.getItem('_nexova_lang') || 'es';
+
+// Traduce un texto si existe en el mapa
+function t(s) { return _langActual === 'en' ? (_LANG_MAP[s] || s) : s; }
+
+// Walker de nodos de texto: recorre el árbol DOM y traduce/restaura
+function _traducirNodos(root) {
+    var SKIP = { SCRIPT:1, STYLE:1, INPUT:1, TEXTAREA:1, SELECT:1, OPTION:1 };
+    var walker = document.createTreeWalker(root, 1 /* SHOW_ELEMENT */, null, false);
+    var el = root;
+    while (el) {
+        if (SKIP[el.nodeName]) { el = walker.nextNode(); continue; }
+        // Procesar hijos directos que son text nodes
+        for (var i = 0; i < el.childNodes.length; i++) {
+            var node = el.childNodes[i];
+            if (node.nodeType !== 3) continue; // solo text nodes
+            var orig = (node._nexovaES !== undefined) ? node._nexovaES : node.textContent;
+            var trimmed = orig.trim();
+            if (!trimmed) continue;
+            if (_langActual === 'en' && _LANG_MAP[trimmed]) {
+                node._nexovaES = orig;
+                // preservar espacios alrededor
+                var pre = orig.slice(0, orig.indexOf(trimmed));
+                var post = orig.slice(orig.indexOf(trimmed) + trimmed.length);
+                node.textContent = pre + _LANG_MAP[trimmed] + post;
+            } else if (_langActual === 'es' && node._nexovaES !== undefined) {
+                node.textContent = node._nexovaES;
+                node._nexovaES = undefined;
+            }
+        }
+        el = walker.nextNode();
+    }
+}
+
+// Aplica traducción a todo el contenido visible
+function _aplicarIdioma() {
+    // Zona principal de contenido
+    var mc = document.querySelector('.main-content');
+    if (mc) _traducirNodos(mc);
+    // Nav lateral
+    var nav = document.querySelector('.sidebar, .nav, nav');
+    if (nav) _traducirNodos(nav);
+    // Modales abiertos
+    document.querySelectorAll('[id^="modal"]').forEach(function(m) {
+        if (m.style.display !== 'none') _traducirNodos(m);
+    });
+}
+
+// Re-renderiza el tab activo y aplica idioma
+function _reRenderTabActual() {
+    var active = document.querySelector('.section.active');
+    if (!active) return;
+    var tab = active.id;
+    var btn = document.querySelector('.nav-btn.active');
+    // Llamar switchTab sin hook para re-renderizar
+    if (typeof _switchTabBase === 'function') _switchTabBase(tab, btn);
+}
 
 function toggleIdioma() {
     _langActual = _langActual === 'es' ? 'en' : 'es';
     localStorage.setItem('_nexova_lang', _langActual);
-    _aplicarIdioma();
+    _reRenderTabActual();
     showToast(_langActual === 'en' ? 'Language: English' : 'Idioma: Español');
 }
 
-function _aplicarIdioma() {
-    var navBtns = document.querySelectorAll('.nav-btn');
-    navBtns.forEach(function(btn) {
-        var txt = btn.textContent.trim();
-        if (_langActual === 'en') {
-            btn.dataset.es = btn.dataset.es || txt;
-            btn.textContent = _LANG_MAP[txt] || txt;
-        } else if (btn.dataset.es) {
-            btn.textContent = btn.dataset.es;
-        }
-    });
-}
+// Parchear switchTab para auto-traducir tras cada render
+var _switchTabBase = switchTab;
+switchTab = function(tab, btn) {
+    _switchTabBase(tab, btn);
+    if (_langActual === 'en') setTimeout(_aplicarIdioma, 0);
+};
 
-// Apply saved language on load
+// Restaurar idioma al cargar
 document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('_nexova_lang') === 'en') { _langActual = 'en'; _aplicarIdioma(); }
+    if (localStorage.getItem('_nexova_lang') === 'en') {
+        _langActual = 'en';
+        setTimeout(_aplicarIdioma, 300);
+    }
 });
 </script>
 </body>
