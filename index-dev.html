@@ -661,7 +661,7 @@ var _FCM_VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
 
 function _iniciarFCM(user) {
     try {
-        if (!firebase.messaging || !('serviceWorker' in navigator)) return;
+        if (typeof firebase === 'undefined' || typeof firebase.messaging !== 'function' || !('serviceWorker' in navigator)) return;
         _fcmMessaging = firebase.messaging();
         _fcmMessaging.onMessage(function(payload) {
             var title = (payload.notification && payload.notification.title) || 'NEXOVA';
@@ -2028,7 +2028,7 @@ function cerrarSplash() {
                     <div style="display:flex; flex-wrap:wrap; gap:0.8rem;">
                         <button onclick="mostrarHistorialCambios()" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">📋 Historial de cambios</button>
                         <button onclick="toggleIdioma()" id="btnIdioma" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">🌐 English / Español</button>
-                        <button onclick="mostrarOnboarding(); localStorage.removeItem('_onboarding_' + window.currentUser); mostrarOnboarding();" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">❓ Ver tutorial</button>
+                        <button onclick="localStorage.removeItem('_onboarding_' + window.currentUser); mostrarOnboarding();" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">❓ Ver tutorial</button>
                     </div>
                 </div>
 
@@ -8097,7 +8097,7 @@ function guardarClienteCRM(idx) {
     var user = window.currentUser;
     var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
     data.clientesCRM = data.clientesCRM || [];
-    if (idx !== undefined && idx !== null && !isNaN(idx)) {
+    if (idx !== undefined && idx !== null && !isNaN(idx) && data.clientesCRM[idx]) {
         cliente.id = data.clientesCRM[idx].id || cliente.id;
         data.clientesCRM[idx] = cliente;
         showToast('Cliente actualizado');
@@ -8123,6 +8123,8 @@ function eliminarClienteCRM(idx) {
 // ═══ ONBOARDING ═══
 function mostrarOnboarding() {
     if (localStorage.getItem('_onboarding_' + window.currentUser)) return;
+    var existing = document.getElementById('onboardingOverlay');
+    if (existing) existing.remove();
     var pasos = [
         { icon: '🏪', titulo: 'Bienvenido a NEXOVA', desc: 'Tu sistema de gestión todo en uno. Te guiamos en los primeros pasos para configurar tu negocio.' },
         { icon: '📦', titulo: 'Agrega tus productos', desc: 'Ve a <strong>Inventario</strong> y agrega los productos o servicios que ofreces con su precio y stock.' },
