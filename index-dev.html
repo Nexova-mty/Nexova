@@ -3046,11 +3046,12 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                 if (!c.activo) continue;
                 var data = {};
                 try {
-                    var localData = localStorage.getItem('data_' + c.username);
-                    if (localData) { data = JSON.parse(localData); }
+                    // Siempre leer de Firestore en el monitor — localStorage del admin puede estar desactualizado
+                    var fsDoc = await _db.collection('negocios').doc(c.username).get();
+                    if (fsDoc.exists) data = fsDoc.data();
                     else {
-                        var fsDoc = await _db.collection('negocios').doc(c.username).get();
-                        if (fsDoc.exists) data = fsDoc.data();
+                        var localData = localStorage.getItem('data_' + c.username);
+                        if (localData) data = JSON.parse(localData);
                     }
                 } catch(e2) {}
                 var ventas = 0, gastos = 0;
@@ -3089,10 +3090,20 @@ async function renderAdminEmpleados() { if(!_isAdmin)return;
     try {
         var clientes = await _getAllClients();
         var allEmps = [];
-        clientes.forEach(function(c) {
+        for (var ci = 0; ci < clientes.length; ci++) {
+            var c = clientes[ci];
             try {
-                var data = JSON.parse(localStorage.getItem('data_' + c.username) || '{}');
-                var empleados = data.empleados || [];
+                var empData = {};
+                // Leer de Firestore primero — localStorage del admin puede estar desactualizado
+                try {
+                    var empDoc = await _db.collection('negocios').doc(c.username).get();
+                    if (empDoc.exists) empData = empDoc.data();
+                } catch(e3) {}
+                if (!empData.empleados) {
+                    var localRaw = localStorage.getItem('data_' + c.username);
+                    if (localRaw) empData = JSON.parse(localRaw);
+                }
+                var empleados = empData.empleados || [];
                 empleados.forEach(function(emp) {
                     allEmps.push({
                         nombre: emp.nombre || emp.username || 'Sin nombre',
@@ -3105,7 +3116,7 @@ async function renderAdminEmpleados() { if(!_isAdmin)return;
                     });
                 });
             } catch(e2) {}
-        });
+        }
         var html = '<h2 style="font-family:\'Bebas Neue\'; font-size:1.5rem; color:var(--white); margin-bottom:1.5rem;">Empleados <span style="color:var(--orange);">Global</span></h2>' +
             '<button onclick="adminAgregarEmpleado()" style="background:var(--orange); color:#fff; border:none; padding:0.7rem 1.5rem; border-radius:6px; cursor:pointer; font-weight:700; margin-bottom:1.5rem; min-height:44px;">+ Agregar Empleado</button>';
         if (allEmps.length === 0) {
@@ -3143,13 +3154,17 @@ async function adminCambiarPassEmpleado(negocioUser, empUsername) {
     var newPass = prompt('Nueva contraseña para empleado ' + empUsername + ':');
     if (!newPass) return;
     try {
-        var data = JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
+        // Leer siempre de Firestore para no sobreescribir datos reales con localStorage del admin
+        var docRef = _db.collection('negocios').doc(negocioUser);
+        var doc = await docRef.get();
+        var data = doc.exists ? doc.data() : {};
         var empleados = data.empleados || [];
         var emp = empleados.find(function(e) { return e.username === empUsername; });
         if (!emp) { showToast('Empleado no encontrado', 'error'); return; }
         emp.passwordHash = await _h(newPass);
         delete emp.password;
-        guardarDatos(negocioUser, data);
+        data.empleados = empleados;
+        await docRef.set(data, { merge: true });
         showToast('Contraseña actualizada');
         renderAdminEmpleados();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
@@ -3159,9 +3174,12 @@ async function adminEliminarEmpleado(negocioUser, empUsername) {
     var confirmName = prompt('Para eliminar a este empleado, escribe su usuario: ' + empUsername);
     if (confirmName !== empUsername) { showToast('No se eliminó. El usuario no coincide.', 'error'); return; }
     try {
-        var data = JSON.parse(localStorage.getItem('data_' + negocioUser) || '{}');
+        // Leer siempre de Firestore para no sobreescribir datos reales con localStorage del admin
+        var docRef = _db.collection('negocios').doc(negocioUser);
+        var doc = await docRef.get();
+        var data = doc.exists ? doc.data() : {};
         data.empleados = (data.empleados || []).filter(function(e) { return e.username !== empUsername; });
-        guardarDatos(negocioUser, data);
+        await docRef.set(data, { merge: true });
         showToast('Empleado eliminado');
         renderAdminEmpleados();
     } catch(e) { showToast('Error: ' + e.message, 'error'); }
