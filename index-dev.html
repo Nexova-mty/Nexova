@@ -2249,9 +2249,14 @@ function cerrarSplash() {
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Sucursal (opcional)</label>
             <input type="text" id="empSucursal" placeholder="Ej. Sucursal Centro" autocomplete="off" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
         </div>
-        <div style="margin-bottom:1.2rem;">
+        <div style="margin-bottom:1rem;">
             <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Contraseña</label>
             <input type="text" id="empPassword" placeholder="Ej. ana2024" autocomplete="off" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:1.2rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase;">Meta de ventas mensual (opcional)</label>
+            <input type="number" id="empMeta" placeholder="Ej. 15000" min="0" autocomplete="off" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--white); padding:0.75rem; border-radius:6px; font-size:1rem; box-sizing:border-box;">
+            <div style="font-size:0.75rem; color:var(--muted); margin-top:0.4rem;">El empleado verá su avance vs esta meta en su inicio.</div>
         </div>
         <div style="display:flex; gap:0.8rem;">
             <button onclick="guardarEmpleado()" style="flex:1; background:var(--orange); color:#fff; border:none; padding:0.75rem; border-radius:6px; cursor:pointer; font-weight:700; min-height:48px;">Guardar</button>
@@ -7040,6 +7045,99 @@ function renderInicio() {
         html += `</div></div>`;
     }
 
+    // ─── TURNO: dueño ve quién está trabajando ───
+    if (esDueno) {
+        var turnos = data.turnos || [];
+        var hoyStr = (function(){
+            var f = obtenerFechaMonterrey();
+            var d = String(f.getDate()).padStart(2,'0');
+            var m = String(f.getMonth()+1).padStart(2,'0');
+            var y = f.getFullYear();
+            return d+'/'+m+'/'+y;
+        })();
+        var turnosActivos = turnos.filter(function(t){ return t.fecha === hoyStr && !t.salidaTs; });
+        if (turnosActivos.length > 0) {
+            html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.5rem;">' +
+                '<div style="font-weight:700;color:var(--white);margin-bottom:0.7rem;">👥 Empleados trabajando ahora</div>' +
+                '<div style="display:flex;flex-direction:column;gap:0.5rem;">';
+            turnosActivos.forEach(function(t) {
+                var mins = Math.floor((Date.now() - t.entradaTs) / 60000);
+                var hrs = Math.floor(mins/60); var m2 = mins%60;
+                var tiempoStr = hrs > 0 ? hrs+'h '+m2+'min' : m2+'min';
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid var(--border);">' +
+                    '<div><span style="color:var(--white);font-weight:600;">'+escapeHTML(t.empleadoNombre)+'</span>' +
+                    '<span style="color:var(--muted);font-size:0.8rem;margin-left:0.6rem;">entrada '+escapeHTML(t.entrada)+'</span></div>' +
+                    '<span style="color:var(--orange);font-size:0.82rem;font-weight:700;">⏱ '+tiempoStr+'</span>' +
+                '</div>';
+            });
+            html += '</div>' +
+                '<button onclick="verTurnosHoy()" style="margin-top:0.8rem;background:transparent;color:var(--orange);border:1px solid var(--orange);padding:0.4rem 1rem;border-radius:6px;cursor:pointer;font-size:0.82rem;min-height:36px;">Ver historial de turnos</button>' +
+            '</div>';
+        } else {
+            html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">' +
+                '<span style="color:var(--muted);font-size:0.9rem;">Ningún empleado ha registrado entrada hoy.</span>' +
+                '<button onclick="verTurnosHoy()" style="background:transparent;color:var(--orange);border:1px solid var(--orange);padding:0.4rem 1rem;border-radius:6px;cursor:pointer;font-size:0.82rem;min-height:36px;">Ver historial de turnos</button>' +
+            '</div>';
+        }
+    }
+
+    // ─── EMPLEADO: tarjeta de turno + meta personal ───
+    if (!esDueno && window.currentEmpleado) {
+        var emp = window.currentEmpleado;
+        var turnos2 = data.turnos || [];
+        var hoyStr2 = (function(){
+            var f = obtenerFechaMonterrey();
+            return String(f.getDate()).padStart(2,'0')+'/'+String(f.getMonth()+1).padStart(2,'0')+'/'+f.getFullYear();
+        })();
+        var turnoHoy = null;
+        for (var ti = 0; ti < turnos2.length; ti++) {
+            if (turnos2[ti].empleadoUsername === emp.username && turnos2[ti].fecha === hoyStr2) { turnoHoy = turnos2[ti]; break; }
+        }
+        var turnoHtml = '';
+        if (!turnoHoy) {
+            turnoHtml = '<button onclick="registrarEntrada()" style="background:var(--orange);color:#fff;border:none;padding:0.7rem 1.5rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">▶ Registrar entrada</button>';
+        } else if (!turnoHoy.salidaTs) {
+            var mins2 = Math.floor((Date.now() - turnoHoy.entradaTs) / 60000);
+            var hrs2 = Math.floor(mins2/60); var mm2 = mins2%60;
+            turnoHtml = '<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">' +
+                '<div><div style="color:var(--green);font-weight:700;font-size:1rem;">✅ Trabajando</div>' +
+                '<div style="color:var(--muted);font-size:0.82rem;">Entrada: '+escapeHTML(turnoHoy.entrada)+' · '+( hrs2>0?hrs2+'h ':'')+mm2+'min</div></div>' +
+                '<button onclick="registrarSalida(\''+turnoHoy.id+'\')" style="background:#f87171;color:#fff;border:none;padding:0.65rem 1.2rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">⏹ Registrar salida</button>' +
+            '</div>';
+        } else {
+            turnoHtml = '<div style="color:var(--muted);">Turno completado hoy: '+escapeHTML(turnoHoy.entrada)+' → '+escapeHTML(turnoHoy.salida)+'</div>';
+        }
+        html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1.5rem;">' +
+            '<div style="font-weight:700;color:var(--white);margin-bottom:0.8rem;">🕐 Mi turno de hoy</div>' +
+            turnoHtml +
+        '</div>';
+
+        // Meta personal del empleado
+        if (emp.metaVentas) {
+            var metaEmp = parseFloat(emp.metaVentas);
+            var hoyMTY2 = obtenerFechaMonterrey();
+            var ventasEmpMes = ventas.filter(function(v){
+                var p = parseFechaStr(v.fecha);
+                return p && p.getMonth()===hoyMTY2.getMonth() && p.getFullYear()===hoyMTY2.getFullYear() &&
+                    (v.vendedor === emp.nombre || v.vendedor === emp.username);
+            }).reduce(function(s,v){ return s+(parseFloat(v.total||v.monto)||0); }, 0);
+            var pctEmp = Math.min(100, Math.round((ventasEmpMes/metaEmp)*100));
+            var colorEmp = pctEmp>=100?'var(--green)':pctEmp>=60?'var(--orange)':'#f87171';
+            html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1.5rem;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">' +
+                    '<div style="font-weight:700;color:var(--white);">🎯 Mi meta del mes</div>' +
+                    '<span style="color:'+colorEmp+';font-weight:700;font-size:0.95rem;">'+pctEmp+'%</span>' +
+                '</div>' +
+                '<div style="background:var(--bg3);border-radius:20px;height:10px;overflow:hidden;margin-bottom:0.5rem;">' +
+                    '<div style="width:'+pctEmp+'%;height:100%;background:'+colorEmp+';border-radius:20px;transition:width 0.4s;"></div>' +
+                '</div>' +
+                '<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--muted);">' +
+                    '<span>'+fmt(ventasEmpMes)+' vendido</span><span>Meta: '+fmt(metaEmp)+'</span>' +
+                '</div>' +
+            '</div>';
+        }
+    }
+
     document.getElementById('inicioContenido').innerHTML = html;
 }
 
@@ -7226,20 +7324,54 @@ function renderEmpleadosAjustes() {
         container.innerHTML = `<div style="color:var(--muted); font-size:0.88rem; padding:0.8rem 0;">Sin empleados registrados. Agrega el primero con el botón de arriba.</div>`;
         return;
     }
-    container.innerHTML = empleados.map((emp, idx) => `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.85rem 0; border-bottom:1px solid var(--border); flex-wrap:wrap;">
-            <div>
-                <div style="font-weight:700; color:var(--white); font-size:0.95rem;">${escapeHTML(emp.nombre)}</div>
-                <div style="font-size:0.8rem; color:var(--muted); margin-top:0.15rem;">
-                    Usuario: <span style="color:var(--orange); font-family:'JetBrains Mono',monospace;">${escapeHTML(emp.username)}</span>
-                    ${emp.ultimoAcceso ? ` · Último acceso: ${escapeHTML(emp.ultimoAcceso)}` : ' · Nunca ha accedido'}
+    const ventas = data.ventas || [];
+    const hoyMTY = obtenerFechaMonterrey();
+    container.innerHTML = empleados.map((emp, idx) => {
+        // Ventas de este empleado en el mes actual
+        const ventasMes = ventas.filter(v => {
+            const p = parseFechaStr(v.fecha);
+            return p && p.getMonth()===hoyMTY.getMonth() && p.getFullYear()===hoyMTY.getFullYear() &&
+                (v.vendedor === emp.nombre || v.vendedor === emp.username);
+        }).reduce((s,v) => s+(parseFloat(v.total||v.monto)||0), 0);
+        // Turno activo hoy
+        const hoyStr = String(hoyMTY.getDate()).padStart(2,'0')+'/'+String(hoyMTY.getMonth()+1).padStart(2,'0')+'/'+hoyMTY.getFullYear();
+        const turnos = data.turnos || [];
+        const turnoActivo = turnos.find(t => t.empleadoUsername===emp.username && t.fecha===hoyStr && !t.salidaTs);
+        // Meta progress
+        let metaHtml = '';
+        if (emp.metaVentas) {
+            const meta = parseFloat(emp.metaVentas);
+            const pct = Math.min(100, Math.round((ventasMes/meta)*100));
+            const col = pct>=100?'var(--green)':pct>=60?'var(--orange)':'#f87171';
+            metaHtml = `<div style="margin-top:0.5rem;">
+                <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:0.25rem;">
+                    <span>Meta mensual</span><span style="color:${col};font-weight:700;">${pct}% · $${ventasMes.toFixed(0)}/$${meta.toFixed(0)}</span>
                 </div>
+                <div style="background:var(--bg3);border-radius:20px;height:6px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:${col};border-radius:20px;"></div>
+                </div>
+            </div>`;
+        }
+        const turnoTag = turnoActivo
+            ? `<span style="background:rgba(74,222,128,0.15);color:var(--green);border-radius:20px;padding:0.15rem 0.6rem;font-size:0.72rem;font-weight:700;">⏱ En turno</span>`
+            : '';
+        return `<div style="padding:0.85rem 0; border-bottom:1px solid var(--border);">
+            <div style="display:flex; align-items:start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+                <div style="flex:1;min-width:160px;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                        <span style="font-weight:700; color:var(--white); font-size:0.95rem;">${escapeHTML(emp.nombre)}</span>
+                        ${turnoTag}
+                    </div>
+                    <div style="font-size:0.78rem; color:var(--muted); margin-top:0.2rem;">
+                        @${escapeHTML(emp.username)}${emp.sucursal ? ' · '+escapeHTML(emp.sucursal) : ''}
+                        ${emp.ultimoAcceso ? ' · Acceso: '+escapeHTML(emp.ultimoAcceso) : ''}
+                    </div>
+                    ${metaHtml}
+                </div>
+                <button onclick="abrirModalEditarEmpleado(${idx})" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.8rem; min-height:36px; flex-shrink:0;">Editar</button>
             </div>
-            <div style="display:flex; gap:0.5rem; flex-shrink:0;">
-                <button onclick="abrirModalEditarEmpleado(${idx})" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.8rem; min-height:36px;">Editar</button>
-                
-            </div>
-        </div>`).join('');
+        </div>`;
+    }).join('');
 }
 
 function renderActividadEmpleados() {
@@ -7311,6 +7443,7 @@ function abrirModalEditarEmpleado(idx) {
     document.getElementById('empUsername').value = emp.username || '';
     if (document.getElementById('empSucursal')) document.getElementById('empSucursal').value = emp.sucursal || '';
     document.getElementById('empPassword').value = '';
+    if (document.getElementById('empMeta')) document.getElementById('empMeta').value = emp.metaVentas || '';
     document.getElementById('modalNuevoEmpleado').style.display = 'flex';
     setTimeout(() => document.getElementById('empNombre').focus(), 80);
 }
@@ -7341,6 +7474,7 @@ async function guardarEmpleado() {
     // Guardar contraseña como hash SHA-256 (nunca en texto plano)
     const passwordHash = password ? await _h(password) : null;
 
+    const metaVentas = parseFloat((document.getElementById('empMeta') || {}).value) || 0;
     if (editIdx !== '') {
         const emp = data.empleados[parseInt(editIdx)];
         if (emp) {
@@ -7348,9 +7482,10 @@ async function guardarEmpleado() {
             emp.username = username;
             emp.sucursal = sucursal;
             if (passwordHash) { emp.passwordHash = passwordHash; delete emp.password; }
+            if (metaVentas > 0) emp.metaVentas = metaVentas; else delete emp.metaVentas;
         }
     } else {
-        data.empleados.push({ nombre, username, passwordHash, sucursal, ultimoAcceso: null });
+        data.empleados.push({ nombre, username, passwordHash, sucursal, ultimoAcceso: null, ...(metaVentas > 0 ? { metaVentas } : {}) });
     }
 
     guardarDatos(user, data);
@@ -8279,6 +8414,84 @@ function programarRecordatoriosCitas(user) {
             }
         });
     } catch(e) {}
+}
+
+// ═══ REGISTRO DE TURNO ═══
+function _getTurnoFechaHoy() {
+    var f = obtenerFechaMonterrey();
+    return String(f.getDate()).padStart(2,'0')+'/'+String(f.getMonth()+1).padStart(2,'0')+'/'+f.getFullYear();
+}
+function _getTurnoHora() {
+    var f = new Intl.DateTimeFormat('es-MX',{timeZone:'America/Monterrey',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date());
+    return f;
+}
+
+function registrarEntrada() {
+    var user = window.currentUser;
+    var emp = window.currentEmpleado;
+    if (!emp) return;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    data.turnos = data.turnos || [];
+    var hoy = _getTurnoFechaHoy();
+    var yaEntro = data.turnos.find(function(t){ return t.empleadoUsername===emp.username && t.fecha===hoy && !t.salidaTs; });
+    if (yaEntro) { showToast('Ya tienes una entrada registrada hoy','info'); return; }
+    var turno = { id: Date.now(), empleadoNombre: emp.nombre, empleadoUsername: emp.username, fecha: hoy, entradaTs: Date.now(), entrada: _getTurnoHora(), salidaTs: null, salida: null };
+    data.turnos.push(turno);
+    guardarDatos(user, data);
+    _registrarCambio(user, 'Entrada de turno: '+emp.nombre+' a las '+turno.entrada);
+    showToast('Entrada registrada — '+turno.entrada, 'success');
+    renderInicio();
+}
+
+function registrarSalida(turnoId) {
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    data.turnos = data.turnos || [];
+    var turno = data.turnos.find(function(t){ return String(t.id)===String(turnoId); });
+    if (!turno) { showToast('Turno no encontrado','error'); return; }
+    if (turno.salidaTs) { showToast('La salida ya fue registrada','info'); return; }
+    turno.salidaTs = Date.now();
+    turno.salida = _getTurnoHora();
+    var mins = Math.floor((turno.salidaTs - turno.entradaTs)/60000);
+    var hrs = Math.floor(mins/60); var mm = mins%60;
+    turno.duracionStr = (hrs>0?hrs+'h ':'')+mm+'min';
+    guardarDatos(user, data);
+    _registrarCambio(user, 'Salida de turno: '+turno.empleadoNombre+' a las '+turno.salida+' ('+turno.duracionStr+')');
+    showToast('Salida registrada — '+turno.salida+' · '+turno.duracionStr, 'success');
+    renderInicio();
+}
+
+function verTurnosHoy() {
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    var turnos = (data.turnos||[]).slice().reverse();
+    var existing = document.getElementById('modalTurnos');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'modalTurnos';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    var rows = turnos.length === 0
+        ? '<div style="color:var(--muted);padding:2rem;text-align:center;">Sin turnos registrados todavía.</div>'
+        : turnos.map(function(t) {
+            var estado = t.salidaTs
+                ? '<span style="color:var(--green);font-size:0.78rem;">'+escapeHTML(t.entrada||'')+'→'+escapeHTML(t.salida||'')+' ('+escapeHTML(t.duracionStr||'')+')</span>'
+                : '<span style="color:var(--orange);font-size:0.78rem;">En turno desde '+escapeHTML(t.entrada||'')+'</span>';
+            return '<div style="padding:0.7rem 0;border-bottom:1px solid var(--border);">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.4rem;">' +
+                    '<div><div style="color:var(--white);font-weight:600;font-size:0.9rem;">'+escapeHTML(t.empleadoNombre||'')+'</div>' +
+                    '<div style="color:var(--muted);font-size:0.78rem;">'+escapeHTML(t.fecha||'')+'</div></div>' +
+                    estado +
+                '</div></div>';
+          }).join('');
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;max-width:480px;width:100%;max-height:85vh;display:flex;flex-direction:column;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+            '<h3 style="color:var(--white);font-size:1.05rem;font-weight:700;">🕐 Historial de turnos</h3>' +
+            '<button onclick="document.getElementById(\'modalTurnos\').remove()" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.3rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.82rem;min-height:34px;">Cerrar</button>' +
+        '</div>' +
+        '<div style="overflow-y:auto;flex:1;">'+rows+'</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
 }
 
 // ═══ HISTORIAL DE CAMBIOS ═══
