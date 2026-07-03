@@ -631,6 +631,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script>
 // IMPORTANTE: Configurar reglas de Firestore en Firebase Console:
 // rules_version = '2';
@@ -653,14 +654,82 @@ try {
 } catch(e) { console.warn('Firebase init:', e.message); }
 var _db = (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) ? firebase.firestore() : null;
 
+// ═══ FCM PUSH NOTIFICATIONS ═══
+var _fcmMessaging = null;
+// VAPID key: Firebase Console → Project Settings → Cloud Messaging → Web Push Certificates → Generate key pair → copy the key
+var _FCM_VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+
+function _iniciarFCM(user) {
+    try {
+        if (!firebase.messaging || !('serviceWorker' in navigator)) return;
+        _fcmMessaging = firebase.messaging();
+        _fcmMessaging.onMessage(function(payload) {
+            var title = (payload.notification && payload.notification.title) || 'NEXOVA';
+            var body = (payload.notification && payload.notification.body) || '';
+            showToast('🔔 ' + title + (body ? ': ' + body : ''), 'info');
+        });
+        if (_FCM_VAPID_KEY === 'YOUR_VAPID_KEY_HERE') return;
+        Notification.requestPermission().then(function(permission) {
+            if (permission !== 'granted') return;
+            _fcmMessaging.getToken({ vapidKey: _FCM_VAPID_KEY }).then(function(token) {
+                if (!token || !user) return;
+                _db.collection('fcmTokens').doc(user).set({ token: token, updated: Date.now() }, { merge: true }).catch(function(){});
+            }).catch(function(e) { console.warn('FCM token error:', e); });
+        });
+    } catch(e) { console.warn('FCM init error:', e); }
+}
+
+function _registrarCambio(user, accion) {
+    try {
+        var key = '_changelog_' + user;
+        var log = JSON.parse(localStorage.getItem(key) || '[]');
+        log.unshift({ accion: accion, fecha: new Date().toLocaleString('es-MX'), ts: Date.now(), rol: window.currentRole || '?', empleado: (window.currentEmpleado && window.currentEmpleado.nombre) || window.currentUser || user });
+        if (log.length > 200) log = log.slice(0, 200);
+        localStorage.setItem(key, JSON.stringify(log));
+    } catch(e) {}
+}
 function guardarDatos(user, data) {
-  // Estampar timestamp para comparación de versiones confiable entre dispositivos
   data._ts = Date.now();
   var raw = JSON.stringify(data);
   localStorage.setItem('data_' + user, raw);
   _h(raw).then(function(hash) { localStorage.setItem('_hash_' + user, hash); });
-  _db.collection('negocios').doc(user).set(data).catch(function(e) { console.warn('Firestore write error:', e); });
+  if (!navigator.onLine) {
+    // Sin internet: encolar para sincronizar después
+    _encolarSync(user);
+    return;
+  }
+  _subirFirestore(user, data);
 }
+
+function _subirFirestore(user, data) {
+  _db.collection('negocios').doc(user).set(data).then(function() {
+    // Limpiar cola si existía entrada pendiente
+    var cola = JSON.parse(localStorage.getItem('_syncQueue') || '[]');
+    var nueva = cola.filter(function(u) { return u !== user; });
+    localStorage.setItem('_syncQueue', JSON.stringify(nueva));
+  }).catch(function(e) {
+    console.warn('Firestore write error:', e);
+    _encolarSync(user);
+  });
+}
+
+function _encolarSync(user) {
+  var cola = JSON.parse(localStorage.getItem('_syncQueue') || '[]');
+  if (cola.indexOf(user) === -1) { cola.push(user); localStorage.setItem('_syncQueue', JSON.stringify(cola)); }
+}
+
+// Al reconectar, subir datos pendientes
+window.addEventListener('online', function() {
+  mostrarBannerOffline(false);
+  var cola = JSON.parse(localStorage.getItem('_syncQueue') || '[]');
+  if (cola.length === 0) return;
+  cola.forEach(function(user) {
+    var raw = localStorage.getItem('data_' + user);
+    if (!raw) return;
+    try { _subirFirestore(user, JSON.parse(raw)); } catch(e) {}
+  });
+  showToast('Conexión restaurada — datos sincronizados', 'success');
+});
 
 function cargarDatos(user) {
   return JSON.parse(localStorage.getItem('data_' + user) || '{}');
@@ -689,6 +758,7 @@ function _aplicarDatosRemotos(user, remoteData) {
     else if (tab === 'graficas') renderGraficas();
     else if (tab === 'citas') renderCitas();
     else if (tab === 'cotizaciones') renderCotizaciones();
+    else if (tab === 'clientes') renderCRM();
     else if (tab === 'ajustes') renderAjustes();
   }
 }
@@ -1454,6 +1524,7 @@ function cerrarSplash() {
             <button class="nav-btn" onclick="switchTab('citas', this)">Citas</button>
             <button class="nav-btn" onclick="switchTab('costos', this)" id="btnCostos">Costos</button>
             <button class="nav-btn" onclick="switchTab('cotizaciones', this)">Cotizaciones</button>
+            <button class="nav-btn" onclick="switchTab('clientes', this)">Clientes</button>
             <button class="nav-btn" onclick="switchTab('ajustes', this)" id="btnAjustes" style="margin-top:auto; border-top:1px solid var(--border); padding-top:0.8rem;">Ajustes</button>
         </div>
 
@@ -1816,6 +1887,16 @@ function cerrarSplash() {
                 <div id="cotizacionesGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;"></div>
             </section>
 
+            <!-- CLIENTES CRM -->
+            <section class="section" id="clientes">
+                <h2 class="section-title">Clientes <em>CRM</em></h2>
+                <div style="display:flex;gap:0.8rem;margin-bottom:1.2rem;flex-wrap:wrap;align-items:center;">
+                    <input type="text" id="crmBuscar" placeholder="Buscar por nombre o teléfono..." oninput="renderCRM()" style="flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.65rem 1rem;border-radius:8px;font-size:0.9rem;">
+                    <button onclick="abrirModalNuevoCliente_CRM()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.2rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;white-space:nowrap;min-height:44px;">+ Nuevo cliente</button>
+                </div>
+                <div id="crmLista"></div>
+            </section>
+
             <!-- AJUSTES -->
             <section class="section" id="ajustes">
                 <h2 class="section-title">Ajustes <em>de Cuenta</em></h2>
@@ -1938,6 +2019,16 @@ function cerrarSplash() {
                                 <div style="background:var(--bg3); border-radius:8px; padding:0.8rem;"><div style="color:var(--white); font-weight:600; font-size:0.85rem;">Tus derechos</div><p style="color:var(--muted); font-size:0.8rem; line-height:1.5; margin:0.3rem 0 0;">Puedes exportar o eliminar tu información en cualquier momento. Cumplimos con la LFPDPPP de México.</p></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Historial de cambios + Idioma -->
+                <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; text-transform:uppercase; letter-spacing:0.05em;">Herramientas</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.8rem;">
+                        <button onclick="mostrarHistorialCambios()" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">📋 Historial de cambios</button>
+                        <button onclick="toggleIdioma()" id="btnIdioma" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">🌐 English / Español</button>
+                        <button onclick="mostrarOnboarding(); localStorage.removeItem('_onboarding_' + window.currentUser); mostrarOnboarding();" style="background:var(--bg3); color:var(--white); border:1px solid var(--border); padding:0.7rem 1.2rem; border-radius:6px; cursor:pointer; font-size:0.9rem; min-height:44px;">❓ Ver tutorial</button>
                     </div>
                 </div>
 
@@ -4005,6 +4096,8 @@ function iniciarDashboard(user, rol) {
       guardarDatos(user, localData);
     }
     iniciarSyncFirestore(user);
+    _iniciarFCM(user);
+    setTimeout(function(){ mostrarOnboarding(); }, 800);
 
     // Notificaciones push para citas
     if ('Notification' in window) {
@@ -4064,6 +4157,7 @@ function switchTab(tab, btn) {
     else if (tab === 'ajustes') renderAjustes();
     else if (tab === 'citas') renderCitas();
     else if (tab === 'costos') renderCostos();
+    else if (tab === 'clientes') renderCRM();
 }
 
 function filtrarProductosPOS() {
@@ -4376,6 +4470,31 @@ function imprimirUltimoTicket() {
     imprimirTicket(d.carrito, d.total, d.metodo, d.fecha, d.caja);
 }
 
+function mostrarModalPostVenta(total, carrito, metodo, fecha, cajaNombre) {
+    var existing = document.getElementById('modalPostVenta');
+    if (existing) existing.remove();
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    var negocio = (getClientInfo(user) && getClientInfo(user).name) || data.nombreNegocio || 'Mi Negocio';
+    var items = carrito.map(function(it) { return it.qty + 'x ' + it.nombre + ' $' + (it.precio * it.qty).toFixed(2); }).join('\n');
+    var msg = encodeURIComponent('🧾 *Ticket de compra — ' + negocio + '*\n' + items + '\n\n*Total: $' + total.toFixed(2) + '*\nMétodo: ' + metodo + '\nFecha: ' + fecha + '\n\n¡Gracias por su compra!');
+    var waUrl = 'https://wa.me/?text=' + msg;
+    var overlay = document.createElement('div');
+    overlay.id = 'modalPostVenta';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.8rem;max-width:380px;width:100%;text-align:center;">' +
+        '<div style="font-size:2.5rem;margin-bottom:0.5rem;">✅</div>' +
+        '<div style="font-size:1.3rem;font-weight:800;color:var(--white);margin-bottom:0.3rem;">Venta registrada</div>' +
+        '<div style="font-size:2rem;font-weight:900;color:var(--green);margin-bottom:1.5rem;">$' + total.toFixed(2) + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:0.7rem;">' +
+            '<button onclick="imprimirTicket(window._lastTicketData.carrito,window._lastTicketData.total,window._lastTicketData.metodo,window._lastTicketData.fecha,window._lastTicketData.caja);document.getElementById(\'modalPostVenta\').remove()" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.85rem;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;width:100%;min-height:48px;">🖨️ Imprimir ticket</button>' +
+            '<a href="' + waUrl + '" target="_blank" onclick="setTimeout(function(){document.getElementById(\'modalPostVenta\').remove()},500)" style="background:#25D366;color:#fff;border:none;padding:0.85rem;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:700;width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:0.5rem;text-decoration:none;">📲 Enviar por WhatsApp</a>' +
+            '<button onclick="document.getElementById(\'modalPostVenta\').remove()" style="background:transparent;color:var(--muted);border:1px solid var(--border);padding:0.85rem;border-radius:8px;cursor:pointer;font-size:0.9rem;width:100%;min-height:48px;">Cerrar</button>' +
+        '</div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+}
+
 function verRespaldos() {
     var user = window.currentUser;
     var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith('_nexova_backup_' + user + '_'); }).sort().reverse();
@@ -4474,10 +4593,12 @@ function completarVenta(metodo) {
     
     guardarDatos(window.currentUser, data);
 
-    showToast(`Venta registrada: $${total.toFixed(2)}`, "success");
-
-    // Save last ticket data for printing
+    // Save last ticket data for printing/sharing
     window._lastTicketData = { carrito: [...carrito], total: total, metodo: metodo, fecha: fechaHoraMonterrey, caja: data.cajas[cajaIdx].nombre };
+
+    _registrarCambio(window.currentUser, 'Venta registrada: $' + total.toFixed(2) + ' (' + metodo + ', ' + carrito.length + ' producto(s))');
+    // Mostrar modal post-venta con opciones
+    mostrarModalPostVenta(total, carrito, metodo, fechaHoraMonterrey, data.cajas[cajaIdx].nombre);
 
     localStorage.removeItem(getCarritoKey());
     document.getElementById('pagoEfectivo').value = '';
@@ -4622,6 +4743,7 @@ function guardarNuevoProducto() {
     const maxNum = (data.productos || []).reduce((max, p) => Math.max(max, p.num || 0), 0);
     data.productos.push({ id: Date.now(), num: maxNum + 1, nombre, precio, stock, sinLimite, foto });
 
+    _registrarCambio(window.currentUser, 'Producto agregado: ' + nombre + ' $' + precio);
     guardarDatos(window.currentUser, data);
     document.getElementById('nombreProducto').value = '';
     document.getElementById('precioProducto').value = '';
@@ -4675,6 +4797,7 @@ function agregarGasto() {
         tipo
     });
     
+    _registrarCambio(window.currentUser, 'Gasto registrado: ' + concepto + ' $' + monto);
     guardarDatos(window.currentUser, data);
     document.getElementById('conceptoGasto').value = '';
     document.getElementById('montoGasto').value = '';
@@ -5901,6 +6024,7 @@ function guardarNuevaCita() {
     };
     
     data.citas.push(cita);
+    _registrarCambio(window.currentUser, 'Cita agendada: ' + (cita.nombre||'') + ' — ' + (cita.fecha||''));
     guardarDatos(window.currentUser, data);
 
     // Schedule notification reminder 30 min before
@@ -7874,6 +7998,167 @@ function descargarCotizacionPDF(idx) {
         showToast('Error al generar el PDF: ' + e.message, 'error');
     }
 }
+
+// ═══ CRM — MÓDULO DE CLIENTES ═══
+function renderCRM() {
+    var user = window.currentUser;
+    if (!user) return;
+    var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    var clientesCRM = data.clientesCRM || [];
+    var ventas = data.ventas || [];
+    var citas = data.citas || [];
+    var q = (document.getElementById('crmBuscar') ? document.getElementById('crmBuscar').value : '').toLowerCase();
+    var lista = clientesCRM.filter(function(c) {
+        return !q || (c.nombre||'').toLowerCase().includes(q) || (c.telefono||'').includes(q);
+    });
+    var container = document.getElementById('crmLista');
+    if (!container) return;
+    if (lista.length === 0) {
+        container.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:2rem;text-align:center;color:var(--muted);">' +
+            (q ? 'Sin resultados para "' + escapeHTML(q) + '"' : 'No hay clientes registrados. Agrega el primero con el botón de arriba.') + '</div>';
+        return;
+    }
+    container.innerHTML = lista.map(function(c, i) {
+        var idx = clientesCRM.indexOf(c);
+        var ventasCliente = ventas.filter(function(v) { return v.clienteId === c.id || (c.nombre && v.cajaNombre && v.cajaNombre === c.nombre); });
+        var citasCliente = citas.filter(function(ci) { return ci.clienteId === c.id || (c.nombre && ci.nombre && ci.nombre.toLowerCase() === c.nombre.toLowerCase()); });
+        var totalGastado = ventasCliente.reduce(function(s,v){ return s + parseFloat(v.total||v.monto||0); }, 0);
+        return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:0.8rem;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:0.8rem;">' +
+                '<div>' +
+                    '<div style="font-weight:700;color:var(--white);font-size:1rem;">' + escapeHTML(c.nombre||'Sin nombre') + '</div>' +
+                    (c.telefono ? '<div style="font-size:0.82rem;color:var(--muted);margin-top:0.2rem;">📱 ' + escapeHTML(c.telefono) + '</div>' : '') +
+                    (c.email ? '<div style="font-size:0.82rem;color:var(--muted);">✉️ ' + escapeHTML(c.email) + '</div>' : '') +
+                    (c.notas ? '<div style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem;font-style:italic;">' + escapeHTML(c.notas) + '</div>' : '') +
+                '</div>' +
+                '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;">' +
+                    (c.telefono ? '<a href="https://wa.me/52' + c.telefono.replace(/\D/g,'') + '" target="_blank" style="background:#25D366;color:#fff;border:none;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;min-height:34px;display:flex;align-items:center;">WhatsApp</a>' : '') +
+                    '<button onclick="editarClienteCRM(' + idx + ')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.8rem;min-height:34px;">Editar</button>' +
+                    '<button onclick="eliminarClienteCRM(' + idx + ')" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.8rem;min-height:34px;">Eliminar</button>' +
+                '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:1rem;margin-top:0.8rem;flex-wrap:wrap;">' +
+                '<span style="background:rgba(74,222,128,0.1);color:#4ade80;border-radius:6px;padding:0.3rem 0.7rem;font-size:0.8rem;font-weight:700;">$' + totalGastado.toFixed(2) + ' gastado</span>' +
+                '<span style="background:rgba(244,106,31,0.1);color:var(--orange);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.8rem;">' + ventasCliente.length + ' compras</span>' +
+                '<span style="background:rgba(255,255,255,0.06);color:var(--muted);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.8rem;">' + citasCliente.length + ' citas</span>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function abrirModalNuevoCliente_CRM(idx) {
+    var existing = document.getElementById('modalCRM');
+    if (existing) existing.remove();
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    var clientes = data.clientesCRM || [];
+    var c = idx !== undefined ? clientes[idx] : {};
+    var overlay = document.createElement('div');
+    overlay.id = 'modalCRM';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.8rem;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;">' +
+        '<h3 style="color:var(--white);margin-bottom:1.2rem;font-size:1.1rem;">' + (idx !== undefined ? 'Editar' : 'Nuevo') + ' cliente</h3>' +
+        '<div style="display:flex;flex-direction:column;gap:0.8rem;">' +
+            _crmField('Nombre completo', 'crmNombre', 'text', c.nombre||'', 'Ej. María García', true) +
+            _crmField('Teléfono', 'crmTelefono', 'tel', c.telefono||'', 'Ej. 8112345678', false) +
+            _crmField('Email', 'crmEmail', 'email', c.email||'', 'Ej. maria@ejemplo.com', false) +
+            _crmField('Cumpleaños', 'crmCumple', 'date', c.cumple||'', '', false) +
+            '<div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:0.3rem;text-transform:uppercase;">Notas</label>' +
+            '<textarea id="crmNotas" placeholder="Preferencias, alergias, notas..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.65rem;border-radius:6px;font-size:0.9rem;resize:vertical;min-height:70px;box-sizing:border-box;">' + escapeHTML(c.notas||'') + '</textarea></div>' +
+        '</div>' +
+        '<div style="display:flex;gap:0.8rem;margin-top:1.2rem;">' +
+            '<button onclick="guardarClienteCRM(' + (idx !== undefined ? idx : 'undefined') + ')" style="flex:1;background:var(--orange);color:#fff;border:none;padding:0.8rem;border-radius:8px;cursor:pointer;font-weight:700;min-height:44px;">Guardar</button>' +
+            '<button onclick="document.getElementById(\'modalCRM\').remove()" style="flex:1;background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.8rem;border-radius:8px;cursor:pointer;min-height:44px;">Cancelar</button>' +
+        '</div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+    setTimeout(function(){ var el = document.getElementById('crmNombre'); if(el) el.focus(); }, 80);
+}
+
+function _crmField(label, id, type, value, placeholder, required) {
+    return '<div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:0.3rem;text-transform:uppercase;">' + label + (required ? ' *' : '') + '</label>' +
+        '<input type="' + type + '" id="' + id + '" value="' + escapeHTML(value) + '" placeholder="' + placeholder + '" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.65rem;border-radius:6px;font-size:0.9rem;box-sizing:border-box;"></div>';
+}
+
+function editarClienteCRM(idx) { abrirModalNuevoCliente_CRM(idx); }
+
+function guardarClienteCRM(idx) {
+    var nombre = (document.getElementById('crmNombre')||{}).value.trim();
+    if (!nombre) { showToast('El nombre es obligatorio', 'error'); return; }
+    var cliente = {
+        id: Date.now(),
+        nombre: nombre,
+        telefono: (document.getElementById('crmTelefono')||{}).value.trim(),
+        email: (document.getElementById('crmEmail')||{}).value.trim(),
+        cumple: (document.getElementById('crmCumple')||{}).value,
+        notas: (document.getElementById('crmNotas')||{}).value.trim(),
+        creadoEn: new Date().toLocaleString('es-MX')
+    };
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    data.clientesCRM = data.clientesCRM || [];
+    if (idx !== undefined && idx !== null && !isNaN(idx)) {
+        cliente.id = data.clientesCRM[idx].id || cliente.id;
+        data.clientesCRM[idx] = cliente;
+        showToast('Cliente actualizado');
+    } else {
+        data.clientesCRM.push(cliente);
+        showToast('Cliente agregado');
+    }
+    guardarDatos(user, data);
+    document.getElementById('modalCRM').remove();
+    renderCRM();
+}
+
+function eliminarClienteCRM(idx) {
+    if (!confirm('¿Eliminar este cliente?')) return;
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_' + user) || '{}');
+    data.clientesCRM = (data.clientesCRM || []).filter(function(_,i){ return i !== idx; });
+    guardarDatos(user, data);
+    renderCRM();
+    showToast('Cliente eliminado');
+}
+
+// ═══ ONBOARDING ═══
+function mostrarOnboarding() {
+    if (localStorage.getItem('_onboarding_' + window.currentUser)) return;
+    var pasos = [
+        { icon: '🏪', titulo: 'Bienvenido a NEXOVA', desc: 'Tu sistema de gestión todo en uno. Te guiamos en los primeros pasos para configurar tu negocio.' },
+        { icon: '📦', titulo: 'Agrega tus productos', desc: 'Ve a <strong>Inventario</strong> y agrega los productos o servicios que ofreces con su precio y stock.' },
+        { icon: '🛒', titulo: 'Registra ventas', desc: 'En <strong>Ventas (POS)</strong> selecciona productos, elige el método de pago y finaliza la venta en segundos.' },
+        { icon: '📅', titulo: 'Agenda citas', desc: 'En <strong>Citas</strong> puedes agendar con nombre, fecha y hora. Recibirás recordatorios automáticos.' },
+        { icon: '📊', titulo: 'Ve tus reportes', desc: 'En <strong>Reportes</strong> y <strong>Gráficas</strong> consulta tus ingresos por día, semana, mes o año.' },
+        { icon: '✅', titulo: '¡Listo para empezar!', desc: 'Ya tienes todo configurado. Si tienes dudas, escríbenos por WhatsApp. ¡Mucho éxito!' }
+    ];
+    var paso = 0;
+    var overlay = document.createElement('div');
+    overlay.id = 'onboardingOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:4000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+
+    function renderPaso() {
+        var p = pasos[paso];
+        var dots = pasos.map(function(_,i){ return '<div style="width:8px;height:8px;border-radius:50%;background:' + (i===paso?'var(--orange)':'var(--border)') + ';transition:background 0.3s;"></div>'; }).join('');
+        overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:380px;width:100%;text-align:center;">' +
+            '<div style="font-size:3rem;margin-bottom:0.8rem;">' + p.icon + '</div>' +
+            '<div style="font-size:1.25rem;font-weight:800;color:var(--white);margin-bottom:0.6rem;">' + p.titulo + '</div>' +
+            '<div style="color:var(--muted);font-size:0.92rem;line-height:1.6;margin-bottom:1.5rem;">' + p.desc + '</div>' +
+            '<div style="display:flex;justify-content:center;gap:0.4rem;margin-bottom:1.5rem;">' + dots + '</div>' +
+            '<div style="display:flex;gap:0.7rem;">' +
+                (paso > 0 ? '<button onclick="window._onbPrev()" style="flex:1;background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.8rem;border-radius:8px;cursor:pointer;font-size:0.9rem;min-height:44px;">← Anterior</button>' : '') +
+                (paso < pasos.length-1
+                    ? '<button onclick="window._onbNext()" style="flex:2;background:var(--orange);color:#fff;border:none;padding:0.8rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">Siguiente →</button>'
+                    : '<button onclick="window._onbFin()" style="flex:2;background:var(--orange);color:#fff;border:none;padding:0.8rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">¡Empezar!</button>') +
+            '</div>' +
+            '<button onclick="window._onbFin()" style="margin-top:0.8rem;background:transparent;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;text-decoration:underline;">Saltar tutorial</button>' +
+        '</div>';
+    }
+    window._onbNext = function() { paso = Math.min(paso+1, pasos.length-1); renderPaso(); };
+    window._onbPrev = function() { paso = Math.max(paso-1, 0); renderPaso(); };
+    window._onbFin = function() { overlay.remove(); localStorage.setItem('_onboarding_' + window.currentUser, '1'); };
+    renderPaso();
+    document.body.appendChild(overlay);
+}
 </script>
 
 
@@ -7993,6 +8278,74 @@ function programarRecordatoriosCitas(user) {
         });
     } catch(e) {}
 }
+
+// ═══ HISTORIAL DE CAMBIOS ═══
+function mostrarHistorialCambios() {
+    var user = window.currentUser;
+    if (!user) return;
+    var log = JSON.parse(localStorage.getItem('_changelog_' + user) || '[]');
+    var existing = document.getElementById('modalHistorial');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'modalHistorial';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    var rows = log.length === 0
+        ? '<div style="color:var(--muted);padding:2rem;text-align:center;">Sin cambios registrados todavía.</div>'
+        : log.map(function(e) {
+            return '<div style="display:flex;gap:0.8rem;align-items:start;padding:0.7rem 0;border-bottom:1px solid var(--border);">' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="color:var(--white);font-size:0.88rem;">' + escapeHTML(e.accion) + '</div>' +
+                    '<div style="color:var(--muted);font-size:0.76rem;margin-top:0.2rem;">' + escapeHTML(e.fecha) + ' · ' + escapeHTML(e.empleado||'') + '</div>' +
+                '</div></div>';
+          }).join('');
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;max-width:500px;width:100%;max-height:85vh;display:flex;flex-direction:column;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+            '<h3 style="color:var(--white);font-size:1.05rem;font-weight:700;">📋 Historial de cambios</h3>' +
+            '<button onclick="document.getElementById(\'modalHistorial\').remove()" style="background:var(--bg3);color:var(--muted);border:1px solid var(--border);padding:0.3rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.82rem;">Cerrar</button>' +
+        '</div>' +
+        '<div style="overflow-y:auto;flex:1;">' + rows + '</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+// ═══ IDIOMA INGLÉS / ESPAÑOL ═══
+var _LANG_MAP = {
+    'Inicio': 'Home', 'Ventas': 'Sales', 'Inventario': 'Inventory', 'Reportes': 'Reports',
+    'Gráficas': 'Charts', 'Citas': 'Appointments', 'Cotizaciones': 'Quotes',
+    'Clientes': 'Clients', 'Ajustes': 'Settings', 'Cerrar sesión': 'Log out',
+    'Buscar...': 'Search...', 'Guardar': 'Save', 'Cancelar': 'Cancel',
+    'Eliminar': 'Delete', 'Editar': 'Edit', 'Agregar': 'Add', 'Nuevo': 'New',
+    'Total': 'Total', 'Fecha': 'Date', 'Nombre': 'Name', 'Precio': 'Price',
+    'Stock': 'Stock', 'Acciones': 'Actions', 'Producto': 'Product',
+    'Categoría': 'Category', 'Descripción': 'Description', 'Cantidad': 'Quantity'
+};
+var _langActual = localStorage.getItem('_nexova_lang') || 'es';
+
+function toggleIdioma() {
+    _langActual = _langActual === 'es' ? 'en' : 'es';
+    localStorage.setItem('_nexova_lang', _langActual);
+    _aplicarIdioma();
+    showToast(_langActual === 'en' ? 'Language: English' : 'Idioma: Español');
+}
+
+function _aplicarIdioma() {
+    var navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(function(btn) {
+        var txt = btn.textContent.trim();
+        if (_langActual === 'en') {
+            btn.dataset.es = btn.dataset.es || txt;
+            btn.textContent = _LANG_MAP[txt] || txt;
+        } else if (btn.dataset.es) {
+            btn.textContent = btn.dataset.es;
+        }
+    });
+}
+
+// Apply saved language on load
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('_nexova_lang') === 'en') { _langActual = 'en'; _aplicarIdioma(); }
+});
 </script>
 </body>
 </html>

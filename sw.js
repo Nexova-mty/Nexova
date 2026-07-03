@@ -1,3 +1,23 @@
+// Firebase Messaging SW (background push notifications)
+try {
+  importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+  importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+  firebase.initializeApp({
+    apiKey: "AIzaSyAhStb6vYzd17ff6zH2lppFYAp7B58tr8g",
+    authDomain: "nexova-mty.firebaseapp.com",
+    projectId: "nexova-mty",
+    storageBucket: "nexova-mty.firebasestorage.app",
+    messagingSenderId: "712813418598",
+    appId: "1:712813418598:web:9697a7e39c7987bef4f5a7"
+  });
+  var _messaging = firebase.messaging();
+  _messaging.onBackgroundMessage(function(payload) {
+    var title = (payload.notification && payload.notification.title) || 'NEXOVA';
+    var body = (payload.notification && payload.notification.body) || '';
+    self.registration.showNotification(title, { body: body, icon: './icon-192.png', badge: './icon-192.png', tag: payload.collapseKey || 'nexova-push' });
+  });
+} catch(e) { console.warn('FCM SW init failed:', e); }
+
 var CACHE_NAME = 'nexova-v10';
 var urlsToCache = [
   './splash.mp4',
