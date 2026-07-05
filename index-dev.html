@@ -2040,11 +2040,68 @@ function cerrarSplash() {
                 <!-- Soporte -->
                 <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
                     <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1.2rem; text-transform:uppercase; letter-spacing:0.05em;">Soporte</h3>
-                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">¿Tienes dudas o algo no funciona como esperabas? Escríbenos directo por WhatsApp y te ayudamos.</p>
-                    <a href="https://wa.me/528136076655?text=Hola%20NEXOVA%2C%20tengo%20una%20duda%20sobre%20mi%20sistema." target="_blank" style="display:inline-flex; align-items:center; gap:0.6rem; background:#25d366; color:#fff; border:none; padding:0.7rem 1.6rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.95rem; min-height:44px; text-decoration:none;">
+                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">¿Algo no funciona o tienes una duda? Envía una solicitud y queda registrada.</p>
+                    <button onclick="abrirModalSoporte()" style="display:inline-flex; align-items:center; gap:0.6rem; background:#25d366; color:#fff; border:none; padding:0.7rem 1.6rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.95rem; min-height:44px;">
                         <svg viewBox="0 0 24 24" style="width:20px; height:20px; flex-shrink:0;" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        Contactar a NEXOVA por WhatsApp
-                    </a>
+                        Contactar a NEXOVA
+                    </button>
+                </div>
+
+                <!-- ═══ DISEÑO DE TICKET (solo dueño) ═══ -->
+                <div id="seccionTicketDesign" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Diseño de Ticket</h3>
+                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">Elige cómo se ve el ticket que se imprime al cobrar.</p>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0.8rem; margin-bottom:1.2rem;" id="ticketDesignGrid"></div>
+                    <button onclick="guardarTicketDesign()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Guardar diseño</button>
+                </div>
+
+                <!-- ═══ AVISOS A EMPLEADOS (solo dueño) ═══ -->
+                <div id="seccionAvisosEmpleados" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Aviso para Empleados</h3>
+                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Este mensaje aparece en el inicio de cada empleado cuando entra al sistema.</p>
+                    <textarea id="inputAvisoEmpleados" rows="3" placeholder="Ej: Hoy hay inventario a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.8rem;border-radius:6px;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:0.8rem;"></textarea>
+                    <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+                        <button onclick="guardarAvisoEmpleados()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Publicar aviso</button>
+                        <button onclick="borrarAvisoEmpleados()" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1.2rem;border-radius:6px;cursor:pointer;font-size:0.9rem;min-height:44px;">Quitar aviso</button>
+                    </div>
+                </div>
+
+                <!-- ═══ CUENTAS POR COBRAR (solo dueño) ═══ -->
+                <div id="seccionCuentasCobrar" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">Cuentas por Cobrar</h3>
+                            <p style="color:var(--muted); font-size:0.82rem;">Pagos pendientes de clientes o servicios a crédito.</p>
+                        </div>
+                        <button onclick="abrirModalNuevaCuenta()" style="background:var(--orange);color:#fff;border:none;padding:0.55rem 1.1rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.85rem;min-height:40px;">+ Agregar</button>
+                    </div>
+                    <div id="listaCuentasCobrar"></div>
+                </div>
+
+                <!-- ═══ LOG DE ACTIVIDAD (solo dueño) ═══ -->
+                <div id="seccionLogActividad" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">Log de Actividad</h3>
+                            <p style="color:var(--muted); font-size:0.82rem;">Todo lo que ocurrió en tu negocio, por quién y cuándo.</p>
+                        </div>
+                        <select id="filtroLogActividad" onchange="renderLogActividad()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.8rem;border-radius:6px;font-size:0.85rem;">
+                            <option value="todos">Todos</option>
+                            <option value="ventas">Ventas</option>
+                            <option value="productos">Productos</option>
+                            <option value="turnos">Turnos</option>
+                            <option value="citas">Citas</option>
+                        </select>
+                    </div>
+                    <div id="listaLogActividad"></div>
+                </div>
+
+                <!-- ═══ PLANTILLA POR GIRO (solo dueño) ═══ -->
+                <div id="seccionPlantillaGiro" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Plantilla por Giro</h3>
+                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">Carga productos y categorías de ejemplo según tu tipo de negocio. Solo se aplica si no tienes productos registrados.</p>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.6rem;margin-bottom:1rem;" id="plantillaGiroGrid"></div>
+                    <div id="plantillaGiroMsg" style="font-size:0.82rem;color:var(--muted);margin-top:0.5rem;"></div>
                 </div>
 
                 <!-- Aviso de privacidad (colapsable) -->
@@ -8566,7 +8623,446 @@ function mostrarHistorialCambios() {
     overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
 }
 
-</script>
+// ══════════════════════════════════════════════════════
+// ═══ FEATURE 1: DISEÑO DE TICKET ═══════════════════
+// ══════════════════════════════════════════════════════
+var _TICKET_DESIGNS = {
+    clasico: {
+        label: 'Clásico',
+        desc: 'Estilo recibo térmico',
+        css: "body{font-family:'Courier New',monospace;width:58mm;margin:0 auto;padding:6px;color:#000;font-size:12px} .center{text-align:center} .logo{max-width:40mm;max-height:40mm;display:block;margin:0 auto 4px;object-fit:contain} h1{font-size:14px;margin:4px 0;text-transform:uppercase} hr{border:none;border-top:1px dashed #000;margin:6px 0} .fila{display:flex;justify-content:space-between;gap:6px;word-break:break-word} .total{font-weight:bold;font-size:14px;display:flex;justify-content:space-between;margin-top:4px} .print-btn{display:block;width:100%;margin:10px 0;background:#f46a1f;color:#fff;border:none;padding:10px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:700} @media print{.print-btn{display:none}body{width:58mm}}",
+        body: function(logo, negocio, fechaHora, cajaNombre, itemsHTML, total, metodo) {
+            return '<div class="center">' + (logo ? '<img class="logo" src="'+logo+'">' : '') + '<h1>'+escapeHTML(negocio)+'</h1><div>'+escapeHTML(fechaHora)+'</div><div>Caja: '+escapeHTML(cajaNombre||'')+'</div></div><hr>'+itemsHTML+'<hr><div class="total"><span>TOTAL</span><span>$'+total.toFixed(2)+'</span></div><div class="fila"><span>Método</span><span>'+escapeHTML(metodo)+'</span></div><hr><div class="center">¡Gracias por su compra!</div>';
+        }
+    },
+    moderno: {
+        label: 'Moderno',
+        desc: 'Limpio con encabezado color',
+        css: "*{box-sizing:border-box;margin:0;padding:0} body{font-family:system-ui,sans-serif;max-width:320px;margin:0 auto;background:#fff;color:#1a1a1a;font-size:13px} .header{background:#f46a1f;color:#fff;padding:16px;text-align:center} .logo{max-width:60px;max-height:60px;border-radius:6px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto} h1{font-size:16px;font-weight:800;letter-spacing:.05em} .sub{font-size:11px;opacity:.85;margin-top:2px} .body{padding:14px} .fila{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px} .total-row{display:flex;justify-content:space-between;padding:10px 0;font-weight:800;font-size:16px;border-top:2px solid #f46a1f;margin-top:6px} .metodo{font-size:11px;color:#666;margin-top:4px;text-align:right} .gracias{text-align:center;padding:14px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:8px} .print-btn{display:block;width:calc(100% - 28px);margin:10px 14px;background:#f46a1f;color:#fff;border:none;padding:10px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:700} @media print{.print-btn{display:none}}",
+        body: function(logo, negocio, fechaHora, cajaNombre, itemsHTML, total, metodo) {
+            return '<div class="header">' + (logo ? '<img class="logo" src="'+logo+'">' : '') + '<h1>'+escapeHTML(negocio)+'</h1><div class="sub">'+escapeHTML(fechaHora)+' &middot; '+escapeHTML(cajaNombre||'')+'</div></div><div class="body">'+itemsHTML+'<div class="total-row"><span>Total</span><span>$'+total.toFixed(2)+'</span></div><div class="metodo">'+escapeHTML(metodo)+'</div></div><div class="gracias">Gracias por su compra</div>';
+        }
+    },
+    minimalista: {
+        label: 'Minimalista',
+        desc: 'Solo lo esencial',
+        css: "*{box-sizing:border-box} body{font-family:system-ui,sans-serif;max-width:280px;margin:0 auto;padding:20px 12px;color:#000;font-size:12px;line-height:1.5} .negocio{font-size:15px;font-weight:700;margin-bottom:2px} .meta{font-size:10px;color:#777;margin-bottom:14px} .fila{display:flex;justify-content:space-between;padding:3px 0} .sep{border:none;border-top:1px solid #ddd;margin:10px 0} .total{font-weight:700;font-size:14px;display:flex;justify-content:space-between;margin-top:4px} .footer{font-size:10px;color:#999;margin-top:14px;text-align:center} .print-btn{display:block;width:100%;margin-top:14px;background:#000;color:#fff;border:none;padding:9px;border-radius:4px;font-size:13px;cursor:pointer} @media print{.print-btn{display:none}}",
+        body: function(logo, negocio, fechaHora, cajaNombre, itemsHTML, total, metodo) {
+            return '<div class="negocio">'+escapeHTML(negocio)+'</div><div class="meta">'+escapeHTML(fechaHora)+' · '+escapeHTML(cajaNombre||'')+'</div><hr class="sep">'+itemsHTML+'<hr class="sep"><div class="total"><span>Total</span><span>$'+total.toFixed(2)+'</span></div><div class="fila"><span style="color:#777">'+escapeHTML(metodo)+'</span></div><div class="footer">Gracias.</div>';
+        }
+    }
+};
+
+var _ticketDesignSeleccionado = 'clasico';
+
+function renderTicketDesignGrid() {
+    var user = window.currentUser;
+    if (!user) return;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    var actual = data.ticketDesign || 'clasico';
+    _ticketDesignSeleccionado = actual;
+    var grid = document.getElementById('ticketDesignGrid');
+    if (!grid) return;
+    grid.innerHTML = Object.keys(_TICKET_DESIGNS).map(function(key) {
+        var d = _TICKET_DESIGNS[key];
+        var sel = key === actual;
+        return '<div onclick="seleccionarTicketDesign(\''+key+'\')" id="tdcard_'+key+'" style="border:2px solid '+(sel?'var(--orange)':'var(--border)')+';border-radius:8px;padding:0.9rem;cursor:pointer;background:var(--bg3);transition:border-color 0.15s;">' +
+            '<div style="font-weight:700;color:'+(sel?'var(--orange)':'var(--white)')+';font-size:0.88rem;margin-bottom:0.2rem;">'+d.label+'</div>' +
+            '<div style="font-size:0.75rem;color:var(--muted);">'+d.desc+'</div>' +
+            (sel ? '<div style="font-size:0.7rem;color:var(--orange);margin-top:0.4rem;font-weight:700;">✓ Activo</div>' : '') +
+        '</div>';
+    }).join('');
+}
+
+function seleccionarTicketDesign(key) {
+    _ticketDesignSeleccionado = key;
+    Object.keys(_TICKET_DESIGNS).forEach(function(k) {
+        var card = document.getElementById('tdcard_'+k);
+        if (!card) return;
+        var sel = k === key;
+        card.style.borderColor = sel ? 'var(--orange)' : 'var(--border)';
+        card.querySelector('div').style.color = sel ? 'var(--orange)' : 'var(--white)';
+    });
+}
+
+function guardarTicketDesign() {
+    var user = window.currentUser;
+    if (!user) return;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    data.ticketDesign = _ticketDesignSeleccionado;
+    guardarDatos(user, data);
+    showToast('Diseño de ticket guardado: ' + _TICKET_DESIGNS[_ticketDesignSeleccionado].label);
+    renderTicketDesignGrid();
+}
+
+// Sobreescribir imprimirTicket para usar el diseño guardado
+var _imprimirTicketOriginal = imprimirTicket;
+imprimirTicket = function(carrito, total, metodo, fechaHora, cajaNombre) {
+    try {
+        var user = window.currentUser;
+        var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
+        var designKey = data.ticketDesign || 'clasico';
+        var design = _TICKET_DESIGNS[designKey] || _TICKET_DESIGNS.clasico;
+        var negocio = (getClientInfo && getClientInfo(user) && getClientInfo(user).name) || data.nombreNegocio || 'Mi Negocio';
+        var logo = data.logoNegocio || '';
+        var itemsHTML = '';
+        carrito.forEach(function(it) {
+            var sub = it.precio * it.qty;
+            itemsHTML += '<div class="fila"><span>'+it.qty+' x '+escapeHTML(it.nombre)+'</span><span>$'+sub.toFixed(2)+'</span></div>';
+        });
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ticket</title><style>'+design.css+'</style></head><body>' +
+            design.body(logo, negocio, fechaHora||'', cajaNombre||'', itemsHTML, total, metodo||'') +
+            '<button class="print-btn" onclick="window.print()">Imprimir Ticket</button>' +
+            '<script>window.addEventListener(\'load\',function(){setTimeout(function(){window.print();},400);});<\/script>' +
+            '</body></html>';
+        var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+        var url = URL.createObjectURL(blob);
+        var esMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+        var win = window.open(url, '_blank');
+        if (!win || esMobile) {
+            var link = document.createElement('a');
+            link.href = url; link.download = 'Ticket_'+Date.now()+'.html';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+        setTimeout(function(){URL.revokeObjectURL(url);}, 15000);
+    } catch(e) { console.error('Ticket error:', e); showToast('Error al generar el ticket', 'error'); }
+};
+
+// ══════════════════════════════════════════════════════
+// ═══ FEATURE 2: SOPORTE CON REGISTRO ════════════════
+// ══════════════════════════════════════════════════════
+function abrirModalSoporte() {
+    var existing = document.getElementById('modalSoporte');
+    if (existing) existing.remove();
+    var user = window.currentUser;
+    var tickets = JSON.parse(localStorage.getItem('_soporte_'+user)||'[]');
+    var histHTML = tickets.length === 0 ? '<div style="color:var(--muted);font-size:0.85rem;">Sin solicitudes anteriores.</div>' :
+        tickets.slice(0,10).map(function(t) {
+            return '<div style="background:var(--bg3);border-radius:6px;padding:0.7rem 0.9rem;margin-bottom:0.5rem;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap;">' +
+                '<span style="color:var(--white);font-size:0.85rem;font-weight:600;">'+escapeHTML(t.asunto)+'</span>' +
+                '<span style="font-size:0.72rem;color:var(--muted);">'+escapeHTML(t.fecha)+'</span></div>' +
+                '<div style="color:var(--muted);font-size:0.8rem;margin-top:0.3rem;">'+escapeHTML(t.detalle)+'</div>' +
+            '</div>';
+        }).join('');
+    var overlay = document.createElement('div');
+    overlay.id = 'modalSoporte';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.8rem;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">' +
+        '<h3 style="color:var(--white);font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Enviar Solicitud</h3>' +
+        '<button onclick="document.getElementById(\'modalSoporte\').remove()" style="background:transparent;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;">×</button></div>' +
+        '<label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.3rem;text-transform:uppercase;">Asunto</label>' +
+        '<select id="soporteAsunto" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.9rem;margin-bottom:1rem;">' +
+        '<option value="Error técnico">Error técnico</option>' +
+        '<option value="Duda de uso">Duda de uso</option>' +
+        '<option value="Solicitud de mejora">Solicitud de mejora</option>' +
+        '<option value="Problema con pagos">Problema con pagos</option>' +
+        '<option value="Otro">Otro</option></select>' +
+        '<label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.3rem;text-transform:uppercase;">Detalle</label>' +
+        '<textarea id="soporteDetalle" rows="4" placeholder="Describe lo que ocurrió o lo que necesitas..." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:1rem;"></textarea>' +
+        '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.4rem;">' +
+        '<button onclick="enviarSolicitudSoporte()" style="background:var(--orange);color:#fff;border:none;padding:0.7rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;flex:1;">Enviar por WhatsApp</button></div>' +
+        '<div style="font-size:0.8rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.6rem;">Solicitudes anteriores</div>' +
+        histHTML + '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+function enviarSolicitudSoporte() {
+    var user = window.currentUser;
+    var asunto = document.getElementById('soporteAsunto').value;
+    var detalle = (document.getElementById('soporteDetalle').value||'').trim();
+    if (!detalle) { showToast('Escribe el detalle de tu solicitud', 'error'); return; }
+    var ticket = { asunto: asunto, detalle: detalle, fecha: new Date().toLocaleString('es-MX'), ts: Date.now() };
+    var tickets = JSON.parse(localStorage.getItem('_soporte_'+user)||'[]');
+    tickets.unshift(ticket);
+    if (tickets.length > 20) tickets = tickets.slice(0,20);
+    localStorage.setItem('_soporte_'+user, JSON.stringify(tickets));
+    var msg = encodeURIComponent('🆘 *Solicitud de soporte NEXOVA*\nUsuario: '+user+'\nAsunto: '+asunto+'\n\n'+detalle);
+    window.open('https://wa.me/528136076655?text='+msg, '_blank');
+    showToast('Solicitud registrada y enviada');
+    document.getElementById('modalSoporte').remove();
+}
+
+// ══════════════════════════════════════════════════════
+// ═══ FEATURE 3: CUENTAS POR COBRAR ══════════════════
+// ══════════════════════════════════════════════════════
+function renderCuentasCobrar() {
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    var cuentas = data.cuentasCobrar || [];
+    var cont = document.getElementById('listaCuentasCobrar');
+    if (!cont) return;
+    if (cuentas.length === 0) {
+        cont.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0;">Sin cuentas por cobrar registradas.</div>';
+        return;
+    }
+    var pendientes = cuentas.filter(function(c){ return !c.pagada; });
+    var pagadas = cuentas.filter(function(c){ return c.pagada; });
+    var totalPend = pendientes.reduce(function(s,c){ return s+(parseFloat(c.monto)||0); }, 0);
+    cont.innerHTML = (totalPend > 0 ? '<div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:0.8rem;display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--muted);font-size:0.82rem;">Total pendiente</span><span style="color:#f87171;font-weight:800;font-size:1rem;">$'+totalPend.toFixed(2)+'</span></div>' : '') +
+    cuentas.map(function(c, idx) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.6rem;padding:0.65rem 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">' +
+            '<div style="min-width:100px;">' +
+                '<div style="font-weight:600;color:'+(c.pagada?'var(--muted)':'var(--white)')+';font-size:0.88rem;'+(c.pagada?'text-decoration:line-through;':'')+'">'+escapeHTML(c.cliente)+'</div>' +
+                '<div style="font-size:0.75rem;color:var(--muted);">'+escapeHTML(c.concepto)+'  ·  '+escapeHTML(c.fecha)+'</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">' +
+                '<span style="font-weight:700;color:'+(c.pagada?'var(--green)':'#f87171')+';font-size:0.9rem;">$'+parseFloat(c.monto||0).toFixed(2)+'</span>' +
+                (!c.pagada ? '<button onclick="marcarCuentaPagada('+idx+')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.75rem;font-weight:700;min-height:30px;">Cobrado</button>' : '<span style="font-size:0.72rem;color:var(--green);">✓ Cobrado</span>') +
+                '<button onclick="eliminarCuenta('+idx+')" style="background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:1rem;min-height:30px;padding:0 4px;">×</button>' +
+            '</div></div>';
+    }).join('');
+}
+
+function abrirModalNuevaCuenta() {
+    var existing = document.getElementById('modalNuevaCuenta');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'modalNuevaCuenta';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:3000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.6rem;max-width:380px;width:100%;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">' +
+        '<h3 style="color:var(--white);font-size:1rem;font-weight:700;">Nueva cuenta por cobrar</h3>' +
+        '<button onclick="document.getElementById(\'modalNuevaCuenta\').remove()" style="background:transparent;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;">×</button></div>' +
+        ['Cliente','Concepto','Monto'].map(function(l, i) {
+            var id = ['ccCliente','ccConcepto','ccMonto'][i];
+            var type = i===2?'number':'text';
+            var ph = ['Nombre del cliente','Descripción del cobro','0.00'][i];
+            return '<label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.3rem;text-transform:uppercase;">'+l+'</label>' +
+                '<input type="'+type+'" id="'+id+'" placeholder="'+ph+'" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.9rem;margin-bottom:1rem;box-sizing:border-box;">';
+        }).join('') +
+        '<button onclick="guardarNuevaCuenta()" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.75rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">Guardar</button>' +
+    '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+function guardarNuevaCuenta() {
+    var cliente = (document.getElementById('ccCliente').value||'').trim();
+    var concepto = (document.getElementById('ccConcepto').value||'').trim();
+    var monto = parseFloat(document.getElementById('ccMonto').value)||0;
+    if (!cliente || !concepto || monto <= 0) { showToast('Completa todos los campos', 'error'); return; }
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    data.cuentasCobrar = data.cuentasCobrar || [];
+    data.cuentasCobrar.push({ cliente: cliente, concepto: concepto, monto: monto, fecha: new Date().toLocaleDateString('es-MX'), pagada: false, ts: Date.now() });
+    guardarDatos(user, data);
+    _registrarCambio(user, 'Cuenta por cobrar: '+cliente+' $'+monto.toFixed(2));
+    document.getElementById('modalNuevaCuenta').remove();
+    renderCuentasCobrar();
+    showToast('Cuenta registrada');
+}
+
+function marcarCuentaPagada(idx) {
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    if (!data.cuentasCobrar || !data.cuentasCobrar[idx]) return;
+    data.cuentasCobrar[idx].pagada = true;
+    data.cuentasCobrar[idx].fechaPago = new Date().toLocaleDateString('es-MX');
+    guardarDatos(user, data);
+    _registrarCambio(user, 'Cobro marcado pagado: '+data.cuentasCobrar[idx].cliente);
+    renderCuentasCobrar();
+    showToast('Marcado como cobrado');
+}
+
+function eliminarCuenta(idx) {
+    if (!confirm('¿Eliminar esta cuenta?')) return;
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    data.cuentasCobrar = (data.cuentasCobrar||[]).filter(function(_,i){ return i!==idx; });
+    guardarDatos(user, data);
+    renderCuentasCobrar();
+}
+
+// ══════════════════════════════════════════════════════
+// ═══ FEATURE 4: LOG DE ACTIVIDAD ════════════════════
+// ══════════════════════════════════════════════════════
+function renderLogActividad() {
+    var user = window.currentUser;
+    var log = JSON.parse(localStorage.getItem('_changelog_'+user)||'[]');
+    var filtro = (document.getElementById('filtroLogActividad') || {value:'todos'}).value;
+    var cont = document.getElementById('listaLogActividad');
+    if (!cont) return;
+    var filtrados = filtro === 'todos' ? log : log.filter(function(e) {
+        var a = (e.accion||'').toLowerCase();
+        if (filtro==='ventas') return a.includes('venta');
+        if (filtro==='productos') return a.includes('producto');
+        if (filtro==='turnos') return a.includes('turno') || a.includes('entrada') || a.includes('salida');
+        if (filtro==='citas') return a.includes('cita');
+        return true;
+    });
+    if (filtrados.length === 0) {
+        cont.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0;">Sin actividad registrada.</div>';
+        return;
+    }
+    var iconMap = { 'venta':'🛒', 'producto':'📦', 'gasto':'💸', 'cita':'📅', 'entrada':'⏱', 'salida':'🏁', 'turno':'🔄', 'cobro':'💰', 'cuenta':'💰' };
+    function getIcon(accion) {
+        var a = accion.toLowerCase();
+        for (var k in iconMap) { if (a.includes(k)) return iconMap[k]; }
+        return '📋';
+    }
+    cont.innerHTML = '<div style="display:flex;flex-direction:column;gap:0;">' +
+        filtrados.slice(0,40).map(function(e) {
+            return '<div style="display:flex;gap:0.7rem;align-items:flex-start;padding:0.6rem 0;border-bottom:1px solid var(--border);">' +
+                '<span style="font-size:1rem;flex-shrink:0;margin-top:1px;">'+getIcon(e.accion)+'</span>' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="color:var(--white);font-size:0.85rem;word-break:break-word;">'+escapeHTML(e.accion)+'</div>' +
+                    '<div style="color:var(--muted);font-size:0.75rem;margin-top:0.15rem;">' +
+                        escapeHTML(e.empleado||e.rol||'')+(e.fecha?' · '+escapeHTML(e.fecha):'') +
+                    '</div>' +
+                '</div></div>';
+        }).join('') +
+    '</div>' + (filtrados.length > 40 ? '<div style="color:var(--muted);font-size:0.78rem;padding:0.5rem 0;">Mostrando los 40 más recientes.</div>' : '');
+}
+
+// ══════════════════════════════════════════════════════
+// ═══ FEATURE 5: AVISOS A EMPLEADOS ══════════════════
+// ══════════════════════════════════════════════════════
+function guardarAvisoEmpleados() {
+    var user = window.currentUser;
+    var texto = (document.getElementById('inputAvisoEmpleados').value||'').trim();
+    if (!texto) { showToast('Escribe el aviso antes de publicar', 'error'); return; }
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now() };
+    guardarDatos(user, data);
+    showToast('Aviso publicado para todos los empleados');
+    _registrarCambio(user, 'Aviso publicado a empleados');
+}
+
+function borrarAvisoEmpleados() {
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    delete data.avisoEmpleados;
+    guardarDatos(user, data);
+    var inp = document.getElementById('inputAvisoEmpleados');
+    if (inp) inp.value = '';
+    showToast('Aviso eliminado');
+}
+
+// ══════════════════════════════════════════════════════
+// ═══ FEATURE 6: PLANTILLAS POR GIRO ════════════════
+// ══════════════════════════════════════════════════════
+var _PLANTILLAS_GIRO = {
+    'Barbería / Salón': { icon:'✂️', productos:[
+        {nombre:'Corte de cabello',precio:150,stock:999,sinLimite:true,categoria:'Servicios'},
+        {nombre:'Barba',precio:80,stock:999,sinLimite:true,categoria:'Servicios'},
+        {nombre:'Tinte completo',precio:350,stock:999,sinLimite:true,categoria:'Servicios'},
+        {nombre:'Keratina',precio:500,stock:999,sinLimite:true,categoria:'Servicios'},
+        {nombre:'Shampoo profesional',precio:120,stock:10,sinLimite:false,categoria:'Productos'}
+    ]},
+    'Restaurante / Fonda': { icon:'🍽️', productos:[
+        {nombre:'Comida corrida',precio:80,stock:999,sinLimite:true,categoria:'Alimentos'},
+        {nombre:'Refresco',precio:25,stock:50,sinLimite:false,categoria:'Bebidas'},
+        {nombre:'Agua',precio:15,stock:50,sinLimite:false,categoria:'Bebidas'},
+        {nombre:'Postre del día',precio:40,stock:20,sinLimite:false,categoria:'Postres'},
+        {nombre:'Extra tortillas',precio:10,stock:999,sinLimite:true,categoria:'Alimentos'}
+    ]},
+    'Taller / Reparación': { icon:'🔧', productos:[
+        {nombre:'Diagnóstico',precio:100,stock:999,sinLimite:true,categoria:'Servicios'},
+        {nombre:'Mano de obra (hora)',precio:200,stock:999,sinLimite:true,categoria:'Servicios'},
+        {nombre:'Refacción general',precio:150,stock:999,sinLimite:true,categoria:'Refacciones'},
+        {nombre:'Limpieza/Mantenimiento',precio:250,stock:999,sinLimite:true,categoria:'Servicios'}
+    ]},
+    'Consultorio / Clínica': { icon:'🏥', productos:[
+        {nombre:'Consulta general',precio:300,stock:999,sinLimite:true,categoria:'Consultas'},
+        {nombre:'Consulta de seguimiento',precio:200,stock:999,sinLimite:true,categoria:'Consultas'},
+        {nombre:'Estudios básicos',precio:400,stock:999,sinLimite:true,categoria:'Estudios'},
+        {nombre:'Medicamento básico',precio:80,stock:20,sinLimite:false,categoria:'Medicamentos'}
+    ]},
+    'Comercio / Tienda': { icon:'🏪', productos:[
+        {nombre:'Producto A',precio:50,stock:30,sinLimite:false,categoria:'General'},
+        {nombre:'Producto B',precio:80,stock:20,sinLimite:false,categoria:'General'},
+        {nombre:'Producto C',precio:120,stock:15,sinLimite:false,categoria:'General'},
+        {nombre:'Empaque / Bolsa',precio:5,stock:100,sinLimite:false,categoria:'Extras'}
+    ]}
+};
+
+function renderPlantillaGiroGrid() {
+    var grid = document.getElementById('plantillaGiroGrid');
+    if (!grid) return;
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    var tieneProductos = (data.productos||[]).length > 0;
+    grid.innerHTML = Object.keys(_PLANTILLAS_GIRO).map(function(giro) {
+        var p = _PLANTILLAS_GIRO[giro];
+        return '<button onclick="aplicarPlantillaGiro(\''+giro+'\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem;cursor:pointer;text-align:center;color:var(--white);">' +
+            '<div style="font-size:1.4rem;margin-bottom:0.3rem;">'+p.icon+'</div>' +
+            '<div style="font-size:0.8rem;font-weight:600;line-height:1.3;">'+giro+'</div>' +
+        '</button>';
+    }).join('');
+    var msg = document.getElementById('plantillaGiroMsg');
+    if (msg) msg.textContent = tieneProductos ? '⚠️ Ya tienes productos. Aplica una plantilla solo si quieres agregar ejemplos adicionales.' : '';
+}
+
+function aplicarPlantillaGiro(giro) {
+    var p = _PLANTILLAS_GIRO[giro];
+    if (!p) return;
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    var tieneProductos = (data.productos||[]).length > 0;
+    var msg = tieneProductos ? '¿Agregar productos de "'+giro+'" a los existentes?' : '¿Cargar plantilla de "'+giro+'"? Se agregarán '+p.productos.length+' productos de ejemplo.';
+    if (!confirm(msg)) return;
+    data.productos = data.productos || [];
+    var num = data.productos.length;
+    p.productos.forEach(function(prod) {
+        data.productos.push({ nombre:prod.nombre, precio:prod.precio, stock:prod.stock, sinLimite:prod.sinLimite, categoria:prod.categoria, num: ++num });
+    });
+    guardarDatos(user, data);
+    _registrarCambio(user, 'Plantilla aplicada: '+giro+' ('+p.productos.length+' productos)');
+    showToast('Plantilla de '+giro+' aplicada. '+p.productos.length+' productos agregados.');
+    renderPlantillaGiroGrid();
+}
+
+// ══════════════════════════════════════════════════════
+// ═══ HOOK renderAjustes: mostrar secciones dueño ═══
+// ══════════════════════════════════════════════════════
+var _renderAjustesOriginal = renderAjustes;
+renderAjustes = function() {
+    _renderAjustesOriginal();
+    var esDueno = window.currentRole === 'dueno';
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
+    var secciones = ['seccionTicketDesign','seccionAvisosEmpleados','seccionCuentasCobrar','seccionLogActividad','seccionPlantillaGiro'];
+    secciones.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = esDueno ? '' : 'none';
+    });
+    if (esDueno) {
+        renderTicketDesignGrid();
+        var avisoInp = document.getElementById('inputAvisoEmpleados');
+        if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
+        renderCuentasCobrar();
+        renderLogActividad();
+        renderPlantillaGiroGrid();
+    }
+};
+
+// ══════════════════════════════════════════════════════
+// ═══ AVISO EN INICIO DE EMPLEADOS ═══════════════════
+// ══════════════════════════════════════════════════════
+// Hook renderInicio para mostrar aviso al empleado
+var _renderInicioOriginal2 = renderInicio;
+renderInicio = function() {
+    _renderInicioOriginal2();
+    var user = window.currentUser;
+    var esDueno = window.currentRole === 'dueno';
+    if (esDueno || !user) return;
+    var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
+    if (!data.avisoEmpleados || !data.avisoEmpleados.texto) return;
+    var cont = document.getElementById('inicioContenido');
+    if (!cont) return;
+    var banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(244,106,31,0.12);border:1px solid rgba(244,106,31,0.5);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:0.8rem;';
+    banner.innerHTML = '<span style="font-size:1.2rem;flex-shrink:0;">📢</span>' +
+        '<div>' +
+            '<div style="font-weight:700;color:var(--orange);font-size:0.85rem;margin-bottom:0.2rem;">Aviso del dueño · '+escapeHTML(data.avisoEmpleados.fecha||'')+'</div>' +
+            '<div style="color:var(--white);font-size:0.9rem;line-height:1.5;">'+escapeHTML(data.avisoEmpleados.texto)+'</div>' +
+        '</div>';
+    cont.insertBefore(banner, cont.firstChild);
+};
+
 </body>
 </html>
 
