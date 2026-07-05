@@ -702,6 +702,7 @@ function guardarDatos(user, data) {
 }
 
 function _subirFirestore(user, data) {
+  if (!_db) return;
   _db.collection('negocios').doc(user).set(data).then(function() {
     // Limpiar cola si existía entrada pendiente
     var cola = JSON.parse(localStorage.getItem('_syncQueue') || '[]');
@@ -3896,8 +3897,18 @@ async function validarLogin() {
             return e.username === user && (e.passwordHash ? e.passwordHash === passHash : e.password === pass);
         });
         if (emp) {
-            // Verificar si el negocio está desactivado
-            try { var chkEmp = await _fsGet(_db.collection('clientes').doc(neg)); if (chkEmp.exists && !chkEmp._timeout && chkEmp.data().activo === false) { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); resetBtn(); loginOK = true; break; } } catch(e6){}
+            // Verificar si el negocio está desactivado (Firestore + cache local)
+            var _negActivoKey = '_negActivo_' + neg;
+            try {
+                var chkEmp = await _fsGet(_db.collection('clientes').doc(neg));
+                if (chkEmp.exists && !chkEmp._timeout) {
+                    var activoVal = chkEmp.data().activo;
+                    localStorage.setItem(_negActivoKey, activoVal === false ? '0' : '1');
+                    if (activoVal === false) { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); resetBtn(); loginOK = true; break; }
+                }
+            } catch(e6) {
+                if (localStorage.getItem(_negActivoKey) === '0') { mostrarErrorLogin('La cuenta del negocio esta desactivada. Contacta a NEXOVA.'); resetBtn(); loginOK = true; break; }
+            }
             if (!emp.passwordHash) { emp.passwordHash = passHash; delete emp.password; }
             emp.ultimoAcceso = new Date().toLocaleString('es-MX');
             guardarDatos(neg, data);
@@ -8674,6 +8685,9 @@ function renderTicketDesignGrid() {
     if (!user) return;
     var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
     var actual = data.ticketDesign || 'clasico';
+    // Preserve unsaved in-progress selection across re-renders
+    var actual = _ticketDesignSeleccionado || actual;
+    if (!_TICKET_DESIGNS[actual]) actual = data.ticketDesign || 'clasico';
     _ticketDesignSeleccionado = actual;
     var grid = document.getElementById('ticketDesignGrid');
     if (!grid) return;
@@ -8806,15 +8820,18 @@ function abrirModalSoporte() {
 
 function enviarSolicitudSoporte() {
     var user = window.currentUser;
+    if (!user) { showToast('Sesión no iniciada', 'error'); return; }
     var asunto = document.getElementById('soporteAsunto').value;
     var detalle = (document.getElementById('soporteDetalle').value||'').trim();
     if (!detalle) { showToast('Escribe el detalle de tu solicitud', 'error'); return; }
+    // Include employee identity if applicable
+    var empLabel = (window.currentEmpleado && window.currentEmpleado.nombre) ? ' (empleado: '+window.currentEmpleado.nombre+')' : '';
     var ticket = { asunto: asunto, detalle: detalle, fecha: new Date().toLocaleString('es-MX'), ts: Date.now() };
     var tickets = JSON.parse(localStorage.getItem('_soporte_'+user)||'[]');
     tickets.unshift(ticket);
     if (tickets.length > 20) tickets = tickets.slice(0,20);
     localStorage.setItem('_soporte_'+user, JSON.stringify(tickets));
-    var msg = encodeURIComponent('🆘 *Solicitud de soporte NEXOVA*\nUsuario: '+user+'\nAsunto: '+asunto+'\n\n'+detalle);
+    var msg = encodeURIComponent('🆘 *Solicitud de soporte NEXOVA*\nNegocio: '+user+empLabel+'\nAsunto: '+asunto+'\n\n'+detalle);
     window.open('https://wa.me/528136076655?text='+msg, '_blank');
     showToast('Solicitud registrada y enviada');
     document.getElementById('modalSoporte').remove();
@@ -8837,7 +8854,8 @@ function renderCuentasCobrar() {
     var pagadas = cuentas.filter(function(c){ return c.pagada; });
     var totalPend = pendientes.reduce(function(s,c){ return s+(parseFloat(c.monto)||0); }, 0);
     cont.innerHTML = (totalPend > 0 ? '<div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:0.8rem;display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--muted);font-size:0.82rem;">Total pendiente</span><span style="color:#f87171;font-weight:800;font-size:1rem;">$'+totalPend.toFixed(2)+'</span></div>' : '') +
-    cuentas.map(function(c, idx) {
+    cuentas.map(function(c) {
+        var ts = c.ts || 0;
         return '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.6rem;padding:0.65rem 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">' +
             '<div style="min-width:100px;">' +
                 '<div style="font-weight:600;color:'+(c.pagada?'var(--muted)':'var(--white)')+';font-size:0.88rem;'+(c.pagada?'text-decoration:line-through;':'')+'">'+escapeHTML(c.cliente)+'</div>' +
@@ -8845,8 +8863,8 @@ function renderCuentasCobrar() {
             '</div>' +
             '<div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">' +
                 '<span style="font-weight:700;color:'+(c.pagada?'var(--green)':'#f87171')+';font-size:0.9rem;">$'+parseFloat(c.monto||0).toFixed(2)+'</span>' +
-                (!c.pagada ? '<button onclick="marcarCuentaPagada('+idx+')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.75rem;font-weight:700;min-height:30px;">Cobrado</button>' : '<span style="font-size:0.72rem;color:var(--green);">✓ Cobrado</span>') +
-                '<button onclick="eliminarCuenta('+idx+')" style="background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:1rem;min-height:30px;padding:0 4px;">×</button>' +
+                (!c.pagada ? '<button onclick="marcarCuentaPagada('+ts+')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.75rem;font-weight:700;min-height:30px;">Cobrado</button>' : '<span style="font-size:0.72rem;color:var(--green);">✓ Cobrado</span>') +
+                '<button onclick="eliminarCuenta('+ts+')" style="background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:1rem;min-height:30px;padding:0 4px;">×</button>' +
             '</div></div>';
     }).join('');
 }
@@ -8890,23 +8908,24 @@ function guardarNuevaCuenta() {
     showToast('Cuenta registrada');
 }
 
-function marcarCuentaPagada(idx) {
+function marcarCuentaPagada(ts) {
     var user = window.currentUser;
     var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
-    if (!data.cuentasCobrar || !data.cuentasCobrar[idx]) return;
-    data.cuentasCobrar[idx].pagada = true;
-    data.cuentasCobrar[idx].fechaPago = new Date().toLocaleDateString('es-MX');
+    var c = (data.cuentasCobrar||[]).find(function(x){ return x.ts === ts; });
+    if (!c) return;
+    c.pagada = true;
+    c.fechaPago = new Date().toLocaleDateString('es-MX');
     guardarDatos(user, data);
-    _registrarCambio(user, 'Cobro marcado pagado: '+data.cuentasCobrar[idx].cliente);
+    _registrarCambio(user, 'Cobro marcado pagado: '+c.cliente);
     renderCuentasCobrar();
     showToast('Marcado como cobrado');
 }
 
-function eliminarCuenta(idx) {
+function eliminarCuenta(ts) {
     if (!confirm('¿Eliminar esta cuenta?')) return;
     var user = window.currentUser;
     var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
-    data.cuentasCobrar = (data.cuentasCobrar||[]).filter(function(_,i){ return i!==idx; });
+    data.cuentasCobrar = (data.cuentasCobrar||[]).filter(function(c){ return c.ts !== ts; });
     guardarDatos(user, data);
     renderCuentasCobrar();
 }
@@ -9088,7 +9107,10 @@ renderInicio = function() {
     if (!data.avisoEmpleados || !data.avisoEmpleados.texto) return;
     var cont = document.getElementById('inicioContenido');
     if (!cont) return;
+    var existing = document.getElementById('_avisoEmpleadosBanner');
+    if (existing) existing.remove();
     var banner = document.createElement('div');
+    banner.id = '_avisoEmpleadosBanner';
     banner.style.cssText = 'background:rgba(244,106,31,0.12);border:1px solid rgba(244,106,31,0.5);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:0.8rem;';
     banner.innerHTML = '<span style="font-size:1.2rem;flex-shrink:0;">📢</span>' +
         '<div>' +
