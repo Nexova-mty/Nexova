@@ -818,8 +818,7 @@ function forzarSyncFirestore(user, mostrarToast) {
 // Re-sincronizar al volver a la app (cambio de pestaña, abrir PWA, desbloquear pantalla)
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible' && window.currentUser) {
-    iniciarSyncFirestore(window.currentUser); // reactiva listener + reinicia polling
-    forzarSyncFirestore(window.currentUser, true); // pull inmediato con toast
+    forzarSyncFirestore(window.currentUser, false); // pull silencioso al volver
   }
 });
 
@@ -841,11 +840,7 @@ function mostrarBannerOffline(esOffline) {
             bar.style.borderColor = '';
             bar.style.color = '';
         }, 2500);
-        // Re-sincronizar con Firebase
-        if (window.currentUser) {
-            var data = cargarDatos(window.currentUser);
-            if (_db) _db.collection('negocios').doc(window.currentUser).set(data, { merge: true }).catch(function(e) { console.warn('Sync on reconnect:', e); });
-        }
+        // La cola de sync ya se procesa en el listener 'online' de línea ~723
     }
 }
 window.addEventListener('offline', function() { mostrarBannerOffline(true); });
@@ -4220,10 +4215,6 @@ function iniciarDashboard(user, rol) {
     _generarToken(user, rol);
     // Log login activity to Firestore 'logs' collection (requires Firestore rules for 'logs')
     try { _db.collection('logs').add({ tipo: 'login', usuario: user, rol: rol, empleado: window.currentEmpleado ? window.currentEmpleado.nombre : null, fecha: new Date().toLocaleString('es-MX'), timestamp: Date.now() }); } catch(e){}
-    var localData = cargarDatos(user);
-    if (localData && Object.keys(localData).length > 0) {
-      guardarDatos(user, localData);
-    }
     iniciarSyncFirestore(user);
     _iniciarFCM(user);
     setTimeout(function(){ mostrarOnboarding(); }, 800);
@@ -8772,8 +8763,11 @@ imprimirTicket = function(carrito, total, metodo, fechaHora, cajaNombre) {
             var link = document.createElement('a');
             link.href = url; link.download = 'Ticket_'+Date.now()+'.html';
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            setTimeout(function(){URL.revokeObjectURL(url);}, 60000);
+        } else {
+            win.addEventListener('load', function(){ URL.revokeObjectURL(url); });
+            setTimeout(function(){URL.revokeObjectURL(url);}, 60000);
         }
-        setTimeout(function(){URL.revokeObjectURL(url);}, 15000);
     } catch(e) { console.error('Ticket error:', e); showToast('Error al generar el ticket', 'error'); }
 };
 
@@ -8935,7 +8929,7 @@ function eliminarCuenta(ts) {
 // ══════════════════════════════════════════════════════
 function renderLogActividad() {
     var user = window.currentUser;
-    var log = JSON.parse(localStorage.getItem('_changelog_'+user)||'[]');
+    var log; try { log = JSON.parse(localStorage.getItem('_changelog_'+user)||'[]'); } catch(e) { log = []; }
     var filtro = (document.getElementById('filtroLogActividad') || {value:'todos'}).value;
     var cont = document.getElementById('listaLogActividad');
     if (!cont) return;
@@ -9059,13 +9053,20 @@ function aplicarPlantillaGiro(giro) {
     var msg = tieneProductos ? '¿Agregar productos de "'+giro+'" a los existentes?' : '¿Cargar plantilla de "'+giro+'"? Se agregarán '+p.productos.length+' productos de ejemplo.';
     if (!confirm(msg)) return;
     data.productos = data.productos || [];
+    var nombresExistentes = new Set(data.productos.map(function(pr){ return pr.nombre; }));
     var num = data.productos.length;
+    var agregados = 0;
     p.productos.forEach(function(prod) {
-        data.productos.push({ nombre:prod.nombre, precio:prod.precio, stock:prod.stock, sinLimite:prod.sinLimite, categoria:prod.categoria, num: ++num });
+        if (!nombresExistentes.has(prod.nombre)) {
+            data.productos.push({ nombre:prod.nombre, precio:prod.precio, stock:prod.stock, sinLimite:prod.sinLimite, categoria:prod.categoria, num: ++num });
+            nombresExistentes.add(prod.nombre);
+            agregados++;
+        }
     });
+    if (agregados === 0) { showToast('Todos los productos de esta plantilla ya existen'); return; }
     guardarDatos(user, data);
     _registrarCambio(user, 'Plantilla aplicada: '+giro+' ('+p.productos.length+' productos)');
-    showToast('Plantilla de '+giro+' aplicada. '+p.productos.length+' productos agregados.');
+    showToast('Plantilla de '+giro+' aplicada. '+agregados+' productos agregados.');
     renderPlantillaGiroGrid();
 }
 
