@@ -18,7 +18,7 @@ try {
   });
 } catch(e) { console.warn('FCM SW init failed:', e); }
 
-var CACHE_NAME = 'nexova-v10';
+var CACHE_NAME = 'nexova-v11';
 // Videos excluded — large files cause install timeouts; cached lazily on first fetch
 var urlsToCache = [
   './icon-192.png',
