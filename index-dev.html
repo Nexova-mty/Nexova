@@ -2047,22 +2047,34 @@ function cerrarSplash() {
                 <div id="seccionTicketDesign" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
                     <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Diseño de Ticket</h3>
                     <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">Elige cómo se ve el ticket que se imprime al cobrar.</p>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0.8rem; margin-bottom:1.4rem;" id="ticketDesignGrid"></div>
-                    <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1.2rem;">
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:start;">
+                        <!-- Controles -->
                         <div>
-                            <label style="color:var(--muted);font-size:0.8rem;display:block;margin-bottom:0.3rem;">Eslogan o subtítulo (debajo del nombre)</label>
-                            <input id="ticketEslogan" type="text" maxlength="80" placeholder="Ej: La mejor barbería de Monterrey" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;">
+                            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:0.8rem; margin-bottom:1.4rem;" id="ticketDesignGrid"></div>
+                            <div style="display:flex;flex-direction:column;gap:0.8rem;margin-bottom:1.2rem;">
+                                <div>
+                                    <label style="color:var(--muted);font-size:0.8rem;display:block;margin-bottom:0.3rem;">Eslogan o subtítulo (debajo del nombre)</label>
+                                    <input id="ticketEslogan" type="text" maxlength="80" placeholder="Ej: La mejor barbería de Monterrey" oninput="actualizarPreviewTicket()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="color:var(--muted);font-size:0.8rem;display:block;margin-bottom:0.3rem;">Mensaje de cierre (al final del ticket)</label>
+                                    <input id="ticketMensajeCierre" type="text" maxlength="100" placeholder="Ej: ¡Gracias por tu visita! Vuelve pronto." oninput="actualizarPreviewTicket()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="color:var(--muted);font-size:0.8rem;display:block;margin-bottom:0.3rem;">Términos / propinas (texto libre al pie)</label>
+                                    <textarea id="ticketTerminos" rows="3" maxlength="300" placeholder="Ej: No se aceptan devoluciones después de 7 días.&#10;Propina sugerida: 10% = $X · 15% = $X · 20% = $X" oninput="actualizarPreviewTicket()" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.88rem;resize:vertical;box-sizing:border-box;"></textarea>
+                                </div>
+                            </div>
+                            <button onclick="guardarTicketDesign()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Guardar</button>
                         </div>
-                        <div>
-                            <label style="color:var(--muted);font-size:0.8rem;display:block;margin-bottom:0.3rem;">Mensaje de cierre (al final del ticket)</label>
-                            <input id="ticketMensajeCierre" type="text" maxlength="100" placeholder="Ej: ¡Gracias por tu visita! Vuelve pronto." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="color:var(--muted);font-size:0.8rem;display:block;margin-bottom:0.3rem;">Términos / propinas (texto libre al pie)</label>
-                            <textarea id="ticketTerminos" rows="3" maxlength="300" placeholder="Ej: No se aceptan devoluciones después de 7 días.&#10;Propina sugerida: 10% = $X · 15% = $X · 20% = $X" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.7rem;border-radius:6px;font-size:0.88rem;resize:vertical;box-sizing:border-box;"></textarea>
+                        <!-- Vista previa -->
+                        <div style="min-width:200px;max-width:240px;">
+                            <div style="font-size:0.72rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;text-align:center;">Vista previa</div>
+                            <div style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+                                <iframe id="ticketPreviewFrame" style="width:240px;height:360px;border:none;display:block;" scrolling="no"></iframe>
+                            </div>
                         </div>
                     </div>
-                    <button onclick="guardarTicketDesign()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Guardar</button>
                 </div>
 
                 <!-- ═══ AVISOS A EMPLEADOS (solo dueño) ═══ -->
@@ -8718,6 +8730,8 @@ function renderTicketDesignGrid() {
     if (esl) esl.value = tc.eslogan || '';
     if (mc)  mc.value  = tc.mensajeCierre || '';
     if (ter) ter.value = tc.terminos || '';
+    // Show live preview after loading values
+    setTimeout(actualizarPreviewTicket, 50);
 }
 
 function seleccionarTicketDesign(key) {
@@ -8729,6 +8743,7 @@ function seleccionarTicketDesign(key) {
         card.style.borderColor = sel ? 'var(--orange)' : 'var(--border)';
         card.querySelector('div').style.color = sel ? 'var(--orange)' : 'var(--white)';
     });
+    actualizarPreviewTicket();
 }
 
 function guardarTicketDesign() {
@@ -9356,6 +9371,42 @@ async function adminAplicarPlantilla(username, giro) {
     showToast('Plantilla aplicada: ' + agregados + ' productos agregados a ' + username);
 }
 
+function _renderTicketPreview(frameId, diseno, negocio, eslogan, mensajeCierre, terminos) {
+    var frame = document.getElementById(frameId);
+    if (!frame) return;
+    var design = _TICKET_DESIGNS[diseno] || _TICKET_DESIGNS.clasico;
+    var sampleItems =
+        '<div class="fila"><span>2 x Corte clásico</span><span>$120.00</span></div>' +
+        '<div class="fila"><span>1 x Barba completa</span><span>$80.00</span></div>' +
+        '<div class="fila"><span>1 x Tinte</span><span>$150.00</span></div>';
+    var terminosHTML = terminos ? '<div style="margin-top:10px;font-size:10px;color:#888;white-space:pre-line;border-top:1px dashed #ccc;padding-top:8px;">'+escapeHTML(terminos)+'</div>' : '';
+    var bodyHTML = design.body('', escapeHTML(negocio||'Mi Negocio'), escapeHTML(eslogan||''), '06/07/2026 11:30', 'Caja 1', sampleItems, 350.00, 'Efectivo', escapeHTML(mensajeCierre||'¡Gracias por su visita!')) + terminosHTML;
+    var src = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' + design.css + 'html,body{margin:0;padding:0;}</style></head><body>' + bodyHTML + '</body></html>';
+    frame.srcdoc = src;
+}
+
+function actualizarPreviewTicket() {
+    var user = window.currentUser;
+    var data = user ? (JSON.parse(localStorage.getItem('data_'+user)||'{}')) : {};
+    var negocio = data.nombreNegocio || 'Mi Negocio';
+    var diseno = _ticketDesignSeleccionado || data.ticketDesign || 'clasico';
+    var eslogan = (document.getElementById('ticketEslogan')||{}).value || '';
+    var mensajeCierre = (document.getElementById('ticketMensajeCierre')||{}).value || '';
+    var terminos = (document.getElementById('ticketTerminos')||{}).value || '';
+    _renderTicketPreview('ticketPreviewFrame', diseno, negocio, eslogan, mensajeCierre, terminos);
+}
+
+function _adminTicketPreviewUpdate() {
+    var grid = document.getElementById('_adminTdGrid');
+    var disenoEl = grid ? grid.querySelector('[data-td][style*="var(--orange)"]') : null;
+    var diseno = disenoEl ? disenoEl.getAttribute('data-td') : 'clasico';
+    var negocio = (document.getElementById('_adminTdNegocio')||{}).value || 'Mi Negocio';
+    var eslogan = (document.getElementById('_adminTdEslogan')||{}).value || '';
+    var mensajeCierre = (document.getElementById('_adminTdCierre')||{}).value || '';
+    var terminos = (document.getElementById('_adminTdTerminos')||{}).value || '';
+    _renderTicketPreview('_adminTdPreview', diseno, negocio, eslogan, mensajeCierre, terminos);
+}
+
 function adminAbrirTicketModal(username, negocio) {
     if (!_isAdmin) return;
     // Leer ticketConfig actual de localStorage del negocio
@@ -9375,26 +9426,39 @@ function adminAbrirTicketModal(username, negocio) {
     ];
     var estilosHTML = estilos.map(function(e) {
         var activo = disenoActual === e.key;
-        return '<div onclick="this.parentNode.querySelectorAll(\'[data-td]\').forEach(function(d){d.style.border=\'1px solid var(--border)\';d.style.color=\'var(--muted)\';});this.style.border=\'2px solid var(--orange)\';this.style.color=\'var(--orange)\';" data-td="'+e.key+'" style="background:var(--bg3);border:'+(activo?'2px solid var(--orange)':'1px solid var(--border)')+';border-radius:8px;padding:0.7rem;cursor:pointer;text-align:center;color:'+(activo?'var(--orange)':'var(--muted)')+';font-size:0.82rem;"><b>'+e.label+'</b><br><span style="font-size:0.73rem;">'+e.desc+'</span></div>';
+        return '<div onclick="this.parentNode.querySelectorAll(\'[data-td]\').forEach(function(d){d.style.border=\'1px solid var(--border)\';d.style.color=\'var(--muted)\';});this.style.border=\'2px solid var(--orange)\';this.style.color=\'var(--orange)\';_adminTicketPreviewUpdate();" data-td="'+e.key+'" style="background:var(--bg3);border:'+(activo?'2px solid var(--orange)':'1px solid var(--border)')+';border-radius:8px;padding:0.7rem;cursor:pointer;text-align:center;color:'+(activo?'var(--orange)':'var(--muted)')+';font-size:0.82rem;"><b>'+e.label+'</b><br><span style="font-size:0.73rem;">'+e.desc+'</span></div>';
     }).join('');
 
-    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">' +
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">' +
             '<div><div style="font-family:\'Bebas Neue\';font-size:1.2rem;color:var(--white);">Ticket: <span style="color:var(--orange);">'+escapeHTML(negocio)+'</span></div></div>' +
             '<button onclick="document.getElementById(\'_adminTicketOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:0;">×</button>' +
         '</div>' +
-        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;">Estilo</div>' +
-        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1rem;" id="_adminTdGrid">'+estilosHTML+'</div>' +
-        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Eslogan</div>' +
-        '<input id="_adminTdEslogan" type="text" maxlength="80" value="'+escapeHTML(tc.eslogan||'')+'" placeholder="La mejor barbería de MTY" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
-        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Mensaje de cierre</div>' +
-        '<input id="_adminTdCierre" type="text" maxlength="100" value="'+escapeHTML(tc.mensajeCierre||'')+'" placeholder="¡Gracias por tu visita!" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
-        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Términos / propinas</div>' +
-        '<textarea id="_adminTdTerminos" rows="3" maxlength="300" placeholder="Ej: Propina 10% sugerida" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:1rem;">'+escapeHTML(tc.terminos||'')+'</textarea>' +
-        '<button onclick="adminGuardarTicketDesign(\''+escapeHTML(username)+'\')" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.7rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">Guardar cambios</button>' +
+        '<input type="hidden" id="_adminTdNegocio" value="'+escapeHTML(negocio)+'">' +
+        '<div style="display:grid;grid-template-columns:1fr auto;gap:1.2rem;align-items:start;">' +
+            '<div>' +
+                '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;">Estilo</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1rem;" id="_adminTdGrid">'+estilosHTML+'</div>' +
+                '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Eslogan</div>' +
+                '<input id="_adminTdEslogan" type="text" maxlength="80" value="'+escapeHTML(tc.eslogan||'')+'" placeholder="La mejor barbería de MTY" oninput="_adminTicketPreviewUpdate()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
+                '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Mensaje de cierre</div>' +
+                '<input id="_adminTdCierre" type="text" maxlength="100" value="'+escapeHTML(tc.mensajeCierre||'')+'" placeholder="¡Gracias por tu visita!" oninput="_adminTicketPreviewUpdate()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
+                '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Términos / propinas</div>' +
+                '<textarea id="_adminTdTerminos" rows="3" maxlength="300" placeholder="Ej: Propina 10% sugerida" oninput="_adminTicketPreviewUpdate()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:1rem;">'+escapeHTML(tc.terminos||'')+'</textarea>' +
+                '<button onclick="adminGuardarTicketDesign(\''+escapeHTML(username)+'\')" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.7rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">Guardar cambios</button>' +
+            '</div>' +
+            '<div style="min-width:180px;">' +
+                '<div style="font-size:0.7rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;text-align:center;">Vista previa</div>' +
+                '<div style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);">' +
+                    '<iframe id="_adminTdPreview" style="width:210px;height:340px;border:none;display:block;" scrolling="no"></iframe>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
     '</div>';
 
     document.body.appendChild(overlay);
+    // Render preview after DOM is ready
+    setTimeout(_adminTicketPreviewUpdate, 80);
 }
 
 async function adminGuardarTicketDesign(username) {
