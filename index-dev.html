@@ -3284,6 +3284,7 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                 var tcCierre = tc.mensajeCierre || '';
                 var tcTerminos = tc.terminos || '';
                 var disenoLabel = {clasico:'Clásico', moderno:'Moderno', minimalista:'Minimalista'};
+                var avisoActivo = data.avisoEmpleados && data.avisoEmpleados.texto ? data.avisoEmpleados : null;
                 html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
                     '<div style="font-weight:700; color:var(--white); font-size:1rem; margin-bottom:0.8rem;">' + escapeHTML(c.negocio) + '</div>' +
                     '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; margin-bottom:0.9rem;">' +
@@ -3302,6 +3303,11 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                         '</div>' +
                         '<button onclick="adminAbrirTicketModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.35rem 0.8rem;border-radius:5px;cursor:pointer;font-size:0.78rem;min-height:30px;">✏️ Editar ticket</button>' +
                     '</div>' +
+                    (avisoActivo ? '<div style="border-top:1px solid var(--border);padding-top:0.7rem;margin-top:0.6rem;">' +
+                        '<div style="font-size:0.72rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.3rem;">📢 Aviso activo</div>' +
+                        '<div style="font-size:0.82rem;color:var(--white);line-height:1.4;margin-bottom:0.25rem;">"' + escapeHTML(avisoActivo.texto) + '"</div>' +
+                        '<div style="font-size:0.7rem;color:var(--muted);">Publicado: ' + escapeHTML(avisoActivo.fecha||'') + '</div>' +
+                    '</div>' : '') +
                     '<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.6rem;">' +
                         '<button onclick="adminAbrirAvisoModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">📢 Aviso</button>' +
                         '<button onclick="adminAbrirCuentasModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">💰 Cuentas</button>' +
@@ -9114,18 +9120,21 @@ renderAjustes = function() {
     var esDueno = window.currentRole === 'dueno';
     var user = window.currentUser;
     var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
-    var secciones = ['seccionTicketDesign','seccionAvisosEmpleados','seccionCuentasCobrar','seccionLogActividad','seccionPlantillaGiro'];
+    var secciones = ['seccionAvisosEmpleados','seccionCuentasCobrar','seccionLogActividad'];
     secciones.forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.style.display = esDueno ? '' : 'none';
     });
+    // Ticket design and plantilla: admin only — always hidden for dueño
+    ['seccionTicketDesign','seccionPlantillaGiro'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
     if (esDueno) {
-        renderTicketDesignGrid();
         var avisoInp = document.getElementById('inputAvisoEmpleados');
         if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
         renderCuentasCobrar();
         renderLogActividad();
-        renderPlantillaGiroGrid();
     }
 };
 
