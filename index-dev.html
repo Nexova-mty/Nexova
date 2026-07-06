@@ -411,6 +411,8 @@
         /* ── Canvas gráficas responsive ── */
         canvas { max-width: 100%; height: auto !important; }
 
+        /* Ocultar secciones exclusivas del dueño para empleados */
+        body.rol-empleado .dueno-only { display: none !important; }
         /* Quitar flechitas de inputs numéricos en modal costos */
         #modalCosteo input[type=number]::-webkit-outer-spin-button,
         #modalCosteo input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -1558,10 +1560,10 @@ function cerrarSplash() {
             <button class="nav-btn active" onclick="switchTab('inicio', this)">Inicio</button>
             <button class="nav-btn" onclick="switchTab('pos', this)">Ventas</button>
             <button class="nav-btn" onclick="switchTab('inventario', this)">Inventario</button>
-            <button class="nav-btn" onclick="switchTab('reportes', this)">Reportes</button>
-            <button class="nav-btn" onclick="switchTab('graficas', this)">Gráficas</button>
+            <button class="nav-btn dueno-only" onclick="switchTab('reportes', this)">Reportes</button>
+            <button class="nav-btn dueno-only" onclick="switchTab('graficas', this)">Gráficas</button>
             <button class="nav-btn" onclick="switchTab('citas', this)">Citas</button>
-            <button class="nav-btn" onclick="switchTab('costos', this)" id="btnCostos">Costos</button>
+            <button class="nav-btn dueno-only" onclick="switchTab('costos', this)" id="btnCostos">Costos</button>
             <button class="nav-btn" onclick="switchTab('cotizaciones', this)">Cotizaciones</button>
             <button class="nav-btn" onclick="switchTab('clientes', this)">Clientes</button>
             <button class="nav-btn" onclick="switchTab('ajustes', this)" id="btnAjustes" style="margin-top:auto; border-top:1px solid var(--border); padding-top:0.8rem;">Ajustes</button>
@@ -4140,13 +4142,10 @@ function aplicarRol(rol) {
     window.currentRole = rol;
     const esDueno = rol === 'dueno';
 
-    // Mostrar/ocultar pestañas según el rol
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        const onclick = btn.getAttribute('onclick') || '';
-        const esFinanciero = onclick.includes("'reportes'") || onclick.includes("'graficas'") || onclick.includes("'costos'");
-        if (esFinanciero) {
-            btn.style.display = esDueno ? '' : 'none';
-        }
+    // Ocultar/mostrar elementos exclusivos del dueño
+    document.body.classList.toggle('rol-empleado', !esDueno);
+    document.querySelectorAll('.dueno-only').forEach(function(el) {
+        el.style.display = esDueno ? '' : 'none';
     });
 
     // Badge de rol en el header
