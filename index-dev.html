@@ -3290,6 +3290,12 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                         '</div>' +
                         '<button onclick="adminAbrirTicketModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.35rem 0.8rem;border-radius:5px;cursor:pointer;font-size:0.78rem;min-height:30px;">✏️ Editar ticket</button>' +
                     '</div>' +
+                    '<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.6rem;">' +
+                        '<button onclick="adminAbrirAvisoModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">📢 Aviso</button>' +
+                        '<button onclick="adminAbrirCuentasModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">💰 Cuentas</button>' +
+                        '<button onclick="adminAbrirLogModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">📋 Log</button>' +
+                        '<button onclick="adminAbrirPlantillaModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">📦 Plantilla</button>' +
+                    '</div>' +
                 '</div>';
             }
             html += '</div>';
@@ -9134,6 +9140,221 @@ renderInicio = function() {
         '</div>';
     cont.insertBefore(banner, cont.firstChild);
 };
+
+// ── ADMIN: AVISO A EMPLEADOS ──────────────────────────
+function adminAbrirAvisoModal(username, negocio) {
+    if (!_isAdmin) return;
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    var avisoActual = (data.avisoEmpleados && data.avisoEmpleados.texto) || '';
+    var overlay = document.createElement('div');
+    overlay.id = '_adminAvisoOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:460px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">' +
+            '<div style="font-family:\'Bebas Neue\';font-size:1.2rem;color:var(--white);">Aviso: <span style="color:var(--orange);">' + escapeHTML(negocio) + '</span></div>' +
+            '<button onclick="document.getElementById(\'_adminAvisoOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">×</button>' +
+        '</div>' +
+        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Mensaje para empleados (aparece en su pantalla de inicio)</div>' +
+        '<textarea id="_adminAvisoTexto" rows="4" maxlength="400" placeholder="Ej: Reunión hoy a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:1rem;">' + escapeHTML(avisoActual) + '</textarea>' +
+        '<div style="display:flex;gap:0.6rem;">' +
+            '<button onclick="adminGuardarAviso(\'' + escapeHTML(username) + '\')" style="flex:1;background:var(--orange);color:#fff;border:none;padding:0.65rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:42px;">Publicar aviso</button>' +
+            '<button onclick="adminBorrarAviso(\'' + escapeHTML(username) + '\')" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1rem;border-radius:8px;cursor:pointer;font-size:0.88rem;min-height:42px;">Quitar</button>' +
+        '</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+}
+
+async function adminGuardarAviso(username) {
+    if (!_isAdmin) return;
+    var texto = (document.getElementById('_adminAvisoTexto').value || '').trim();
+    if (!texto) { showToast('Escribe el aviso', 'error'); return; }
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now() };
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+    if (_db) { try { await _db.collection('negocios').doc(username).set({ avisoEmpleados: data.avisoEmpleados }, { merge: true }); } catch(e) { console.warn(e); } }
+    document.getElementById('_adminAvisoOverlay').remove();
+    showToast('Aviso publicado para ' + username);
+}
+
+async function adminBorrarAviso(username) {
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    delete data.avisoEmpleados;
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+    if (_db) { try { await _db.collection('negocios').doc(username).set({ avisoEmpleados: firebase.firestore.FieldValue.delete() }, { merge: true }); } catch(e) { console.warn(e); } }
+    document.getElementById('_adminAvisoOverlay').remove();
+    showToast('Aviso eliminado');
+}
+
+// ── ADMIN: CUENTAS POR COBRAR ─────────────────────────
+function adminAbrirCuentasModal(username, negocio) {
+    if (!_isAdmin) return;
+    var overlay = document.createElement('div');
+    overlay.id = '_adminCuentasOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+            '<div style="font-family:\'Bebas Neue\';font-size:1.2rem;color:var(--white);">Cuentas: <span style="color:var(--orange);">' + escapeHTML(negocio) + '</span></div>' +
+            '<button onclick="document.getElementById(\'_adminCuentasOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">×</button>' +
+        '</div>' +
+        '<div id="_adminCuentasLista"></div>' +
+        '<div style="border-top:1px solid var(--border);margin-top:1rem;padding-top:1rem;">' +
+            '<div style="font-size:0.78rem;color:var(--orange);font-weight:700;margin-bottom:0.6rem;text-transform:uppercase;">+ Nueva cuenta</div>' +
+            '<input id="_adminCcCliente" type="text" placeholder="Cliente" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.7rem;color:var(--white);font-size:0.85rem;box-sizing:border-box;margin-bottom:0.5rem;">' +
+            '<input id="_adminCcConcepto" type="text" placeholder="Concepto" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.7rem;color:var(--white);font-size:0.85rem;box-sizing:border-box;margin-bottom:0.5rem;">' +
+            '<input id="_adminCcMonto" type="number" placeholder="Monto $" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.55rem 0.7rem;color:var(--white);font-size:0.85rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
+            '<button onclick="adminGuardarCuenta(\'' + escapeHTML(username) + '\')" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.65rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:42px;">Guardar cuenta</button>' +
+        '</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+    adminRenderCuentas(username);
+}
+
+function adminRenderCuentas(username) {
+    var cont = document.getElementById('_adminCuentasLista');
+    if (!cont) return;
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    var cuentas = data.cuentasCobrar || [];
+    if (cuentas.length === 0) { cont.innerHTML = '<div style="color:var(--muted);font-size:0.84rem;padding:0.5rem 0;">Sin cuentas registradas.</div>'; return; }
+    var totalPend = cuentas.filter(function(c){ return !c.pagada; }).reduce(function(s,c){ return s + (parseFloat(c.monto)||0); }, 0);
+    cont.innerHTML = (totalPend > 0 ? '<div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;padding:0.5rem 0.8rem;margin-bottom:0.7rem;display:flex;justify-content:space-between;"><span style="color:var(--muted);font-size:0.82rem;">Total pendiente</span><span style="color:#f87171;font-weight:800;">$' + totalPend.toFixed(2) + '</span></div>' : '') +
+    cuentas.map(function(c) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">' +
+            '<div style="min-width:80px;flex:1;">' +
+                '<div style="font-weight:600;color:' + (c.pagada ? 'var(--muted)' : 'var(--white)') + ';font-size:0.85rem;' + (c.pagada ? 'text-decoration:line-through;' : '') + '">' + escapeHTML(c.cliente) + '</div>' +
+                '<div style="font-size:0.73rem;color:var(--muted);">' + escapeHTML(c.concepto) + ' · ' + escapeHTML(c.fecha) + '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">' +
+                '<span style="font-weight:700;color:' + (c.pagada ? 'var(--green)' : '#f87171') + ';font-size:0.88rem;">$' + parseFloat(c.monto||0).toFixed(2) + '</span>' +
+                (!c.pagada ? '<button onclick="adminMarcarCobrada(\'' + escapeHTML(username) + '\',' + c.ts + ')" style="background:var(--green);color:#fff;border:none;border-radius:4px;padding:0.25rem 0.55rem;cursor:pointer;font-size:0.73rem;font-weight:700;min-height:28px;">Cobrado</button>' : '<span style="font-size:0.71rem;color:var(--green);">✓</span>') +
+                '<button onclick="adminEliminarCuenta(\'' + escapeHTML(username) + '\',' + c.ts + ')" style="background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:1rem;min-height:28px;padding:0 3px;">×</button>' +
+            '</div></div>';
+    }).join('');
+}
+
+async function adminGuardarCuenta(username) {
+    var cliente = (document.getElementById('_adminCcCliente').value || '').trim();
+    var concepto = (document.getElementById('_adminCcConcepto').value || '').trim();
+    var monto = parseFloat(document.getElementById('_adminCcMonto').value) || 0;
+    if (!cliente || !concepto || monto <= 0) { showToast('Completa todos los campos', 'error'); return; }
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    data.cuentasCobrar = data.cuentasCobrar || [];
+    data.cuentasCobrar.push({ cliente: cliente, concepto: concepto, monto: monto, fecha: new Date().toLocaleDateString('es-MX'), pagada: false, ts: Date.now() });
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+    if (_db) { try { await _db.collection('negocios').doc(username).set({ cuentasCobrar: data.cuentasCobrar }, { merge: true }); } catch(e) { console.warn(e); } }
+    document.getElementById('_adminCcCliente').value = '';
+    document.getElementById('_adminCcConcepto').value = '';
+    document.getElementById('_adminCcMonto').value = '';
+    adminRenderCuentas(username);
+    showToast('Cuenta registrada');
+}
+
+async function adminMarcarCobrada(username, ts) {
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    var c = (data.cuentasCobrar || []).find(function(x){ return x.ts === ts; });
+    if (!c) return;
+    c.pagada = true; c.fechaPago = new Date().toLocaleDateString('es-MX');
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+    if (_db) { try { await _db.collection('negocios').doc(username).set({ cuentasCobrar: data.cuentasCobrar }, { merge: true }); } catch(e) { console.warn(e); } }
+    adminRenderCuentas(username);
+    showToast('Marcado como cobrado');
+}
+
+async function adminEliminarCuenta(username, ts) {
+    if (!confirm('¿Eliminar esta cuenta?')) return;
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    data.cuentasCobrar = (data.cuentasCobrar || []).filter(function(c){ return c.ts !== ts; });
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+    if (_db) { try { await _db.collection('negocios').doc(username).set({ cuentasCobrar: data.cuentasCobrar }, { merge: true }); } catch(e) { console.warn(e); } }
+    adminRenderCuentas(username);
+}
+
+// ── ADMIN: LOG DE ACTIVIDAD ───────────────────────────
+function adminAbrirLogModal(username, negocio) {
+    if (!_isAdmin) return;
+    var log = [];
+    try { log = JSON.parse(localStorage.getItem('_changelog_' + username) || '[]'); } catch(e) {}
+    var iconMap = { 'venta':'🛒', 'producto':'📦', 'gasto':'💸', 'cita':'📅', 'entrada':'⏱', 'salida':'🏁', 'turno':'🔄', 'cobro':'💰', 'cuenta':'💰', 'aviso':'📢', 'plantilla':'📦', 'ticket':'🎟' };
+    function getIcon(accion) { var a = (accion||'').toLowerCase(); for (var k in iconMap) { if (a.includes(k)) return iconMap[k]; } return '📋'; }
+    var entradasHTML = log.length === 0
+        ? '<div style="color:var(--muted);font-size:0.84rem;padding:1rem 0;">Sin actividad registrada.</div>'
+        : log.slice(-50).reverse().map(function(e) {
+            return '<div style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.5rem 0;border-bottom:1px solid var(--border);">' +
+                '<span style="font-size:0.95rem;flex-shrink:0;">' + getIcon(e.accion) + '</span>' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="color:var(--white);font-size:0.82rem;word-break:break-word;">' + escapeHTML(e.accion) + '</div>' +
+                    '<div style="color:var(--muted);font-size:0.72rem;margin-top:0.1rem;">' + escapeHTML(e.empleado || e.rol || '') + (e.fecha ? ' · ' + escapeHTML(e.fecha) : '') + '</div>' +
+                '</div></div>';
+        }).join('');
+    var overlay = document.createElement('div');
+    overlay.id = '_adminLogOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:500px;max-height:88vh;display:flex;flex-direction:column;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+            '<div style="font-family:\'Bebas Neue\';font-size:1.2rem;color:var(--white);">Log: <span style="color:var(--orange);">' + escapeHTML(negocio) + '</span></div>' +
+            '<button onclick="document.getElementById(\'_adminLogOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">×</button>' +
+        '</div>' +
+        '<div style="overflow-y:auto;flex:1;">' + entradasHTML + '</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+}
+
+// ── ADMIN: PLANTILLAS POR GIRO ────────────────────────
+function adminAbrirPlantillaModal(username, negocio) {
+    if (!_isAdmin) return;
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    var tieneProductos = (data.productos || []).length > 0;
+    var estilosHTML = Object.keys(_PLANTILLAS_GIRO).map(function(giro) {
+        var p = _PLANTILLAS_GIRO[giro];
+        return '<button onclick="adminAplicarPlantilla(\'' + escapeHTML(username) + '\',\'' + escapeHTML(giro) + '\')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem;cursor:pointer;text-align:center;color:var(--white);">' +
+            '<div style="font-size:1.3rem;margin-bottom:0.25rem;">' + p.icon + '</div>' +
+            '<div style="font-size:0.78rem;font-weight:600;line-height:1.3;">' + escapeHTML(giro) + '</div>' +
+        '</button>';
+    }).join('');
+    var overlay = document.createElement('div');
+    overlay.id = '_adminPlantillaOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:480px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">' +
+            '<div style="font-family:\'Bebas Neue\';font-size:1.2rem;color:var(--white);">Plantilla: <span style="color:var(--orange);">' + escapeHTML(negocio) + '</span></div>' +
+            '<button onclick="document.getElementById(\'_adminPlantillaOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">×</button>' +
+        '</div>' +
+        (tieneProductos ? '<div style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:0.9rem;font-size:0.8rem;color:#fbbf24;">⚠️ Ya tiene productos. La plantilla agregará ejemplos adicionales.</div>' : '') +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.5rem;">' + estilosHTML + '</div>' +
+    '</div>';
+    document.body.appendChild(overlay);
+}
+
+async function adminAplicarPlantilla(username, giro) {
+    var p = _PLANTILLAS_GIRO[giro];
+    if (!p) return;
+    if (!confirm('¿Aplicar plantilla "' + giro + '" a ' + username + '?')) return;
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    data.productos = data.productos || [];
+    var nombresExistentes = new Set(data.productos.map(function(pr){ return pr.nombre; }));
+    var num = data.productos.length;
+    var agregados = 0;
+    p.productos.forEach(function(prod) {
+        if (!nombresExistentes.has(prod.nombre)) {
+            data.productos.push({ nombre: prod.nombre, precio: prod.precio, stock: prod.stock, sinLimite: prod.sinLimite, categoria: prod.categoria, num: ++num });
+            nombresExistentes.add(prod.nombre);
+            agregados++;
+        }
+    });
+    if (agregados === 0) { showToast('Todos los productos ya existen'); return; }
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+    if (_db) { try { await _db.collection('negocios').doc(username).set({ productos: data.productos }, { merge: true }); } catch(e) { console.warn(e); } }
+    document.getElementById('_adminPlantillaOverlay').remove();
+    showToast('Plantilla aplicada: ' + agregados + ' productos agregados a ' + username);
+}
 
 function adminAbrirTicketModal(username, negocio) {
     if (!_isAdmin) return;
