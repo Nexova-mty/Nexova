@@ -3266,15 +3266,29 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                 var numCitas = (data.citas || []).length;
                 var numEmpleados = (data.empleados || []).length;
                 var ganancia = ventas - gastos;
+                var tc = data.ticketConfig || {};
+                var tcDiseno = tc.diseno || 'clasico';
+                var tcEslogan = tc.eslogan || '';
+                var tcCierre = tc.mensajeCierre || '';
+                var tcTerminos = tc.terminos || '';
+                var disenoLabel = {clasico:'Clásico', moderno:'Moderno', minimalista:'Minimalista'};
                 html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
                     '<div style="font-weight:700; color:var(--white); font-size:1rem; margin-bottom:0.8rem;">' + escapeHTML(c.negocio) + '</div>' +
-                    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem;">' +
+                    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; margin-bottom:0.9rem;">' +
                         '<div style="color:var(--muted);">Ventas: <span style="color:#4ade80; font-weight:600;">$' + ventas.toLocaleString() + '</span></div>' +
                         '<div style="color:var(--muted);">Gastos: <span style="color:#f87171; font-weight:600;">$' + gastos.toLocaleString() + '</span></div>' +
                         '<div style="color:var(--muted);">Ganancia: <span style="color:' + (ganancia >= 0 ? '#4ade80' : '#f87171') + '; font-weight:600;">$' + ganancia.toLocaleString() + '</span></div>' +
                         '<div style="color:var(--muted);">Productos: <span style="color:var(--white);">' + numProductos + '</span></div>' +
                         '<div style="color:var(--muted);">Citas: <span style="color:var(--white);">' + numCitas + '</span></div>' +
                         '<div style="color:var(--muted);">Empleados: <span style="color:var(--white);">' + numEmpleados + '</span></div>' +
+                    '</div>' +
+                    '<div style="border-top:1px solid var(--border); padding-top:0.8rem;">' +
+                        '<div style="font-size:0.75rem; color:var(--orange); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;">🎟 Diseño de Ticket</div>' +
+                        '<div style="font-size:0.78rem; color:var(--muted); margin-bottom:0.5rem;">' +
+                            '<span style="color:var(--white);">' + escapeHTML(disenoLabel[tcDiseno] || tcDiseno) + '</span>' +
+                            (tcEslogan ? ' &nbsp;·&nbsp; <em>' + escapeHTML(tcEslogan) + '</em>' : '') +
+                        '</div>' +
+                        '<button onclick="adminAbrirTicketModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.35rem 0.8rem;border-radius:5px;cursor:pointer;font-size:0.78rem;min-height:30px;">✏️ Editar ticket</button>' +
                     '</div>' +
                 '</div>';
             }
@@ -9120,6 +9134,74 @@ renderInicio = function() {
         '</div>';
     cont.insertBefore(banner, cont.firstChild);
 };
+
+function adminAbrirTicketModal(username, negocio) {
+    if (!_isAdmin) return;
+    // Leer ticketConfig actual de localStorage del negocio
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    var tc = data.ticketConfig || {};
+    var disenoActual = tc.diseno || 'clasico';
+
+    var overlay = document.createElement('div');
+    overlay.id = '_adminTicketOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+
+    var estilos = [
+        {key:'clasico', label:'Clásico', desc:'Recibo térmico'},
+        {key:'moderno', label:'Moderno', desc:'Encabezado color'},
+        {key:'minimalista', label:'Minimalista', desc:'Solo lo esencial'}
+    ];
+    var estilosHTML = estilos.map(function(e) {
+        var activo = disenoActual === e.key;
+        return '<div onclick="this.parentNode.querySelectorAll(\'[data-td]\').forEach(function(d){d.style.border=\'1px solid var(--border)\';d.style.color=\'var(--muted)\';});this.style.border=\'2px solid var(--orange)\';this.style.color=\'var(--orange)\';" data-td="'+e.key+'" style="background:var(--bg3);border:'+(activo?'2px solid var(--orange)':'1px solid var(--border)')+';border-radius:8px;padding:0.7rem;cursor:pointer;text-align:center;color:'+(activo?'var(--orange)':'var(--muted)')+';font-size:0.82rem;"><b>'+e.label+'</b><br><span style="font-size:0.73rem;">'+e.desc+'</span></div>';
+    }).join('');
+
+    overlay.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;">' +
+            '<div><div style="font-family:\'Bebas Neue\';font-size:1.2rem;color:var(--white);">Ticket: <span style="color:var(--orange);">'+escapeHTML(negocio)+'</span></div></div>' +
+            '<button onclick="document.getElementById(\'_adminTicketOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:0;">×</button>' +
+        '</div>' +
+        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.4rem;">Estilo</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1rem;" id="_adminTdGrid">'+estilosHTML+'</div>' +
+        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Eslogan</div>' +
+        '<input id="_adminTdEslogan" type="text" maxlength="80" value="'+escapeHTML(tc.eslogan||'')+'" placeholder="La mejor barbería de MTY" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
+        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Mensaje de cierre</div>' +
+        '<input id="_adminTdCierre" type="text" maxlength="100" value="'+escapeHTML(tc.mensajeCierre||'')+'" placeholder="¡Gracias por tu visita!" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;margin-bottom:0.8rem;">' +
+        '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Términos / propinas</div>' +
+        '<textarea id="_adminTdTerminos" rows="3" maxlength="300" placeholder="Ej: Propina 10% sugerida" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:1rem;">'+escapeHTML(tc.terminos||'')+'</textarea>' +
+        '<button onclick="adminGuardarTicketDesign(\''+escapeHTML(username)+'\')" style="width:100%;background:var(--orange);color:#fff;border:none;padding:0.7rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.95rem;min-height:44px;">Guardar cambios</button>' +
+    '</div>';
+
+    document.body.appendChild(overlay);
+}
+
+async function adminGuardarTicketDesign(username) {
+    if (!_isAdmin) return;
+    var grid = document.getElementById('_adminTdGrid');
+    var disenoEl = grid ? grid.querySelector('[data-td][style*="var(--orange)"]') : null;
+    var diseno = disenoEl ? disenoEl.getAttribute('data-td') : 'clasico';
+    var eslogan = (document.getElementById('_adminTdEslogan') || {}).value || '';
+    var mensajeCierre = (document.getElementById('_adminTdCierre') || {}).value || '';
+    var terminos = (document.getElementById('_adminTdTerminos') || {}).value || '';
+
+    // Actualizar localStorage del negocio
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
+    data.ticketConfig = { diseno: diseno, eslogan: eslogan, mensajeCierre: mensajeCierre, terminos: terminos };
+    localStorage.setItem('data_' + username, JSON.stringify(data));
+
+    // Guardar directo en Firestore
+    if (_db) {
+        try {
+            await _db.collection('negocios').doc(username).set({ ticketConfig: data.ticketConfig }, { merge: true });
+        } catch(e) { console.warn('Admin ticket save Firestore error:', e); }
+    }
+
+    document.getElementById('_adminTicketOverlay').remove();
+    // Refrescar el monitor para reflejar el cambio
+    renderAdminMonitor();
+}
 
 </script>
 
