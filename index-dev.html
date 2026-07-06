@@ -4296,6 +4296,13 @@ function handleLogout() {
 }
 
 function switchTab(tab, btn) {
+    // Empleados no pueden acceder a secciones financieras
+    const _tabsFinancieros = ['reportes','graficas','costos'];
+    if (_tabsFinancieros.includes(tab) && window.currentRole !== 'dueno') {
+        showToast('Solo el dueño puede ver esta sección');
+        return;
+    }
+
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(tab).classList.add('active');
@@ -5358,6 +5365,7 @@ function actualizarGraficasUI() {
 }
 
 function renderGraficas() {
+    if (window.currentRole !== 'dueno') return;
     // Inicializar período de gráficas si no existe
     if (!localStorage.getItem('graficasPeriodoTipo')) {
         localStorage.setItem('graficasPeriodoTipo', 'dia');
@@ -5575,6 +5583,7 @@ function dibujarTendencia(data, tipo, valor, ventasFiltradas, gastosFiltrados) {
 }
 
 function renderReportes() {
+    if (window.currentRole !== 'dueno') return;
     // Inicializar período si no existe
     if (!localStorage.getItem('reportePeriodoTipo')) {
         localStorage.setItem('reportePeriodoTipo', 'dia');
@@ -7299,6 +7308,7 @@ window._costeoIngCount = 0;
 window._costeoEditIdx = null;
 
 function renderCostos() {
+    if (window.currentRole !== 'dueno') return;
     const user = window.currentUser;
     if (!user) return;
     const data = JSON.parse(localStorage.getItem(`data_${user}`) || '{}');
