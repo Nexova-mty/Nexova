@@ -18,7 +18,7 @@ try {
   });
 } catch(e) { console.warn('FCM SW init failed:', e); }
 
-var CACHE_NAME = 'nexova-v13';
+var CACHE_NAME = 'nexova-v14';
 // Videos excluded — large files cause install timeouts; cached lazily on first fetch
 var urlsToCache = [
   './icon-192.png',
@@ -47,10 +47,18 @@ self.addEventListener('activate', function(event) {
           return caches.delete(name);
         })
       );
+    }).then(function() {
+      // Take control of all open pages immediately
+      return self.clients.claim();
+    }).then(function() {
+      // Force reload all controlled pages so they get the latest HTML
+      return self.clients.matchAll({ type: 'window' }).then(function(clients) {
+        clients.forEach(function(client) {
+          client.navigate(client.url);
+        });
+      });
     })
   );
-  // Take control of all open pages immediately
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', function(event) {
