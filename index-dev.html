@@ -1567,7 +1567,7 @@ function cerrarSplash() {
             <button class="nav-btn dueno-only" onclick="switchTab('costos', this)" id="btnCostos">Costos</button>
             <button class="nav-btn" onclick="switchTab('cotizaciones', this)">Cotizaciones</button>
             <button class="nav-btn" onclick="switchTab('clientes', this)">Clientes</button>
-            <button class="nav-btn dueno-only" onclick="switchTab('equipo', this)">Equipo</button>
+            <button class="nav-btn" onclick="switchTab('equipo', this)">Equipo</button>
             <button class="nav-btn" onclick="switchTab('ajustes', this)" id="btnAjustes" style="margin-top:auto; border-top:1px solid var(--border); padding-top:0.8rem;">Ajustes</button>
         </div>
 
@@ -4313,7 +4313,7 @@ function handleLogout() {
 
 function switchTab(tab, btn) {
     // Empleados no pueden acceder a secciones financieras — bloqueo silencioso
-    const _tabsFinancieros = ['reportes','graficas','costos','equipo'];
+    const _tabsFinancieros = ['reportes','graficas','costos'];
     if (_tabsFinancieros.includes(tab) && window.currentRole === 'empleado') {
         return;
     }
@@ -9153,13 +9153,20 @@ renderAjustes = function() {
 };
 
 function renderEquipo() {
-    if (window.currentRole !== 'dueno') return;
+    var esDueno = window.currentRole === 'dueno';
     var user = window.currentUser;
     var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
-    var avisoInp = document.getElementById('inputAvisoEmpleados');
-    if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
+    // Aviso y log: solo dueño
+    ['seccionAvisosEmpleados','seccionLogActividad'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = esDueno ? '' : 'none';
+    });
+    if (esDueno) {
+        var avisoInp = document.getElementById('inputAvisoEmpleados');
+        if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
+        renderLogActividad();
+    }
     renderCuentasCobrar();
-    renderLogActividad();
 }
 
 // ══════════════════════════════════════════════════════
