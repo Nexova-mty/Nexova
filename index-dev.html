@@ -1547,7 +1547,10 @@ function cerrarSplash() {
         <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-left:auto;">
             <button onclick="abrirHistorialCliente()" title="Historial de cliente" style="background:var(--bg3); border:1px solid var(--border); color:var(--muted); padding:0.4rem 0.7rem; border-radius:6px; cursor:pointer; font-size:0.8rem; white-space:nowrap; min-height:36px;">Clientes</button>
             <span style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; font-size:0.9rem;">
-                <span style="white-space:nowrap;">Hola, <strong id="userDisplay">--</strong></span>
+                <span style="white-space:nowrap; display:flex; flex-direction:column; line-height:1.2;">
+                    <span style="font-size:0.75rem; color:var(--muted);" id="negocioDisplay"></span>
+                    <strong id="userDisplay" style="font-size:0.9rem;">--</strong>
+                </span>
                 <span id="rolBadge" style="display:none;"></span>
             </span>
             <button class="logout-btn" onclick="handleLogout()" style="white-space:nowrap;">Cerrar sesión</button>
@@ -1570,7 +1573,6 @@ function cerrarSplash() {
         <div class="main-content">
             <!-- INICIO -->
             <section class="section active" id="inicio">
-                <h2 class="section-title">Resumen <em>General</em></h2>
                 <div id="inicioContenido"></div>
             </section>
 
@@ -3308,8 +3310,22 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                 var tcTerminos = tc.terminos || '';
                 var disenoLabel = {clasico:'Clásico', moderno:'Moderno', minimalista:'Minimalista'};
                 var avisoActivo = data.avisoEmpleados && data.avisoEmpleados.texto && !(data.avisoEmpleados.expira && Date.now() > data.avisoEmpleados.expira) ? data.avisoEmpleados : null;
-                html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
-                    '<div style="font-weight:700; color:var(--white); font-size:1rem; margin-bottom:0.8rem;">' + escapeHTML(c.negocio) + '</div>' +
+
+                // Actividad reciente: días desde última venta
+                var ultimaVenta = (data.ventas || []).reduce(function(max, v) {
+                    var ts = v.ts || (v.fecha ? new Date(v.fecha.split('/').reverse().join('-')).getTime() : 0);
+                    return ts > max ? ts : max;
+                }, 0);
+                var diasSinVenta = ultimaVenta ? Math.floor((Date.now() - ultimaVenta) / 86400000) : 999;
+                var actividadColor = diasSinVenta === 0 ? '#4ade80' : diasSinVenta <= 3 ? 'var(--orange)' : '#f87171';
+                var actividadBorder = diasSinVenta === 0 ? 'border:1px solid rgba(74,222,128,0.35)' : diasSinVenta <= 3 ? 'border:1px solid rgba(244,106,31,0.4)' : 'border:1px solid rgba(248,113,113,0.45)';
+                var actividadLabel = diasSinVenta === 0 ? 'Activo hoy' : diasSinVenta === 999 ? 'Sin ventas' : 'Sin ventas: ' + diasSinVenta + 'd';
+
+                html += '<div style="background:var(--bg2); ' + actividadBorder + '; border-radius:10px; padding:1.2rem; position:relative;">' +
+                    '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.7rem;">' +
+                        '<div style="font-weight:700; color:var(--white); font-size:1rem;">' + escapeHTML(c.negocio) + '</div>' +
+                        '<span style="font-size:0.7rem; font-weight:700; color:' + actividadColor + '; background:' + actividadColor + '18; border:1px solid ' + actividadColor + '44; padding:0.15rem 0.55rem; border-radius:20px; white-space:nowrap;">' + actividadLabel + '</span>' +
+                    '</div>' +
                     '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; margin-bottom:0.9rem;">' +
                         '<div style="color:var(--muted);">Ventas: <span style="color:#4ade80; font-weight:600;">$' + ventas.toLocaleString() + '</span></div>' +
                         '<div style="color:var(--muted);">Gastos: <span style="color:#f87171; font-weight:600;">$' + gastos.toLocaleString() + '</span></div>' +
@@ -4159,6 +4175,20 @@ function seleccionarRol(btn) {
     if (esTrabajador) setTimeout(() => document.getElementById('loginEmpUser')?.focus(), 80);
 }
 
+function _actualizarHeader(user, clientInfo) {
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem('data_' + user) || '{}'); } catch(e) {}
+    var nombreNegocio = data.nombreNegocio || (clientInfo && clientInfo.name) || '';
+    var esDueno = window.currentRole === 'dueno';
+    var nombrePersona = esDueno
+        ? 'Dueño'
+        : (window.currentEmpleado && window.currentEmpleado.nombre) || 'Trabajador';
+    var ud = document.getElementById('userDisplay');
+    var nd = document.getElementById('negocioDisplay');
+    if (ud) ud.textContent = nombrePersona;
+    if (nd) nd.textContent = nombreNegocio;
+}
+
 function aplicarRol(rol) {
     window.currentRole = rol;
     const esDueno = rol === 'dueno';
@@ -4187,7 +4217,10 @@ function aplicarRol(rol) {
         badge.style.fontWeight = '700';
     }
 
-    // Si el tab activo es uno restringido, redirigir a Cajas
+    // Actualizar header con nombre de negocio y persona
+    _actualizarHeader(window.currentUser, getClientInfo(window.currentUser));
+
+    // Si el tab activo es uno restringido, redirigir a inicio
     if (!esDueno) {
         const activeSection = document.querySelector('.section.active');
         if (activeSection && (activeSection.id === 'reportes' || activeSection.id === 'graficas' || activeSection.id === 'costos')) {
@@ -4246,7 +4279,7 @@ function iniciarDashboard(user, rol) {
     if (mobileMenu) mobileMenu.classList.remove('show');
     const waBtn = document.querySelector('.wa-float');
     if (waBtn) waBtn.style.display = 'none';
-    document.getElementById('userDisplay').textContent = clientInfo.name;
+    _actualizarHeader(user, clientInfo);
 
     if (!localStorage.getItem(`data_${user}`)) {
         const data = {
@@ -6946,7 +6979,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('dashboard').style.display = 'flex';
         const waBtnInit = document.querySelector('.wa-float');
         if (waBtnInit) waBtnInit.style.display = 'none';
-        document.getElementById('userDisplay').textContent = getClientInfo(savedUser).name;
+        _actualizarHeader(savedUser, getClientInfo(savedUser));
         aplicarRol(savedRole);
         switchTab('inicio', document.querySelector('.nav-btn[onclick*="inicio"]'));
         renderCajas();
@@ -7000,7 +7033,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.currentRole = 'dueno';
         window.currentEmpleado = null;
         document.getElementById('dashboard').style.display = 'flex';
-        document.getElementById('userDisplay').textContent = CLIENTS['demo'].name;
+        _actualizarHeader('demo', CLIENTS['demo']);
         aplicarRol('dueno');
         switchTab('inicio', document.querySelector('.nav-btn[onclick*="inicio"]'));
         renderCajas(); renderInventario(); renderReportes(); renderCitas(); renderCajasSelect(); renderCostos();
@@ -7079,7 +7112,63 @@ function renderInicio() {
 
     const fmt = n => `$${parseFloat(n).toLocaleString('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
+    // Saludo contextual según hora y rol
+    var _hora = new Date().getHours();
+    var _saludo = _hora < 12 ? 'Buenos días' : _hora < 19 ? 'Buenas tardes' : 'Buenas noches';
+    var _nombreDisplay = esDueno
+        ? (data.nombreNegocio || (getClientInfo(user) && getClientInfo(user).name) || 'tu negocio')
+        : (window.currentEmpleado && window.currentEmpleado.nombre) || 'Trabajador';
+
     let html = '';
+
+    if (esDueno) {
+        // Ventas de ayer para el dueño
+        var ayerISO = (function() {
+            var d = obtenerFechaMonterrey(); d.setDate(d.getDate() - 1);
+            return d.toISOString().slice(0,10);
+        })();
+        function esAyer(fechaStr) {
+            if (!fechaStr) return false;
+            var parts = fechaStr.split(',')[0].trim().split('/');
+            if (parts.length < 3) return false;
+            return (parts[2] + '-' + parts[1] + '-' + parts[0]) === ayerISO;
+        }
+        var ventasAyer = ventas.filter(v => esAyer(v.fecha || v.hora));
+        var totalAyer = ventasAyer.reduce((s,v) => s + (parseFloat(v.total || v.monto || 0)||0), 0);
+        var subtexto = totalAyer > 0
+            ? 'Ayer cerraste con ' + fmt(totalAyer) + ' en ventas.'
+            : ventasHoy.length > 0
+                ? 'Llevas ' + fmt(totalVentas) + ' hoy. ¡Sigue así!'
+                : 'Aún no hay ventas registradas hoy.';
+        html += `<div style="margin-bottom:1.2rem;">
+            <div style="font-size:1.1rem; font-weight:800; color:var(--white);">${escapeHTML(_saludo)}, <span style="color:var(--orange);">${escapeHTML(_nombreDisplay)}</span></div>
+            <div style="font-size:0.85rem; color:var(--muted); margin-top:0.2rem;">${escapeHTML(subtexto)}</div>
+        </div>`;
+    } else {
+        // Empleado: saludo personalizado con sus stats del día
+        var misVentasHoy = ventasHoy.filter(v => v.vendedor === _nombreDisplay);
+        var miMontoHoy = misVentasHoy.reduce((s,v) => s + (parseFloat(v.total || v.monto || 0)||0), 0);
+        var misCitasHoy = citas.filter(c => {
+            var d = parseCitaFecha(c);
+            return d && esHoy(c.fecha);
+        });
+        html += `<div style="background:linear-gradient(135deg,rgba(244,106,31,0.1),rgba(244,106,31,0.04)); border:1px solid rgba(244,106,31,0.2); border-radius:12px; padding:1.2rem 1.4rem; margin-bottom:1.5rem;">
+            <div style="font-size:1.05rem; font-weight:800; color:var(--white);">${escapeHTML(_saludo)}, <span style="color:var(--orange);">${escapeHTML(_nombreDisplay)}</span></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:0.9rem;">
+                <div style="background:var(--bg2); border-radius:8px; padding:0.8rem; text-align:center;">
+                    <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.3rem;">Tus ventas hoy</div>
+                    <div style="font-size:1.3rem; font-weight:800; color:var(--green);">${fmt(miMontoHoy)}</div>
+                    <div style="font-size:0.72rem; color:var(--muted);">${misVentasHoy.length} transacciones</div>
+                </div>
+                <div style="background:var(--bg2); border-radius:8px; padding:0.8rem; text-align:center;">
+                    <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.3rem;">Citas hoy</div>
+                    <div style="font-size:1.3rem; font-weight:800; color:var(--orange);">${misCitasHoy.length}</div>
+                    <div style="font-size:0.72rem; color:var(--muted);">${misCitasHoy.length === 0 ? 'sin citas' : 'programadas'}</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
     // Banner urgente si hay cita en menos de 2 horas
     if (citasUrgentes.length > 0) {
         const c = citasUrgentes[0];
