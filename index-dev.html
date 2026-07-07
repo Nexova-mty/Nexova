@@ -756,9 +756,7 @@ function _aplicarDatosRemotos(user, remoteData) {
     if (tab === 'inicio') renderInicio();
     else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
     else if (tab === 'inventario') renderInventario();
-    else if (tab === 'costos') renderCostos();
-    else if (tab === 'reportes') renderReportes();
-    else if (tab === 'graficas') renderGraficas();
+    else if (tab === 'finanzas') renderFinanzas();
     else if (tab === 'citas') renderCitas();
     else if (tab === 'cotizaciones') renderCotizaciones();
     else if (tab === 'clientes') renderCRM();
@@ -1561,10 +1559,8 @@ function cerrarSplash() {
             <button class="nav-btn active" onclick="switchTab('inicio', this)">Inicio</button>
             <button class="nav-btn" onclick="switchTab('pos', this)">Ventas</button>
             <button class="nav-btn" onclick="switchTab('inventario', this)">Inventario</button>
-            <button class="nav-btn dueno-only" onclick="switchTab('reportes', this)">Reportes</button>
-            <button class="nav-btn dueno-only" onclick="switchTab('graficas', this)">Gráficas</button>
+            <button class="nav-btn dueno-only" onclick="switchTab('finanzas', this)">Finanzas</button>
             <button class="nav-btn" onclick="switchTab('citas', this)">Citas</button>
-            <button class="nav-btn dueno-only" onclick="switchTab('costos', this)" id="btnCostos">Costos</button>
             <button class="nav-btn" onclick="switchTab('cotizaciones', this)">Cotizaciones</button>
             <button class="nav-btn" onclick="switchTab('clientes', this)">Clientes</button>
             <button class="nav-btn" onclick="switchTab('equipo', this)">Equipo</button>
@@ -1660,9 +1656,17 @@ function cerrarSplash() {
             </section>
 
 
-            <!-- REPORTES -->
-            <section class="section" id="reportes">
-                <h2 class="section-title">Reportes <em>Financieros</em></h2>
+            <!-- FINANZAS (Reportes + Gráficas + Costos fusionados) -->
+            <section class="section" id="finanzas">
+                <!-- Sub-tabs internos -->
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:1rem;">
+                    <button onclick="switchFinanzas('reportes',this)" id="finTab-reportes" class="fin-tab" style="padding:0.55rem 1.2rem;border-radius:20px;border:none;background:var(--orange);color:#fff;cursor:pointer;font-weight:700;font-size:0.88rem;min-height:40px;">Reportes</button>
+                    <button onclick="switchFinanzas('graficas',this)" id="finTab-graficas" class="fin-tab" style="padding:0.55rem 1.2rem;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;font-size:0.88rem;min-height:40px;">Gráficas</button>
+                    <button onclick="switchFinanzas('costos',this)" id="finTab-costos" class="fin-tab" style="padding:0.55rem 1.2rem;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);cursor:pointer;font-size:0.88rem;min-height:40px;">Costos</button>
+                </div>
+
+            <!-- PANEL REPORTES -->
+            <div id="finPanel-reportes">
 
                 <!-- Filtros por período -->
                 <div style="background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem;">
@@ -1770,11 +1774,10 @@ function cerrarSplash() {
                     </table>
                 </div>
 
-            </section>
+            </div><!-- /finPanel-reportes -->
 
-            <!-- GRÁFICAS -->
-            <section class="section" id="graficas">
-                <h2 class="section-title">Análisis <em>Gráfico</em></h2>
+            <!-- PANEL GRÁFICAS -->
+            <div id="finPanel-graficas" style="display:none;">
 
                 <!-- Selector de período propio de Gráficas -->
                 <div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1.5rem;">
@@ -1881,7 +1884,17 @@ function cerrarSplash() {
                     <h4 style="color:var(--white); font-size:1rem; margin-bottom:1rem;">Resumen de Ganancias</h4>
                     <div id="graficasGananciasLista"></div>
                 </div>
-            </section>
+            </div><!-- /finPanel-graficas -->
+
+            <!-- PANEL COSTOS -->
+            <div id="finPanel-costos" style="display:none;">
+                <h2 class="section-title">Costeo de <em>Productos y Servicios</em></h2>
+                <p style="color:var(--muted); margin-bottom:1.5rem; font-size:0.95rem;">Calcula el costo real de cada producto o servicio y ve tu margen de ganancia.</p>
+                <button onclick="abrirModalNuevoCosteo()" style="background:var(--orange); color:#fff; border:none; padding:0.75rem 1.6rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:1rem; min-height:48px; margin-bottom:1.5rem;">+ Nuevo Costeo</button>
+                <div id="costeosGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;"></div>
+            </div><!-- /finPanel-costos -->
+
+            </section><!-- /finanzas -->
 
             <!-- CITAS -->
             <section class="section" id="citas">
@@ -1911,14 +1924,10 @@ function cerrarSplash() {
             </section>
 
             <!-- COSTOS -->
-            <section class="section" id="costos">
-                <h2 class="section-title">Costeo de <em>Productos y Servicios</em></h2>
-                <p style="color:var(--muted); margin-bottom:1.5rem; font-size:0.95rem;">Calcula el costo real de cada producto o servicio y ve tu margen de ganancia.</p>
-
-                <button onclick="abrirModalNuevoCosteo()" style="background:var(--orange); color:#fff; border:none; padding:0.75rem 1.6rem; border-radius:6px; cursor:pointer; font-weight:700; font-size:1rem; min-height:48px; margin-bottom:1.5rem;">+ Nuevo Costeo</button>
-
-                <div id="costeosGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem;"></div>
-            </section>
+            <!-- Stubs vacíos para IDs de backward-compat (usados por switchTab interno) -->
+            <section class="section" id="reportes" style="display:none!important;"></section>
+            <section class="section" id="graficas" style="display:none!important;"></section>
+            <section class="section" id="costos" style="display:none!important;"></section>
 
             <!-- COTIZACIONES -->
             <section class="section" id="cotizaciones">
@@ -4312,9 +4321,15 @@ function handleLogout() {
 }
 
 function switchTab(tab, btn) {
+    // Remap tabs financieros individuales → pestaña unificada Finanzas
+    var _subFinanzas = null;
+    if (['reportes','graficas','costos'].includes(tab)) {
+        _subFinanzas = tab;
+        tab = 'finanzas';
+    }
+
     // Empleados no pueden acceder a secciones financieras — bloqueo silencioso
-    const _tabsFinancieros = ['reportes','graficas','costos'];
-    if (_tabsFinancieros.includes(tab) && window.currentRole === 'empleado') {
+    if (tab === 'finanzas' && window.currentRole === 'empleado') {
         return;
     }
 
@@ -4331,12 +4346,10 @@ function switchTab(tab, btn) {
     else if (tab === 'cajas') renderCajas();
     else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
     else if (tab === 'inventario') renderInventario();
-    else if (tab === 'reportes') renderReportes();
-    else if (tab === 'graficas') renderGraficas();
+    else if (tab === 'finanzas') { renderFinanzas(_subFinanzas); }
     else if (tab === 'cotizaciones') renderCotizaciones();
     else if (tab === 'ajustes') renderAjustes();
     else if (tab === 'citas') renderCitas();
-    else if (tab === 'costos') renderCostos();
     else if (tab === 'clientes') renderCRM();
     else if (tab === 'equipo') renderEquipo();
 }
@@ -9151,6 +9164,41 @@ renderAjustes = function() {
         if (el) el.style.display = 'none';
     });
 };
+
+// ══════════════════════════════════════════════════════
+// ═══ FINANZAS: sub-tabs Reportes / Gráficas / Costos ═
+// ══════════════════════════════════════════════════════
+var _activeFinanzasTab = 'reportes';
+
+function switchFinanzas(sub, btn) {
+    _activeFinanzasTab = sub;
+    ['reportes','graficas','costos'].forEach(function(s) {
+        var panel = document.getElementById('finPanel-' + s);
+        if (panel) panel.style.display = s === sub ? '' : 'none';
+        var tabBtn = document.getElementById('finTab-' + s);
+        if (tabBtn) {
+            if (s === sub) {
+                tabBtn.style.background = 'var(--orange)';
+                tabBtn.style.color = '#fff';
+                tabBtn.style.border = 'none';
+                tabBtn.style.fontWeight = '700';
+            } else {
+                tabBtn.style.background = 'var(--bg3)';
+                tabBtn.style.color = 'var(--muted)';
+                tabBtn.style.border = '1px solid var(--border)';
+                tabBtn.style.fontWeight = '400';
+            }
+        }
+    });
+    if (sub === 'reportes') renderReportes();
+    else if (sub === 'graficas') renderGraficas();
+    else if (sub === 'costos') renderCostos();
+}
+
+function renderFinanzas(sub) {
+    if (window.currentRole !== 'dueno') return;
+    switchFinanzas(sub || _activeFinanzasTab);
+}
 
 function renderEquipo() {
     var esDueno = window.currentRole === 'dueno';
