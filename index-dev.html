@@ -1624,7 +1624,7 @@ function cerrarSplash() {
                 <div id="historialCajaHoy" style="margin-top:2rem;"></div>
 
                 <!-- Cuentas por cobrar -->
-                <div id="seccionCuentasCobrar" class="dueno-only" style="margin-top:2rem; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem;">
+                <div id="seccionCuentasCobrar" style="margin-top:2rem; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem;">
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
                         <div>
                             <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">💰 Cuentas por Cobrar</h3>
@@ -4377,7 +4377,7 @@ function switchTab(tab, btn) {
 
     if (tab === 'inicio') renderInicio();
     else if (tab === 'cajas') renderCajas();
-    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); if (window.currentRole === 'dueno') renderCuentasCobrar(); }
+    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); renderCuentasCobrar(); }
     else if (tab === 'inventario') renderInventario();
     else if (tab === 'finanzas') { renderFinanzas(_subFinanzas); }
     else if (tab === 'cotizaciones') renderCotizaciones();
