@@ -18,7 +18,7 @@ try {
   });
 } catch(e) { console.warn('FCM SW init failed:', e); }
 
-var CACHE_NAME = 'nexova-v12';
+var CACHE_NAME = 'nexova-v13';
 // Videos excluded — large files cause install timeouts; cached lazily on first fetch
 var urlsToCache = [
   './icon-192.png',
@@ -33,6 +33,7 @@ self.addEventListener('install', function(event) {
       return cache.addAll(urlsToCache);
     })
   );
+  // Activate immediately — do not wait for old SW to release
   self.skipWaiting();
 });
 
@@ -48,6 +49,7 @@ self.addEventListener('activate', function(event) {
       );
     })
   );
+  // Take control of all open pages immediately
   self.clients.claim();
 });
 
@@ -59,11 +61,15 @@ self.addEventListener('fetch', function(event) {
     || url.pathname.endsWith('/Nexova/');
 
   if (isHtml) {
-    // HTML: red primero, fallback a caché, fallback a 404 offline
+    // HTML: ALWAYS fetch fresh from network bypassing ALL caches.
+    // cache:'reload' forces the browser to skip HTTP cache too (not just SW cache).
+    // Fallback to SW cache only when offline.
     event.respondWith(
-      fetch(event.request).then(function(response) {
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
+      fetch(event.request, { cache: 'reload' }).then(function(response) {
+        if (response && response.status === 200) {
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
+        }
         return response;
       }).catch(function() {
         return caches.match(event.request).then(function(cached) {
@@ -74,7 +80,7 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Videos, imágenes, fuentes: caché primero
+  // Static assets (icons, images, fonts): cache-first
   event.respondWith(
     caches.match(event.request).then(function(cached) {
       if (cached) return cached;
@@ -85,7 +91,6 @@ self.addEventListener('fetch', function(event) {
         }
         return response;
       }).catch(function() {
-        // Sin red y sin caché: respuesta vacía en lugar de error
         return new Response('', { status: 503 });
       });
     })
