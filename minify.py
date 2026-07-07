@@ -1,8 +1,25 @@
-import re, os
+import re, os, time
 
 src = os.path.join(os.path.dirname(__file__), 'index-dev.html')
 dst = os.path.join(os.path.dirname(__file__), 'index.html')
+sw  = os.path.join(os.path.dirname(__file__), 'sw.js')
 
+# ── Auto-bump SW cache version on every build ───────────────────────────────
+# Uses Unix timestamp so it's always unique and never needs manual bumping.
+build_ts = int(time.time())
+sw_version = f'nexova-b{build_ts}'
+
+with open(sw, 'r', encoding='utf-8') as f:
+    sw_content = f.read()
+
+sw_content = re.sub(r"var CACHE_NAME = 'nexova-[^']*';",
+                    f"var CACHE_NAME = '{sw_version}';",
+                    sw_content)
+
+with open(sw, 'w', encoding='utf-8') as f:
+    f.write(sw_content)
+
+# ── Minify HTML ──────────────────────────────────────────────────────────────
 with open(src, 'r', encoding='utf-8') as f:
     html = f.read()
 
@@ -38,4 +55,4 @@ with open(dst, 'w', encoding='utf-8') as f:
 
 src_kb = os.path.getsize(src) // 1024
 dst_kb = os.path.getsize(dst) // 1024
-print(f'Minified: {src_kb}KB → {dst_kb}KB')
+print(f'Minified: {src_kb}KB → {dst_kb}KB  |  SW: {sw_version}')
