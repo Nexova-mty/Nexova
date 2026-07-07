@@ -1566,7 +1566,7 @@ function cerrarSplash() {
             <button class="nav-btn" onclick="switchTab('citas', this)">Citas</button>
             <button class="nav-btn" onclick="switchTab('cotizaciones', this)">Cotizaciones</button>
             <button class="nav-btn" onclick="switchTab('clientes', this)">Clientes</button>
-            <button class="nav-btn" onclick="switchTab('equipo', this)">Equipo</button>
+            <button class="nav-btn dueno-only" onclick="switchTab('equipo', this)">Equipo</button>
             <button class="nav-btn" onclick="switchTab('ajustes', this)" id="btnAjustes" style="margin-top:auto; border-top:1px solid var(--border); padding-top:0.8rem;">Ajustes</button>
         </div>
 
@@ -1622,6 +1622,18 @@ function cerrarSplash() {
 
                 <!-- Historial de ventas de la caja activa hoy -->
                 <div id="historialCajaHoy" style="margin-top:2rem;"></div>
+
+                <!-- Cuentas por cobrar -->
+                <div id="seccionCuentasCobrar" class="dueno-only" style="margin-top:2rem; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">💰 Cuentas por Cobrar</h3>
+                            <p style="color:var(--muted); font-size:0.82rem;">Ventas a crédito o pagos pendientes de clientes.</p>
+                        </div>
+                        <button onclick="abrirModalNuevaCuenta()" style="background:var(--orange);color:#fff;border:none;padding:0.55rem 1.1rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.85rem;min-height:40px;">+ Agregar</button>
+                    </div>
+                    <div id="listaCuentasCobrar"></div>
+                </div>
             </section>
 
             <!-- INVENTARIO -->
@@ -1970,18 +1982,6 @@ function cerrarSplash() {
                         <button onclick="guardarAvisoEmpleados()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Publicar aviso</button>
                         <button onclick="borrarAvisoEmpleados()" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1.2rem;border-radius:6px;cursor:pointer;font-size:0.9rem;min-height:44px;">Quitar aviso</button>
                     </div>
-                </div>
-
-                <!-- ═══ CUENTAS POR COBRAR ═══ -->
-                <div id="seccionCuentasCobrar" style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
-                        <div>
-                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">💰 Cuentas por Cobrar</h3>
-                            <p style="color:var(--muted); font-size:0.82rem;">Pagos pendientes de clientes o servicios a crédito.</p>
-                        </div>
-                        <button onclick="abrirModalNuevaCuenta()" style="background:var(--orange);color:#fff;border:none;padding:0.55rem 1.1rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.85rem;min-height:40px;">+ Agregar</button>
-                    </div>
-                    <div id="listaCuentasCobrar"></div>
                 </div>
 
                 <!-- ═══ LOG DE ACTIVIDAD ═══ -->
@@ -4377,7 +4377,7 @@ function switchTab(tab, btn) {
 
     if (tab === 'inicio') renderInicio();
     else if (tab === 'cajas') renderCajas();
-    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); }
+    else if (tab === 'pos') { renderCajasSelect(); renderProductos(); renderCarrito(); renderHistorialCaja(); if (window.currentRole === 'dueno') renderCuentasCobrar(); }
     else if (tab === 'inventario') renderInventario();
     else if (tab === 'finanzas') { renderFinanzas(_subFinanzas); }
     else if (tab === 'cotizaciones') renderCotizaciones();
@@ -9290,20 +9290,12 @@ function renderFinanzas(sub) {
 }
 
 function renderEquipo() {
-    var esDueno = window.currentRole === 'dueno';
+    if (window.currentRole !== 'dueno') return;
     var user = window.currentUser;
     var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
-    // Aviso y log: solo dueño
-    ['seccionAvisosEmpleados','seccionLogActividad'].forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.style.display = esDueno ? '' : 'none';
-    });
-    if (esDueno) {
-        var avisoInp = document.getElementById('inputAvisoEmpleados');
-        if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
-        renderLogActividad();
-    }
-    renderCuentasCobrar();
+    var avisoInp = document.getElementById('inputAvisoEmpleados');
+    if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
+    renderLogActividad();
 }
 
 // ══════════════════════════════════════════════════════
