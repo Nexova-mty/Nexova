@@ -2085,15 +2085,10 @@ function cerrarSplash() {
                     <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Aviso para Empleados</h3>
                     <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Este mensaje aparece en el inicio de cada empleado cuando entra al sistema.</p>
                     <textarea id="inputAvisoEmpleados" rows="3" placeholder="Ej: Hoy hay inventario a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.8rem;border-radius:6px;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:0.8rem;"></textarea>
-                    <div style="margin-bottom:0.8rem;">
-                        <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.3rem;">¿Cuánto tiempo debe mostrarse?</label>
-                        <select id="inputAvisoDuracion" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.6rem 0.8rem;border-radius:6px;font-size:0.88rem;">
-                            <option value="1">1 día</option>
-                            <option value="3">3 días</option>
-                            <option value="7" selected>1 semana</option>
-                            <option value="14">2 semanas</option>
-                            <option value="0">Sin vencimiento</option>
-                        </select>
+                    <div style="margin-bottom:0.8rem;display:flex;align-items:center;gap:0.6rem;">
+                        <label style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">Duración:</label>
+                        <input id="inputAvisoDuracion" type="number" min="0" placeholder="días (0 = sin límite)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.55rem 0.8rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;" />
+                        <span style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">días</span>
                     </div>
                     <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
                         <button onclick="guardarAvisoEmpleados()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Publicar aviso</button>
@@ -9037,7 +9032,7 @@ function guardarAvisoEmpleados() {
     var user = window.currentUser;
     var texto = (document.getElementById('inputAvisoEmpleados').value||'').trim();
     if (!texto) { showToast('Escribe el aviso antes de publicar', 'error'); return; }
-    var dias = parseInt(document.getElementById('inputAvisoDuracion').value || '7');
+    var dias = parseInt(document.getElementById('inputAvisoDuracion').value) || 0;
     var expira = dias > 0 ? Date.now() + dias * 86400000 : null;
     var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
     data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now(), expira: expira };
@@ -9214,15 +9209,10 @@ function adminAbrirAvisoModal(username, negocio) {
         '</div>' +
         '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Mensaje para empleados (aparece en su pantalla de inicio)</div>' +
         '<textarea id="_adminAvisoTexto" rows="4" maxlength="400" placeholder="Ej: Reunión hoy a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:0.8rem;">' + escapeHTML(avisoActual) + '</textarea>' +
-        '<div style="margin-bottom:1rem;">' +
-            '<label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.3rem;">¿Cuánto tiempo debe mostrarse?</label>' +
-            '<select id="_adminAvisoDuracion" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.7rem;border-radius:6px;font-size:0.85rem;">' +
-                '<option value="1">1 día</option>' +
-                '<option value="3">3 días</option>' +
-                '<option value="7" selected>1 semana</option>' +
-                '<option value="14">2 semanas</option>' +
-                '<option value="0">Sin vencimiento</option>' +
-            '</select>' +
+        '<div style="margin-bottom:1rem;display:flex;align-items:center;gap:0.6rem;">' +
+            '<label style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">Duración:</label>' +
+            '<input id="_adminAvisoDuracion" type="number" min="0" placeholder="días (0 = sin límite)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.7rem;border-radius:6px;font-size:0.85rem;box-sizing:border-box;" />' +
+            '<span style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">días</span>' +
         '</div>' +
         '<div style="display:flex;gap:0.6rem;">' +
             '<button onclick="adminGuardarAviso(\'' + escapeHTML(username) + '\')" style="flex:1;background:var(--orange);color:#fff;border:none;padding:0.65rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:42px;">Publicar aviso</button>' +
@@ -9236,7 +9226,7 @@ async function adminGuardarAviso(username) {
     if (!_isAdmin) return;
     var texto = (document.getElementById('_adminAvisoTexto').value || '').trim();
     if (!texto) { showToast('Escribe el aviso', 'error'); return; }
-    var dias = parseInt(document.getElementById('_adminAvisoDuracion').value || '7');
+    var dias = parseInt(document.getElementById('_adminAvisoDuracion').value) || 0;
     var expira = dias > 0 ? Date.now() + dias * 86400000 : null;
     var data = {};
     try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
