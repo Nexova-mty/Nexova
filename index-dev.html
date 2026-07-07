@@ -1567,6 +1567,7 @@ function cerrarSplash() {
             <button class="nav-btn dueno-only" onclick="switchTab('costos', this)" id="btnCostos">Costos</button>
             <button class="nav-btn" onclick="switchTab('cotizaciones', this)">Cotizaciones</button>
             <button class="nav-btn" onclick="switchTab('clientes', this)">Clientes</button>
+            <button class="nav-btn dueno-only" onclick="switchTab('equipo', this)">Equipo</button>
             <button class="nav-btn" onclick="switchTab('ajustes', this)" id="btnAjustes" style="margin-top:auto; border-top:1px solid var(--border); padding-top:0.8rem;">Ajustes</button>
         </div>
 
@@ -1940,6 +1941,57 @@ function cerrarSplash() {
             </section>
 
             <!-- AJUSTES -->
+            <!-- EQUIPO -->
+            <section class="section" id="equipo">
+                <h2 class="section-title">Equipo <em>&amp; Operaciones</em></h2>
+
+                <!-- ═══ AVISOS A EMPLEADOS ═══ -->
+                <div id="seccionAvisosEmpleados" style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">📢 Aviso para Empleados</h3>
+                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Este mensaje aparece en el inicio de cada empleado cuando entra al sistema.</p>
+                    <textarea id="inputAvisoEmpleados" rows="3" placeholder="Ej: Hoy hay inventario a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.8rem;border-radius:6px;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:0.8rem;"></textarea>
+                    <div style="margin-bottom:0.8rem;display:flex;align-items:center;gap:0.6rem;">
+                        <label style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">Duración:</label>
+                        <input id="inputAvisoDuracion" type="number" min="0" placeholder="días (0 = sin límite)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.55rem 0.8rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;" />
+                        <span style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">días</span>
+                    </div>
+                    <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+                        <button onclick="guardarAvisoEmpleados()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Publicar aviso</button>
+                        <button onclick="borrarAvisoEmpleados()" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1.2rem;border-radius:6px;cursor:pointer;font-size:0.9rem;min-height:44px;">Quitar aviso</button>
+                    </div>
+                </div>
+
+                <!-- ═══ CUENTAS POR COBRAR ═══ -->
+                <div id="seccionCuentasCobrar" style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">💰 Cuentas por Cobrar</h3>
+                            <p style="color:var(--muted); font-size:0.82rem;">Pagos pendientes de clientes o servicios a crédito.</p>
+                        </div>
+                        <button onclick="abrirModalNuevaCuenta()" style="background:var(--orange);color:#fff;border:none;padding:0.55rem 1.1rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.85rem;min-height:40px;">+ Agregar</button>
+                    </div>
+                    <div id="listaCuentasCobrar"></div>
+                </div>
+
+                <!-- ═══ LOG DE ACTIVIDAD ═══ -->
+                <div id="seccionLogActividad" style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
+                        <div>
+                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">📋 Log de Actividad</h3>
+                            <p style="color:var(--muted); font-size:0.82rem;">Todo lo que ocurrió en tu negocio, por quién y cuándo.</p>
+                        </div>
+                        <select id="filtroLogActividad" onchange="renderLogActividad()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.8rem;border-radius:6px;font-size:0.85rem;">
+                            <option value="todos">Todos</option>
+                            <option value="ventas">Ventas</option>
+                            <option value="productos">Productos</option>
+                            <option value="turnos">Turnos</option>
+                            <option value="citas">Citas</option>
+                        </select>
+                    </div>
+                    <div id="listaLogActividad"></div>
+                </div>
+            </section>
+
             <section class="section" id="ajustes">
                 <h2 class="section-title">Ajustes <em>de Cuenta</em></h2>
 
@@ -2078,52 +2130,6 @@ function cerrarSplash() {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- ═══ AVISOS A EMPLEADOS (solo dueño) ═══ -->
-                <div id="seccionAvisosEmpleados" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
-                    <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Aviso para Empleados</h3>
-                    <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Este mensaje aparece en el inicio de cada empleado cuando entra al sistema.</p>
-                    <textarea id="inputAvisoEmpleados" rows="3" placeholder="Ej: Hoy hay inventario a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.8rem;border-radius:6px;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:0.8rem;"></textarea>
-                    <div style="margin-bottom:0.8rem;display:flex;align-items:center;gap:0.6rem;">
-                        <label style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">Duración:</label>
-                        <input id="inputAvisoDuracion" type="number" min="0" placeholder="días (0 = sin límite)" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.55rem 0.8rem;border-radius:6px;font-size:0.88rem;box-sizing:border-box;" />
-                        <span style="font-size:0.8rem;color:var(--muted);white-space:nowrap;">días</span>
-                    </div>
-                    <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
-                        <button onclick="guardarAvisoEmpleados()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Publicar aviso</button>
-                        <button onclick="borrarAvisoEmpleados()" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1.2rem;border-radius:6px;cursor:pointer;font-size:0.9rem;min-height:44px;">Quitar aviso</button>
-                    </div>
-                </div>
-
-                <!-- ═══ CUENTAS POR COBRAR (solo dueño) ═══ -->
-                <div id="seccionCuentasCobrar" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
-                        <div>
-                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">Cuentas por Cobrar</h3>
-                            <p style="color:var(--muted); font-size:0.82rem;">Pagos pendientes de clientes o servicios a crédito.</p>
-                        </div>
-                        <button onclick="abrirModalNuevaCuenta()" style="background:var(--orange);color:#fff;border:none;padding:0.55rem 1.1rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.85rem;min-height:40px;">+ Agregar</button>
-                    </div>
-                    <div id="listaCuentasCobrar"></div>
-                </div>
-
-                <!-- ═══ LOG DE ACTIVIDAD (solo dueño) ═══ -->
-                <div id="seccionLogActividad" style="display:none; background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.6rem;margin-bottom:1rem;">
-                        <div>
-                            <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.2rem; text-transform:uppercase; letter-spacing:0.05em;">Log de Actividad</h3>
-                            <p style="color:var(--muted); font-size:0.82rem;">Todo lo que ocurrió en tu negocio, por quién y cuándo.</p>
-                        </div>
-                        <select id="filtroLogActividad" onchange="renderLogActividad()" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.8rem;border-radius:6px;font-size:0.85rem;">
-                            <option value="todos">Todos</option>
-                            <option value="ventas">Ventas</option>
-                            <option value="productos">Productos</option>
-                            <option value="turnos">Turnos</option>
-                            <option value="citas">Citas</option>
-                        </select>
-                    </div>
-                    <div id="listaLogActividad"></div>
                 </div>
 
                 <!-- ═══ PLANTILLA POR GIRO (solo dueño) ═══ -->
@@ -4307,7 +4313,7 @@ function handleLogout() {
 
 function switchTab(tab, btn) {
     // Empleados no pueden acceder a secciones financieras — bloqueo silencioso
-    const _tabsFinancieros = ['reportes','graficas','costos'];
+    const _tabsFinancieros = ['reportes','graficas','costos','equipo'];
     if (_tabsFinancieros.includes(tab) && window.currentRole === 'empleado') {
         return;
     }
@@ -4332,6 +4338,7 @@ function switchTab(tab, btn) {
     else if (tab === 'citas') renderCitas();
     else if (tab === 'costos') renderCostos();
     else if (tab === 'clientes') renderCRM();
+    else if (tab === 'equipo') renderEquipo();
 }
 
 function filtrarProductosPOS() {
@@ -9138,26 +9145,22 @@ function aplicarPlantillaGiro(giro) {
 var _renderAjustesOriginal = renderAjustes;
 renderAjustes = function() {
     _renderAjustesOriginal();
-    var esDueno = window.currentRole === 'dueno';
-    var user = window.currentUser;
-    var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
-    var secciones = ['seccionAvisosEmpleados','seccionCuentasCobrar','seccionLogActividad'];
-    secciones.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el) el.style.display = esDueno ? '' : 'none';
-    });
     // Ticket design and plantilla: admin only — always hidden for dueño
     ['seccionTicketDesign','seccionPlantillaGiro'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
-    if (esDueno) {
-        var avisoInp = document.getElementById('inputAvisoEmpleados');
-        if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
-        renderCuentasCobrar();
-        renderLogActividad();
-    }
 };
+
+function renderEquipo() {
+    if (window.currentRole !== 'dueno') return;
+    var user = window.currentUser;
+    var data = JSON.parse(localStorage.getItem('data_'+(user||''))||'{}');
+    var avisoInp = document.getElementById('inputAvisoEmpleados');
+    if (avisoInp && data.avisoEmpleados) avisoInp.value = data.avisoEmpleados.texto || '';
+    renderCuentasCobrar();
+    renderLogActividad();
+}
 
 // ══════════════════════════════════════════════════════
 // ═══ AVISO EN INICIO DE EMPLEADOS ═══════════════════
