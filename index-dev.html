@@ -2085,6 +2085,16 @@ function cerrarSplash() {
                     <h3 style="font-size:1rem; font-weight:700; color:var(--white); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em;">Aviso para Empleados</h3>
                     <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Este mensaje aparece en el inicio de cada empleado cuando entra al sistema.</p>
                     <textarea id="inputAvisoEmpleados" rows="3" placeholder="Ej: Hoy hay inventario a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.8rem;border-radius:6px;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:0.8rem;"></textarea>
+                    <div style="margin-bottom:0.8rem;">
+                        <label style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:0.3rem;">¿Cuánto tiempo debe mostrarse?</label>
+                        <select id="inputAvisoDuracion" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.6rem 0.8rem;border-radius:6px;font-size:0.88rem;">
+                            <option value="1">1 día</option>
+                            <option value="3">3 días</option>
+                            <option value="7" selected>1 semana</option>
+                            <option value="14">2 semanas</option>
+                            <option value="0">Sin vencimiento</option>
+                        </select>
+                    </div>
                     <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
                         <button onclick="guardarAvisoEmpleados()" style="background:var(--orange);color:#fff;border:none;padding:0.65rem 1.4rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:44px;">Publicar aviso</button>
                         <button onclick="borrarAvisoEmpleados()" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1.2rem;border-radius:6px;cursor:pointer;font-size:0.9rem;min-height:44px;">Quitar aviso</button>
@@ -3287,7 +3297,7 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                 var tcCierre = tc.mensajeCierre || '';
                 var tcTerminos = tc.terminos || '';
                 var disenoLabel = {clasico:'Clásico', moderno:'Moderno', minimalista:'Minimalista'};
-                var avisoActivo = data.avisoEmpleados && data.avisoEmpleados.texto ? data.avisoEmpleados : null;
+                var avisoActivo = data.avisoEmpleados && data.avisoEmpleados.texto && !(data.avisoEmpleados.expira && Date.now() > data.avisoEmpleados.expira) ? data.avisoEmpleados : null;
                 html += '<div style="background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1.2rem;">' +
                     '<div style="font-weight:700; color:var(--white); font-size:1rem; margin-bottom:0.8rem;">' + escapeHTML(c.negocio) + '</div>' +
                     '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; margin-bottom:0.9rem;">' +
@@ -3309,7 +3319,7 @@ async function renderAdminMonitor() { if(!_isAdmin)return;
                     (avisoActivo ? '<div style="border-top:1px solid var(--border);padding-top:0.7rem;margin-top:0.6rem;">' +
                         '<div style="font-size:0.72rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.3rem;">📢 Aviso activo</div>' +
                         '<div style="font-size:0.82rem;color:var(--white);line-height:1.4;margin-bottom:0.25rem;">"' + escapeHTML(avisoActivo.texto) + '"</div>' +
-                        '<div style="font-size:0.7rem;color:var(--muted);">Publicado: ' + escapeHTML(avisoActivo.fecha||'') + '</div>' +
+                        '<div style="font-size:0.7rem;color:var(--muted);">Publicado: ' + escapeHTML(avisoActivo.fecha||'') + (avisoActivo.expira ? ' · Vence: ' + new Date(avisoActivo.expira).toLocaleDateString('es-MX') : ' · Sin vencimiento') + '</div>' +
                     '</div>' : '') +
                     '<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.6rem;">' +
                         '<button onclick="adminAbrirAvisoModal(\'' + escapeHTML(c.username) + '\',\'' + escapeHTML(c.negocio) + '\')" style="background:var(--bg3);color:var(--white);border:1px solid var(--border);padding:0.3rem 0.7rem;border-radius:5px;cursor:pointer;font-size:0.76rem;min-height:28px;">📢 Aviso</button>' +
@@ -9027,8 +9037,10 @@ function guardarAvisoEmpleados() {
     var user = window.currentUser;
     var texto = (document.getElementById('inputAvisoEmpleados').value||'').trim();
     if (!texto) { showToast('Escribe el aviso antes de publicar', 'error'); return; }
+    var dias = parseInt(document.getElementById('inputAvisoDuracion').value || '7');
+    var expira = dias > 0 ? Date.now() + dias * 86400000 : null;
     var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
-    data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now() };
+    data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now(), expira: expira };
     guardarDatos(user, data);
     showToast('Aviso publicado para todos los empleados');
     _registrarCambio(user, 'Aviso publicado a empleados');
@@ -9164,6 +9176,12 @@ renderInicio = function() {
     if (esDueno || !user) return;
     var data = JSON.parse(localStorage.getItem('data_'+user)||'{}');
     if (!data.avisoEmpleados || !data.avisoEmpleados.texto) return;
+    // Auto-expire: if expira is set and past, remove aviso silently
+    if (data.avisoEmpleados.expira && Date.now() > data.avisoEmpleados.expira) {
+        delete data.avisoEmpleados;
+        guardarDatos(user, data);
+        return;
+    }
     var cont = document.getElementById('inicioContenido');
     if (!cont) return;
     var existing = document.getElementById('_avisoEmpleadosBanner');
@@ -9171,9 +9189,10 @@ renderInicio = function() {
     var banner = document.createElement('div');
     banner.id = '_avisoEmpleadosBanner';
     banner.style.cssText = 'background:rgba(244,106,31,0.12);border:1px solid rgba(244,106,31,0.5);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:0.8rem;';
+    var expiraLabel = data.avisoEmpleados.expira ? ' · Vence: ' + new Date(data.avisoEmpleados.expira).toLocaleDateString('es-MX') : '';
     banner.innerHTML = '<span style="font-size:1.2rem;flex-shrink:0;">📢</span>' +
         '<div>' +
-            '<div style="font-weight:700;color:var(--orange);font-size:0.85rem;margin-bottom:0.2rem;">Aviso del dueño · '+escapeHTML(data.avisoEmpleados.fecha||'')+'</div>' +
+            '<div style="font-weight:700;color:var(--orange);font-size:0.85rem;margin-bottom:0.2rem;">Aviso del dueño · '+escapeHTML(data.avisoEmpleados.fecha||'')+escapeHTML(expiraLabel)+'</div>' +
             '<div style="color:var(--white);font-size:0.9rem;line-height:1.5;">'+escapeHTML(data.avisoEmpleados.texto)+'</div>' +
         '</div>';
     cont.insertBefore(banner, cont.firstChild);
@@ -9194,7 +9213,17 @@ function adminAbrirAvisoModal(username, negocio) {
             '<button onclick="document.getElementById(\'_adminAvisoOverlay\').remove()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">×</button>' +
         '</div>' +
         '<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.3rem;">Mensaje para empleados (aparece en su pantalla de inicio)</div>' +
-        '<textarea id="_adminAvisoTexto" rows="4" maxlength="400" placeholder="Ej: Reunión hoy a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:1rem;">' + escapeHTML(avisoActual) + '</textarea>' +
+        '<textarea id="_adminAvisoTexto" rows="4" maxlength="400" placeholder="Ej: Reunión hoy a las 6pm. Puntualidad obligatoria." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.6rem 0.8rem;color:var(--white);font-size:0.88rem;box-sizing:border-box;resize:vertical;margin-bottom:0.8rem;">' + escapeHTML(avisoActual) + '</textarea>' +
+        '<div style="margin-bottom:1rem;">' +
+            '<label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:0.3rem;">¿Cuánto tiempo debe mostrarse?</label>' +
+            '<select id="_adminAvisoDuracion" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:0.5rem 0.7rem;border-radius:6px;font-size:0.85rem;">' +
+                '<option value="1">1 día</option>' +
+                '<option value="3">3 días</option>' +
+                '<option value="7" selected>1 semana</option>' +
+                '<option value="14">2 semanas</option>' +
+                '<option value="0">Sin vencimiento</option>' +
+            '</select>' +
+        '</div>' +
         '<div style="display:flex;gap:0.6rem;">' +
             '<button onclick="adminGuardarAviso(\'' + escapeHTML(username) + '\')" style="flex:1;background:var(--orange);color:#fff;border:none;padding:0.65rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;min-height:42px;">Publicar aviso</button>' +
             '<button onclick="adminBorrarAviso(\'' + escapeHTML(username) + '\')" style="background:transparent;color:#f87171;border:1px solid #f87171;padding:0.65rem 1rem;border-radius:8px;cursor:pointer;font-size:0.88rem;min-height:42px;">Quitar</button>' +
@@ -9207,9 +9236,11 @@ async function adminGuardarAviso(username) {
     if (!_isAdmin) return;
     var texto = (document.getElementById('_adminAvisoTexto').value || '').trim();
     if (!texto) { showToast('Escribe el aviso', 'error'); return; }
+    var dias = parseInt(document.getElementById('_adminAvisoDuracion').value || '7');
+    var expira = dias > 0 ? Date.now() + dias * 86400000 : null;
     var data = {};
     try { data = JSON.parse(localStorage.getItem('data_' + username) || '{}'); } catch(e) {}
-    data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now() };
+    data.avisoEmpleados = { texto: texto, fecha: new Date().toLocaleDateString('es-MX'), ts: Date.now(), expira: expira };
     localStorage.setItem('data_' + username, JSON.stringify(data));
     if (_db) { try { await _db.collection('negocios').doc(username).set({ avisoEmpleados: data.avisoEmpleados }, { merge: true }); } catch(e) { console.warn(e); } }
     document.getElementById('_adminAvisoOverlay').remove();
