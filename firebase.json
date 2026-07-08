@@ -1,0 +1,20 @@
+{
+  "firestore": {
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "node_modules/**",
+      ".git/**",
+      ".firebase/**",
+      ".DS_Store",
+      "package.json",
+      "package-lock.json",
+      "minify.py",
+      "index-dev.html"
+    ]
+  }
+}
