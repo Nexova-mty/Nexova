@@ -51,10 +51,10 @@ self.addEventListener('activate', function(event) {
       // Take control of all open pages immediately
       return self.clients.claim();
     }).then(function() {
-      // Force reload all controlled pages so they get the latest HTML
+      // Notify open tabs that a new version is available — let them decide when to reload
       return self.clients.matchAll({ type: 'window' }).then(function(clients) {
         clients.forEach(function(client) {
-          client.navigate(client.url);
+          client.postMessage({ type: 'SW_UPDATED' });
         });
       });
     })
