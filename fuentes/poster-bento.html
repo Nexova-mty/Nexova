@@ -1,0 +1,111 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — Bento</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:100vh;overflow:hidden}
+body{background:#08080a;font-family:'Archivo';position:relative;display:flex;flex-direction:column;
+ padding:46px 44px 40px;color:#fff}
+.bgglow{position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:radial-gradient(70% 45% at 78% 6%,rgba(244,106,31,.28),transparent 60%),
+            radial-gradient(60% 40% at 12% 96%,rgba(244,106,31,.16),transparent 62%)}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.09;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;flex:none}
+.logo img{height:44px;width:auto;display:block}
+.eyebrow{font-family:'SpaceMono';font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:#ff9a54;text-align:right}
+.headline{position:relative;z-index:2;flex:none;margin:26px 0 22px}
+.headline h1{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 112;font-size:60px;line-height:.98;
+ letter-spacing:-.02em;color:#fff}
+.headline h1 .o{color:#ff8c42}
+.headline p{font-family:'Archivo';font-variation-settings:'wght' 500;font-size:19px;color:#b9b4ad;margin-top:12px;max-width:60ch}
+/* BENTO */
+.bento{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
+.brow{display:flex;gap:14px;min-height:0}
+.brow.a{flex:1.55}.brow.b{flex:1}
+.col{display:flex;flex-direction:column;gap:14px;flex:1;min-height:0}
+.tile{position:relative;flex:1;border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.09);
+ background:#0e0e12;min-height:0;box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.tile.dash{flex:1.15}
+.tile::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:linear-gradient(180deg,rgba(8,8,10,.14) 0%,rgba(8,8,10,0) 22%,rgba(8,8,10,0) 55%,rgba(8,8,10,.78) 100%)}
+.lab{position:absolute;left:14px;bottom:14px;z-index:2;display:flex;align-items:center;gap:8px;
+ padding:8px 14px;border-radius:999px;background:rgba(10,10,12,.72);border:1px solid rgba(255,255,255,.1);
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.lab .dot{width:7px;height:7px;border-radius:50%;background:#ff8c42;box-shadow:0 0 10px #ff8c42;flex:none}
+.lab span{font-family:'SpaceMono';font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:#fff;white-space:nowrap}
+.lab .n{font-family:'SpaceMono';font-size:12px;color:#ff9a54;margin-left:2px}
+/* FOOTER */
+.foot{position:relative;z-index:2;flex:none;display:flex;justify-content:space-between;align-items:center;margin-top:22px}
+.foot .mods{font-family:'SpaceMono';font-size:13px;letter-spacing:.16em;color:#8a857e;text-transform:uppercase}
+.foot .mods b{color:#fff;font-weight:400}
+.foot .cta{font-family:'SpaceMono';font-size:16px;letter-spacing:.04em;color:#fff;display:flex;align-items:center;gap:8px}
+.foot .cta b{color:#ff8c42}
+/* STORY 1080x1920 */
+@media (min-height:1700px){
+ body{padding:120px 56px 110px}
+ .headline{margin:40px 0 32px}
+ .headline h1{font-size:76px}
+ .headline p{font-size:23px}
+ .bento{gap:18px}
+ .brow{gap:18px}.col{gap:18px}
+ .foot{margin-top:34px}
+ .foot .cta{font-size:20px}
+}
+/* SQUARE 1080x1080 */
+@media (max-height:1200px){
+ body{padding:40px 40px 36px}
+ .headline{margin:18px 0 16px}
+ .headline h1{font-size:50px}
+ .headline p{display:none}
+ .brow.a{flex:1.4}
+}
+</style></head><body>
+<div class="bgglow"></div><div class="grain"></div>
+
+<div class="top">
+  <div class="logo"><img src="logo-lockup.png" alt="NEXOVA"></div>
+  <div class="eyebrow">Sistema de gestión · Monterrey</div>
+</div>
+
+<div class="headline">
+  <h1>Todo tu negocio.<br>En una sola app<span class="o">.</span></h1>
+  <p>Ventas, inventario, citas, clientes y reportes — controla cada área desde tu celular, en tiempo real.</p>
+</div>
+
+<div class="bento">
+  <div class="brow a">
+    <div class="tile dash">
+      <img src="appshots/inicio-hd.png" style="object-position:center 33%" alt="Dashboard NEXOVA">
+      <div class="lab"><span class="dot"></span><span>Resumen del día</span><span class="n">$1,200 hoy</span></div>
+    </div>
+    <div class="col">
+      <div class="tile">
+        <img src="appshots/finanzas-graficas-hd.png" style="object-position:center 72%" alt="Gráficas">
+        <div class="lab"><span class="dot"></span><span>Reportes y gráficas</span></div>
+      </div>
+      <div class="tile">
+        <img src="appshots/ventas-hd.png" style="object-position:center 58%" alt="Punto de venta">
+        <div class="lab"><span class="dot"></span><span>Punto de venta</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="brow b">
+    <div class="tile">
+      <img src="appshots/citas-hd.png" style="object-position:center 34%" alt="Citas">
+      <div class="lab"><span class="dot"></span><span>Citas y agenda</span></div>
+    </div>
+    <div class="tile">
+      <img src="appshots/clientes-hd.png" style="object-position:center 40%" alt="Clientes">
+      <div class="lab"><span class="dot"></span><span>Clientes · CRM</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="mods"><b>9</b> herramientas en <b>1</b></div>
+  <div class="cta">nexova-mty.web.app <b>→</b></div>
+</div>
+</body></html>
