@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — MTY</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:100vh;overflow:hidden}
+body{background:#050505;font-family:'Archivo';position:relative;display:flex;flex-direction:column;align-items:center}
+/* central radial glow */
+.glow{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:1500px;height:1200px;z-index:0;
+ background:radial-gradient(38% 32% at 50% 50%,rgba(255,120,40,.34),rgba(216,60,20,.16) 45%,rgba(120,25,8,.07) 64%,rgba(0,0,0,0) 78%)}
+.grain{position:absolute;inset:0;z-index:90;pointer-events:none;opacity:.11;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* main centered stack */
+.main{position:relative;z-index:3;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%}
+h1{font-family:'Anton';font-size:400px;line-height:.88;color:#fff;letter-spacing:-4px;
+ text-shadow:0 0 120px rgba(255,120,40,.25)}
+.sub{font-family:'Archivo';font-variation-settings:'wdth' 125,'wght' 700;font-size:25px;color:#ff8c42;letter-spacing:7px;margin-top:26px}
+/* logo hero with glow behind */
+.logowrap{position:relative;margin-top:88px;display:flex;align-items:center;justify-content:center;
+ background:#050505;border-radius:20px;padding:26px 40px;
+ box-shadow:inset 0 0 0 1.5px rgba(255,140,66,.25), 0 0 90px rgba(255,110,30,.22)}
+.logowrap::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:820px;height:400px;z-index:-1;
+ background:radial-gradient(50% 50% at 50% 50%,rgba(255,120,40,.38),rgba(216,60,20,.14) 55%,rgba(0,0,0,0) 75%)}
+.logowrap img{height:104px;width:auto;display:block}
+.tag{font-family:'SpaceMono';font-size:19px;color:#fff;letter-spacing:4px;margin-top:44px}
+.mods{font-family:'SpaceMono';font-size:14px;color:rgba(255,255,255,.85);letter-spacing:3px;margin-top:26px}
+.mods b{color:#ff8c42;font-weight:400}
+/* footer: URL only, centered */
+.foot{position:relative;z-index:3;width:100%;padding:26px 62px 46px;display:flex;justify-content:center;align-items:center}
+.url{font-family:'SpaceMono';font-size:15px;color:#fff;letter-spacing:2px}
+.url span{color:#ff8c42}
+/* SQUARE 1080 */
+@media (max-height:1200px){
+ h1{font-size:322px;letter-spacing:-3px}
+ .sub{font-size:22px;letter-spacing:6px;margin-top:18px}
+ .logowrap{margin-top:58px;padding:22px 34px;border-radius:18px}
+ .logowrap img{height:92px}
+ .logowrap::before{width:720px;height:340px}
+ .tag{font-size:17px;margin-top:32px}
+ .mods{font-size:12.5px;margin-top:20px}
+ .foot{padding:18px 56px 36px}
+}
+/* STORY 1920 */
+@media (min-height:1700px){
+ h1{font-size:460px}
+ .sub{font-size:27px;letter-spacing:8px;margin-top:34px}
+ .glow{top:44%}
+ .logowrap{margin-top:130px;padding:28px 44px;border-radius:22px}
+ .logowrap img{height:110px}
+ .logowrap::before{width:900px;height:460px}
+ .tag{margin-top:56px;font-size:20px}
+ .mods{margin-top:32px}
+ .foot{padding:30px 62px 84px}
+}
+</style></head><body>
+<div class="glow"></div>
+<div class="grain"></div>
+<div class="main">
+  <h1>MTY.</h1>
+  <div class="sub">SOFTWARE HECHO EN MONTERREY</div>
+  <div class="logowrap"><img src="logo-lockup.png" alt="NEXOVA"></div>
+  <div class="tag">PARA NEGOCIOS DE VERDAD.</div>
+  <div class="mods">VENTAS <b>·</b> CAJA <b>·</b> INVENTARIO <b>·</b> CITAS <b>·</b> REPORTES <b>·</b> ASISTENTE IA</div>
+</div>
+<div class="foot">
+  <div class="url">nexova-mty.web.app <span>→</span></div>
+</div>
+</body></html>

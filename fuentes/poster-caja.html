@@ -1,0 +1,88 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — LA CAJA</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:100vh;overflow:hidden}
+body{background:#F46A1F;font-family:'Archivo';position:relative;display:flex;flex-direction:column}
+.grain{position:absolute;inset:0;z-index:90;pointer-events:none;opacity:.10;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* HEADLINE */
+.head{position:relative;text-align:center;margin-top:38px;z-index:1}
+h1{font-family:'Anton';font-size:262px;line-height:.86;color:#fff;letter-spacing:-4px;white-space:nowrap}
+.axis{position:absolute;right:62px;top:300px;text-align:right;z-index:3}
+.axis div{font-family:'Anton';font-size:31px;line-height:1.12;color:#fff;letter-spacing:1px}
+/* PHONE */
+.stagec{flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;margin-top:-34px}
+.shadow{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:440px;height:90px;border-radius:50%;
+ background:radial-gradient(50% 50% at 50% 50%,rgba(30,8,0,.55),rgba(30,8,0,0) 70%);filter:blur(8px)}
+.tilt{transform:rotate(-2.5deg)}
+.phone{width:340px;background:#0b0b0e;border-radius:54px;padding:11px;position:relative;
+ box-shadow:0 50px 100px rgba(40,10,0,.5),0 14px 34px rgba(40,10,0,.4), inset 0 0 0 2.5px #26262e}
+.screen{width:100%;background:#0a0a0b;border-radius:44px;overflow:hidden;position:relative;display:block}
+.screen::after{content:"";position:absolute;inset:0;border-radius:44px;z-index:6;pointer-events:none;
+ background:linear-gradient(118deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 18%,rgba(255,255,255,0) 34%)}
+/* iOS status bar */
+.sbar{position:relative;z-index:7;height:40px;display:flex;align-items:center;justify-content:space-between;
+ padding:0 26px 0 32px;background:#0a0a0b}
+.sbar .time{font-family:'Archivo';font-variation-settings:'wght' 700;font-size:16px;color:#fff;letter-spacing:.4px}
+.sbar .ic{display:flex;align-items:center;gap:7px}
+.dyn{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:86px;height:22px;background:#000;border-radius:13px;z-index:8}
+.appimg{width:100%;height:auto;display:block}
+/* CLEAN FOOTER */
+.mods{position:relative;z-index:3;text-align:center;font-family:'SpaceMono';font-size:14px;color:#fff;letter-spacing:3px;margin-top:26px}
+.mods b{color:#16161d;font-weight:400}
+.foot{position:relative;z-index:3;width:100%;padding:22px 62px 44px;display:flex;justify-content:space-between;align-items:center}
+.wm{font-family:'Archivo';font-variation-settings:'wdth' 122,'wght' 800;font-size:31px;color:#fff;letter-spacing:1px}
+.wm b{color:#16161d;font-weight:inherit}
+.url{font-family:'SpaceMono';font-size:14px;color:#16161d;letter-spacing:2px;font-weight:700}
+/* SQUARE 1080 */
+@media (max-height:1200px){
+ h1{font-size:218px;letter-spacing:-3px}
+ .head{margin-top:24px}
+ .axis{top:246px;right:58px}
+ .axis div{font-size:26px}
+ .stagec{margin-top:-26px}
+ .phone{width:272px;border-radius:46px;padding:9px}
+ .screen{border-radius:38px}
+ .sbar{height:34px;padding:0 22px 0 27px}
+ .sbar .time{font-size:14px}
+ .dyn{width:74px;height:19px;top:9px}
+ .mods{margin-top:16px;font-size:12px}
+ .foot{padding:16px 58px 36px}
+}
+/* STORY 1920 */
+@media (min-height:1700px){
+ .head{margin-top:120px}
+ h1{font-size:286px;letter-spacing:-5px}
+ .axis{top:400px}
+ .stagec{margin-top:-16px}
+ .phone{width:384px}
+ .mods{margin-top:34px}
+ .foot{padding:26px 62px 78px}
+}
+</style></head><body>
+<div class="grain"></div>
+<div class="head"><h1>LA CAJA.</h1></div>
+<div class="axis"><div>VENTAS</div><div>CORTES</div><div>ARQUEO</div></div>
+<div class="stagec">
+  <div class="shadow"></div>
+  <div class="tilt"><div class="phone"><div class="dyn"></div><div class="screen">
+    <div class="sbar">
+      <span class="time">9:41</span>
+      <span class="ic">
+        <svg width="19" height="12" viewBox="0 0 19 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2.4C5.6 2.4 3 3.5 1.1 5.3l1.4 1.5C4 5.3 6.1 4.4 8.5 4.4s4.5.9 6 2.4l1.4-1.5C14 3.5 11.4 2.4 8.5 2.4z"/><path d="M8.5 6.1c-1.7 0-3.3.7-4.4 1.9l1.4 1.4c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.4-1.4C11.8 6.8 10.2 6.1 8.5 6.1z"/><circle cx="8.5" cy="10.8" r="1.2"/></svg>
+        <span style="display:inline-flex;align-items:center;gap:2px"><span style="display:block;width:24px;height:12px;border:1.5px solid rgba(255,255,255,.45);border-radius:3px;padding:1.5px"><span style="display:block;width:80%;height:100%;background:#fff;border-radius:1px"></span></span><span style="display:block;width:1.6px;height:4px;background:rgba(255,255,255,.45);border-radius:0 2px 2px 0"></span></span>
+      </span>
+    </div>
+    <img class="appimg" src="appshots/ventas-hd.png" alt="Pantalla de ventas y punto de venta en NEXOVA">
+  </div></div></div>
+</div>
+<div class="mods">VENTAS <b>·</b> CORTES <b>·</b> ARQUEO DIARIO</div>
+<div class="foot">
+  <div class="wm">NEX<b>OVA</b></div>
+  <div class="url">nexova-mty.web.app →</div>
+</div>
+</body></html>

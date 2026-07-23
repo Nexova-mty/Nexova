@@ -1,0 +1,70 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — PRUÉBALO</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:100vh;overflow:hidden}
+body{background:#050505;font-family:'Archivo';position:relative;display:flex;flex-direction:column;align-items:center}
+/* central radial glow */
+.glow{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:1500px;height:1200px;z-index:0;
+ background:radial-gradient(38% 32% at 50% 50%,rgba(255,120,40,.32),rgba(216,60,20,.15) 45%,rgba(120,25,8,.07) 64%,rgba(0,0,0,0) 78%)}
+.grain{position:absolute;inset:0;z-index:90;pointer-events:none;opacity:.11;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* main centered stack */
+.main{position:relative;z-index:3;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;width:100%}
+h1{font-family:'Anton';font-size:236px;line-height:.92;color:#fff;letter-spacing:-3px;
+ text-shadow:0 0 110px rgba(255,120,40,.28)}
+.sub{font-family:'Archivo';font-variation-settings:'wdth' 125,'wght' 700;font-size:24px;color:#ff8c42;letter-spacing:8px;margin-top:28px}
+/* URL as THE button */
+.urlbtn{position:relative;margin-top:82px;display:flex;align-items:center;justify-content:center;
+ background:rgba(10,5,2,.55);border:2.5px solid #F46A1F;border-radius:18px;padding:36px 62px;
+ box-shadow:0 0 90px rgba(255,110,30,.32), 0 0 26px rgba(255,120,40,.28), inset 0 0 34px rgba(255,120,40,.07)}
+.urlbtn::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:920px;height:430px;z-index:-1;
+ background:radial-gradient(50% 50% at 50% 50%,rgba(255,120,40,.36),rgba(216,60,20,.13) 55%,rgba(0,0,0,0) 75%)}
+.urlbtn span{font-family:'Archivo';font-variation-settings:'wdth' 115,'wght' 800;font-size:68px;color:#fff;letter-spacing:.5px}
+.cta{font-family:'SpaceMono';font-size:19px;color:#fff;letter-spacing:4px;margin-top:48px}
+.mods{font-family:'SpaceMono';font-size:14px;color:rgba(255,255,255,.85);letter-spacing:3px;margin-top:28px}
+.mods b{color:#ff8c42;font-weight:400}
+/* footer: full logo centered */
+.foot{position:relative;z-index:3;width:100%;padding:26px 62px 48px;display:flex;justify-content:center;align-items:center}
+.foot img{height:52px;width:auto;display:block}
+/* SQUARE 1080 */
+@media (max-height:1200px){
+ h1{font-size:196px;letter-spacing:-2px}
+ .sub{font-size:21px;letter-spacing:7px;margin-top:20px}
+ .urlbtn{margin-top:52px;padding:28px 50px;border-radius:16px}
+ .urlbtn span{font-size:58px}
+ .urlbtn::before{width:800px;height:360px}
+ .cta{font-size:16.5px;margin-top:36px}
+ .mods{font-size:12.5px;margin-top:20px}
+ .foot{padding:18px 56px 36px}
+ .foot img{height:46px}
+}
+/* STORY 1920 */
+@media (min-height:1700px){
+ h1{font-size:258px}
+ .sub{font-size:26px;letter-spacing:9px;margin-top:36px}
+ .glow{top:43%}
+ .urlbtn{margin-top:118px;padding:40px 70px;border-radius:20px}
+ .urlbtn span{font-size:72px}
+ .urlbtn::before{width:1000px;height:480px}
+ .cta{margin-top:60px;font-size:20px}
+ .mods{margin-top:34px}
+ .foot{padding:30px 62px 88px}
+ .foot img{height:56px}
+}
+</style></head><body>
+<div class="glow"></div>
+<div class="grain"></div>
+<div class="main">
+  <h1>PRUÉBALO.</h1>
+  <div class="sub">LA APP QUE ORDENA TU NEGOCIO</div>
+  <div class="urlbtn"><span>nexova-mty.web.app</span></div>
+  <div class="cta">ENTRA DESDE TU CELULAR. SIN INSTALAR NADA.</div>
+  <div class="mods">VENTAS <b>·</b> CAJA <b>·</b> INVENTARIO <b>·</b> CITAS <b>·</b> REPORTES <b>·</b> ASISTENTE IA</div>
+</div>
+<div class="foot">
+  <img src="logo-lockup.png" alt="NEXOVA">
+</div>
+</body></html>

@@ -1,0 +1,102 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — ORDEN</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:100vh;overflow:hidden}
+body{background:#F46A1F;font-family:'Archivo';position:relative;display:flex;flex-direction:column}
+.grain{position:absolute;inset:0;z-index:90;pointer-events:none;opacity:.10;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* HEADLINE */
+.head{position:relative;text-align:center;margin-top:38px;z-index:1}
+h1{font-family:'Anton';font-size:300px;line-height:.86;color:#fff;letter-spacing:-2px}
+.axis{position:absolute;right:62px;top:332px;text-align:right;z-index:3}
+.axis div{font-family:'Anton';font-size:31px;line-height:1.12;color:#fff;letter-spacing:1px}
+/* PHONE */
+.stagec{flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;margin-top:-40px}
+.shadow{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:440px;height:90px;border-radius:50%;
+ background:radial-gradient(50% 50% at 50% 50%,rgba(30,8,0,.55),rgba(30,8,0,0) 70%);filter:blur(8px)}
+.tilt{transform:rotate(-2.5deg)}
+.phone{width:352px;background:#0b0b0e;border-radius:54px;padding:11px;position:relative;
+ box-shadow:0 50px 100px rgba(40,10,0,.5),0 14px 34px rgba(40,10,0,.4), inset 0 0 0 2.5px #26262e}
+.screen{width:100%;background:#0a0a0b;border-radius:44px;overflow:hidden;position:relative;display:block}
+.screen::after{content:"";position:absolute;inset:0;border-radius:44px;z-index:6;pointer-events:none;
+ background:linear-gradient(118deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 18%,rgba(255,255,255,0) 34%)}
+/* iOS status bar */
+.sbar{position:relative;z-index:7;height:40px;display:flex;align-items:center;justify-content:space-between;
+ padding:0 26px 0 32px;background:#0a0a0b}
+.sbar .time{font-family:'Archivo';font-variation-settings:'wght' 700;font-size:16px;color:#fff;letter-spacing:.4px}
+.sbar .ic{display:flex;align-items:center;gap:7px}
+.dyn{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:86px;height:22px;background:#000;border-radius:13px;z-index:8}
+.appimg{width:100%;height:auto;display:block}
+/* FOOTER META */
+.meta{position:relative;z-index:3;padding:0 62px 46px;display:flex;justify-content:space-between;align-items:flex-end;gap:40px}
+.cols{display:flex;gap:44px}
+.col .k{font-family:'SpaceMono';font-size:12px;color:rgba(255,255,255,.75);letter-spacing:1px}
+.col .v{font-family:'SpaceMono';font-size:12px;color:#fff;font-weight:700;margin-top:5px;letter-spacing:1px}
+.desc{max-width:400px;font-family:'SpaceMono';font-size:11.5px;line-height:1.5;color:#fff;letter-spacing:.4px;margin-top:16px}
+.right{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+.sign{display:flex;align-items:center;gap:10px}
+.sign .t{font-family:'SpaceMono';font-size:11px;color:#fff;text-align:right;line-height:1.45;letter-spacing:.5px}
+.wm{font-family:'Archivo';font-variation-settings:'wdth' 122,'wght' 800;font-size:31px;color:#fff;letter-spacing:1px}
+.wm b{color:#16161d}
+.barcode{width:190px;height:52px;background:repeating-linear-gradient(90deg,#fff 0 3px,transparent 3px 5px,#fff 5px 6px,transparent 6px 11px,#fff 11px 13px,transparent 13px 16px,#fff 16px 17px,transparent 17px 22px)}
+.bnum{font-family:'SpaceMono';font-size:10px;color:#fff;letter-spacing:6px;margin-top:4px;text-align:right}
+/* SQUARE 1080 */
+@media (max-height:1200px){
+ h1{font-size:250px}
+ .head{margin-top:24px}
+ .axis{top:278px;right:58px}
+ .axis div{font-size:26px}
+ .stagec{margin-top:-30px}
+ .phone{width:286px;border-radius:46px;padding:9px}
+ .screen{border-radius:38px}
+ .sbar{height:34px;padding:0 22px 0 27px}
+ .sbar .time{font-size:14px}
+ .dyn{width:74px;height:19px;top:9px}
+ .desc{display:none}
+ .meta{padding:0 58px 38px}
+}
+/* STORY 1920 */
+@media (min-height:1700px){
+ .head{margin-top:120px}
+ h1{font-size:330px}
+ .axis{top:428px}
+ .stagec{margin-top:-20px}
+ .phone{width:392px}
+ .meta{padding:0 62px 78px}
+}
+</style></head><body>
+<div class="grain"></div>
+<div class="head"><h1>ORDEN.</h1></div>
+<div class="axis"><div>CITAS</div><div>CLIENTES</div><div>REPORTES</div></div>
+<div class="stagec">
+  <div class="shadow"></div>
+  <div class="tilt"><div class="phone"><div class="dyn"></div><div class="screen">
+    <div class="sbar">
+      <span class="time">9:41</span>
+      <span class="ic">
+        <svg width="19" height="12" viewBox="0 0 19 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2.4C5.6 2.4 3 3.5 1.1 5.3l1.4 1.5C4 5.3 6.1 4.4 8.5 4.4s4.5.9 6 2.4l1.4-1.5C14 3.5 11.4 2.4 8.5 2.4z"/><path d="M8.5 6.1c-1.7 0-3.3.7-4.4 1.9l1.4 1.4c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.4-1.4C11.8 6.8 10.2 6.1 8.5 6.1z"/><circle cx="8.5" cy="10.8" r="1.2"/></svg>
+        <span style="display:inline-flex;align-items:center;gap:2px"><span style="display:block;width:24px;height:12px;border:1.5px solid rgba(255,255,255,.45);border-radius:3px;padding:1.5px"><span style="display:block;width:80%;height:100%;background:#fff;border-radius:1px"></span></span><span style="display:block;width:1.6px;height:4px;background:rgba(255,255,255,.45);border-radius:0 2px 2px 0"></span></span>
+      </span>
+    </div>
+    <img class="appimg" src="appshots/inicio-mobile-2.png" alt="Meta de venta mensual y actividad de empleados en NEXOVA">
+  </div></div></div>
+</div>
+<div class="meta">
+  <div>
+    <div class="cols">
+      <div class="col"><div class="k">TITLE</div><div class="v">ORDEN</div></div>
+      <div class="col"><div class="k">POSTER</div><div class="v">EVERYDAYS</div></div>
+      <div class="col"><div class="k">DATE</div><div class="v">22.07.2026</div></div>
+    </div>
+    <div class="desc">CITAS, CLIENTES Y REPORTES EN SU LUGAR. CADA PESO CONTADO, CADA DÍA CERRADO. EL DESORDEN NO ERA TU ÚNICO CAMINO.</div>
+  </div>
+  <div class="right">
+    <div class="sign"><div class="t">DESIGNED BY<br>NEXOVA · MTY</div><div class="wm">NEX<b>OVA</b></div></div>
+    <div><div class="barcode"></div><div class="bnum">7 501031 311309</div></div>
+  </div>
+</div>
+</body></html>

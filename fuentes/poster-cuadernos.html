@@ -1,0 +1,80 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — SIN CUADERNOS</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:100vh;overflow:hidden}
+body{background:#050505;font-family:'Archivo';position:relative;display:flex;flex-direction:column;align-items:center}
+/* tenue orange glow, centered low */
+.glow{position:absolute;left:50%;top:66%;transform:translate(-50%,-50%);width:1500px;height:1000px;z-index:0;
+ background:radial-gradient(40% 32% at 50% 55%,rgba(255,120,40,.30),rgba(216,60,20,.16) 45%,rgba(120,25,8,.07) 64%,rgba(0,0,0,0) 78%)}
+.grain{position:absolute;inset:0;z-index:90;pointer-events:none;opacity:.12;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* HEADLINE */
+.head{position:relative;z-index:3;text-align:center;margin-top:52px}
+.h1a{font-family:'Anton';font-size:280px;line-height:.88;color:#fff;letter-spacing:-2px}
+.h1b{font-family:'Anton';font-size:205px;line-height:.94;color:#fff;letter-spacing:-3px}
+.sub{font-family:'Archivo';font-variation-settings:'wdth' 125,'wght' 700;font-size:28px;color:#ff8c42;letter-spacing:10px;margin-top:22px}
+/* STRUCK LIST */
+.list{position:relative;z-index:3;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px}
+.item{position:relative;font-family:'SpaceMono';font-size:21px;color:#fff;letter-spacing:3px;white-space:nowrap;padding:0 6px}
+.item::after{content:"";position:absolute;left:-10px;right:-10px;top:52%;height:3px;background:#F46A1F;border-radius:2px}
+.item.t1::after{transform:rotate(-1.4deg)}
+.item.t2::after{transform:rotate(1.1deg)}
+.item.t3::after{transform:rotate(-.9deg)}
+.keep{position:relative;font-family:'SpaceMono';font-size:24px;color:#ff8c42;letter-spacing:4px;white-space:nowrap;margin-top:8px}
+/* modules line + footer */
+.mods{position:relative;z-index:3;font-family:'SpaceMono';font-size:14px;color:rgba(255,255,255,.85);letter-spacing:3px;margin-top:10px}
+.mods b{color:#ff8c42;font-weight:400}
+.foot{position:relative;z-index:3;width:100%;padding:28px 62px 46px;display:flex;justify-content:space-between;align-items:center}
+.logo img{height:46px;width:auto;display:block}
+.url{font-family:'SpaceMono';font-size:14px;color:#fff;letter-spacing:2px}
+.url span{color:#ff8c42}
+/* SQUARE 1080 */
+@media (max-height:1200px){
+ .head{margin-top:36px}
+ .h1a{font-size:226px}
+ .h1b{font-size:166px}
+ .sub{font-size:23px;letter-spacing:8px;margin-top:16px}
+ .list{gap:22px}
+ .item{font-size:18px}
+ .keep{font-size:21px;margin-top:4px}
+ .mods{font-size:12px;margin-top:6px}
+ .foot{padding:18px 56px 36px}
+ .logo img{height:40px}
+ .glow{top:64%}
+}
+/* STORY 1920 */
+@media (min-height:1700px){
+ .head{margin-top:140px}
+ .h1a{font-size:322px}
+ .h1b{font-size:228px}
+ .sub{font-size:31px;margin-top:28px}
+ .list{gap:48px}
+ .item{font-size:23px}
+ .keep{font-size:27px;margin-top:14px}
+ .mods{margin-top:14px}
+ .foot{padding:30px 62px 84px}
+ .glow{top:63%}
+}
+</style></head><body>
+<div class="glow"></div>
+<div class="grain"></div>
+<div class="head">
+  <div class="h1a">SIN</div>
+  <div class="h1b">CUADERNOS.</div>
+  <div class="sub">TU NEGOCIO YA CRECIÓ.</div>
+</div>
+<div class="list">
+  <div class="item t1">VENTAS EN PAPELITOS</div>
+  <div class="item t2">INVENTARIO DE MEMORIA</div>
+  <div class="item t3">CUENTAS EN LA CABEZA</div>
+  <div class="keep">TODO EN NEXOVA.</div>
+</div>
+<div class="mods">VENTAS <b>·</b> CAJA <b>·</b> INVENTARIO <b>·</b> CITAS <b>·</b> REPORTES</div>
+<div class="foot">
+  <div class="logo"><img src="logo-lockup.png" alt="NEXOVA"></div>
+  <div class="url">nexova-mty.web.app <span>→</span></div>
+</div>
+</body></html>
