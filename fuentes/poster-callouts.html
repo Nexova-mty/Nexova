@@ -1,0 +1,85 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — Callouts</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'SpaceMono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden}
+body{background:#08080a;font-family:'Archivo';position:relative;color:#fff}
+.bgglow{position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:radial-gradient(42% 30% at 50% 46%,rgba(244,106,31,.34),rgba(244,106,31,.08) 55%,transparent 72%)}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.09;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* HEADER */
+.hd{position:absolute;top:52px;left:56px;right:56px;z-index:5;display:flex;justify-content:space-between;align-items:center}
+.hd .logo img{height:44px;width:auto;display:block}
+.hd .eyebrow{font-family:'SpaceMono';font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#ff9a54;text-align:right}
+.headline{position:absolute;top:118px;left:56px;right:56px;z-index:5;text-align:center}
+.headline h1{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 110;font-size:46px;line-height:1.02;letter-spacing:-.02em}
+.headline h1 .o{color:#ff8c42}
+/* STAGE */
+.stage{position:absolute;top:240px;left:0;width:1080px;height:960px;z-index:2}
+/* phone */
+.phone{position:absolute;left:50%;transform:translateX(-50%);top:36px;width:352px;background:#0b0b0e;
+ border-radius:52px;padding:11px;z-index:3;box-shadow:0 50px 110px rgba(0,0,0,.6),0 0 90px rgba(244,106,31,.22),inset 0 0 0 2.5px #26262e}
+.dyn{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:86px;height:22px;background:#000;border-radius:13px;z-index:6}
+.screen{width:100%;background:#0a0a0b;border-radius:43px;overflow:hidden;position:relative;display:block}
+.screen::after{content:"";position:absolute;inset:0;border-radius:43px;z-index:6;pointer-events:none;
+ background:linear-gradient(118deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 18%,rgba(255,255,255,0) 34%)}
+.sbar{position:relative;z-index:7;height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 32px;background:#0a0a0b}
+.sbar .time{font-family:'Archivo';font-variation-settings:'wght' 700;font-size:16px;letter-spacing:.4px}
+.sbar .ic{display:flex;align-items:center;gap:7px}
+.appimg{width:100%;height:auto;display:block}
+/* callouts */
+.point{position:absolute;z-index:5;display:flex;align-items:center;gap:0}
+.point .line{height:1.5px;background:linear-gradient(90deg,rgba(255,140,66,0),rgba(255,140,66,.9));width:52px;flex:none}
+.point.l .line{background:linear-gradient(90deg,rgba(255,140,66,.9),rgba(255,140,66,0))}
+.point .dot{width:11px;height:11px;border-radius:50%;background:#ff8c42;box-shadow:0 0 14px #ff8c42;flex:none}
+.point .txt{width:236px}
+.point.l{right:716px;flex-direction:row}
+.point.l .txt{text-align:right;padding-right:16px}
+.point.r{left:716px;flex-direction:row}
+.point.r .txt{text-align:left;padding-left:16px;order:3}
+.point .k{font-family:'Archivo';font-variation-settings:'wght' 700,'wdth' 108;font-size:22px;line-height:1.08;color:#fff}
+.point .s{font-family:'SpaceMono';font-size:12px;letter-spacing:.08em;color:#ff9a54;margin-top:3px;text-transform:uppercase}
+/* FOOTER */
+.foot{position:absolute;bottom:56px;left:56px;right:56px;z-index:5;display:flex;justify-content:space-between;align-items:center}
+.foot .tag{font-family:'SpaceMono';font-size:14px;letter-spacing:.14em;color:#8a857e;text-transform:uppercase}
+.foot .tag b{color:#fff;font-weight:400}
+.foot .cta{font-family:'SpaceMono';font-size:17px;color:#fff;display:flex;align-items:center;gap:8px}
+.foot .cta b{color:#ff8c42}
+</style></head><body>
+<div class="bgglow"></div><div class="grain"></div>
+
+<div class="hd">
+  <div class="logo"><img src="logo-lockup.png" alt="NEXOVA"></div>
+  <div class="eyebrow">Sistema de gestión · Monterrey</div>
+</div>
+<div class="headline"><h1>Todo tu negocio, a simple vista<span class="o">.</span></h1></div>
+
+<div class="stage">
+  <div class="phone"><div class="dyn"></div><div class="screen">
+    <div class="sbar"><span class="time">9:41</span><span class="ic">
+      <svg width="19" height="12" viewBox="0 0 19 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2.4C5.6 2.4 3 3.5 1.1 5.3l1.4 1.5C4 5.3 6.1 4.4 8.5 4.4s4.5.9 6 2.4l1.4-1.5C14 3.5 11.4 2.4 8.5 2.4z"/><path d="M8.5 6.1c-1.7 0-3.3.7-4.4 1.9l1.4 1.4c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.4-1.4C11.8 6.8 10.2 6.1 8.5 6.1z"/><circle cx="8.5" cy="10.8" r="1.2"/></svg>
+      <span style="display:inline-flex;align-items:center;gap:2px"><span style="display:block;width:24px;height:12px;border:1.5px solid rgba(255,255,255,.45);border-radius:3px;padding:1.5px"><span style="display:block;width:80%;height:100%;background:#fff;border-radius:1px"></span></span><span style="display:block;width:1.6px;height:4px;background:rgba(255,255,255,.45);border-radius:0 2px 2px 0"></span></span>
+    </span></div>
+    <img class="appimg" src="appshots/inicio-hd.png" alt="Dashboard real de NEXOVA">
+  </div></div>
+
+  <!-- LEFT callouts → columna izquierda del dashboard -->
+  <div class="point l" style="top:392px"><div class="txt"><div class="k">Ventas del día</div><div class="s">en tiempo real</div></div><div class="line"></div><div class="dot"></div></div>
+  <div class="point l" style="top:524px"><div class="txt"><div class="k">Ganancia neta</div><div class="s">calculada sola</div></div><div class="line"></div><div class="dot"></div></div>
+  <div class="point l" style="top:656px"><div class="txt"><div class="k">Alerta de stock</div><div class="s">sabes qué resurtir</div></div><div class="line"></div><div class="dot"></div></div>
+
+  <!-- RIGHT callouts → columna derecha del dashboard -->
+  <div class="point r" style="top:392px"><div class="dot"></div><div class="line"></div><div class="txt"><div class="k">Gastos del día</div><div class="s">todo registrado</div></div></div>
+  <div class="point r" style="top:524px"><div class="dot"></div><div class="line"></div><div class="txt"><div class="k">Próximas citas</div><div class="s">agenda al instante</div></div></div>
+  <div class="point r" style="top:656px"><div class="dot"></div><div class="line"></div><div class="txt"><div class="k">Control de cajas</div><div class="s">abre y cierra turnos</div></div></div>
+</div>
+
+<div class="foot">
+  <div class="tag"><b>9</b> herramientas en <b>1</b></div>
+  <div class="cta">nexova-mty.web.app <b>→</b></div>
+</div>
+</body></html>
