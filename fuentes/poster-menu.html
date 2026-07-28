@@ -1,0 +1,95 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — Menú</title>
+<style>
+@font-face{font-family:'Gloock';src:url('fonts/Gloock-Regular.ttf')}
+@font-face{font-family:'Crimson';src:url('fonts/CrimsonPro-Regular.ttf')}
+@font-face{font-family:'CrimsonI';src:url('fonts/CrimsonPro-Italic.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'Mono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden}
+:root{--cream:#ece4d4;--ink:#1c1813;--dark:#17150f;--or:#e0601f;--muted:#6f665a}
+body{background:var(--cream);font-family:'Crimson';color:var(--ink);position:relative;display:flex;flex-direction:column}
+.grain{position:absolute;inset:0;z-index:60;pointer-events:none;opacity:.06;mix-blend-mode:multiply;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* strips */
+.strip{flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 34px;height:72px;
+ background:var(--cream);position:relative;z-index:3}
+.strip.top{border-bottom:1.5px solid rgba(28,24,19,.25)}
+.strip.bot{border-top:1.5px solid rgba(28,24,19,.25);height:96px}
+.wm{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 118;font-size:26px;letter-spacing:.02em;color:var(--ink)}
+.wm b{color:var(--or)}
+.wm sup{font-size:11px;font-family:'Mono'}
+.mid{font-family:'CrimsonI';font-style:italic;font-size:22px;letter-spacing:.02em;color:var(--ink)}
+.tag{font-family:'Mono';font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.bot .url{font-family:'Mono';font-size:16px;letter-spacing:.06em;color:var(--ink)}
+.bot .url b{color:var(--or)}
+.bot .big9{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 115;font-size:20px;color:var(--ink)}
+.bot .big9 b{color:var(--or)}
+/* panels */
+.row{flex:1;display:flex;min-height:0}
+.panel{flex:1;display:flex;flex-direction:column;padding:30px 28px 26px;position:relative;min-height:0}
+.panel.light{background:var(--cream)}
+.panel.light + .panel.light{border-left:1.5px solid rgba(28,24,19,.22)}
+.panel.dark{background:var(--dark);color:var(--cream)}
+.p-top{display:flex;align-items:flex-start;justify-content:space-between;flex:none}
+.plabel{font-family:'Mono';font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.panel.dark .plabel{color:#a99e8c}
+.badge{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center;
+ font-family:'Mono';font-size:15px;color:var(--ink);flex:none}
+.panel.dark .badge{border-color:var(--or);color:var(--or)}
+.name{flex:none;margin-top:22px}
+.name .q{font-family:'CrimsonI';font-style:italic;font-size:23px;color:var(--or);line-height:1}
+.panel.dark .name .q{color:#ff8c42}
+.name .n{font-family:'Gloock';font-size:58px;line-height:.92;letter-spacing:-.01em;margin-top:4px;color:var(--ink)}
+.panel.dark .name .n{color:var(--cream)}
+.shot{flex:1;margin:22px 0 18px;border-radius:10px;overflow:hidden;position:relative;min-height:0;
+ border:1px solid rgba(28,24,19,.25);box-shadow:0 14px 30px rgba(28,24,19,.18)}
+.panel.dark .shot{border-color:rgba(255,255,255,.14);box-shadow:0 16px 34px rgba(0,0,0,.5)}
+.shot .ph{position:absolute;inset:0;background-repeat:no-repeat;background-size:158%}
+.desc{flex:none;font-family:'Crimson';font-size:16.5px;line-height:1.34;color:#3b352b}
+.panel.dark .desc{color:#c9c0af}
+.pfoot{flex:none;margin-top:14px;display:flex;align-items:center;gap:9px}
+.pfoot .dot{width:6px;height:6px;border-radius:50%;background:var(--or)}
+.pfoot span{font-family:'Mono';font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.panel.dark .pfoot span{color:#a99e8c}
+</style></head><body>
+<div class="grain"></div>
+
+<div class="strip top">
+  <div class="wm">NEX<b>OVA</b><sup>®</sup></div>
+  <div class="mid">— el menú de tu negocio —</div>
+  <div class="tag">Monterrey · 2026</div>
+</div>
+
+<div class="row">
+  <div class="panel light">
+    <div class="p-top"><div class="plabel">Inventario</div><div class="badge">01</div></div>
+    <div class="name"><div class="q">Todo bajo</div><div class="n">Control</div></div>
+    <div class="shot"><div class="ph" style="background-image:url('appshots/inventario-hd.png');background-position:46% 50%"></div></div>
+    <div class="desc">Tu stock al día, con precios, costos y alertas de qué resurtir.</div>
+    <div class="pfoot"><span class="dot"></span><span>En tiempo real</span></div>
+  </div>
+
+  <div class="panel dark">
+    <div class="p-top"><div class="plabel">Punto de venta</div><div class="badge">02</div></div>
+    <div class="name"><div class="q">Cobra y corta</div><div class="n">Ventas</div></div>
+    <div class="shot"><div class="ph" style="background-image:url('appshots/ventas-hd.png');background-position:50% 62%"></div></div>
+    <div class="desc">Registra cada venta y cierra tu caja sin cuentas a mano.</div>
+    <div class="pfoot"><span class="dot"></span><span>Desde tu celular</span></div>
+  </div>
+
+  <div class="panel light">
+    <div class="p-top"><div class="plabel">Agenda & CRM</div><div class="badge">03</div></div>
+    <div class="name"><div class="q">Nunca pierdas una</div><div class="n">Cita</div></div>
+    <div class="shot"><div class="ph" style="background-image:url('appshots/citas-hd.png');background-position:50% 40%"></div></div>
+    <div class="desc">Agenda, recordatorios y tus clientes, todo en un solo lugar.</div>
+    <div class="pfoot"><span class="dot"></span><span>Disponible ahora</span></div>
+  </div>
+</div>
+
+<div class="strip bot">
+  <div class="tag">Sistema de gestión</div>
+  <div class="big9"><b>9</b> herramientas en <b>1</b></div>
+  <div class="url">nexova-mty.web.app <b>→</b></div>
+</div>
+</body></html>
