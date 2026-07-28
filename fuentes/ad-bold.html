@@ -1,0 +1,68 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — Bold</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'Mono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden}
+body{background:#0d0d10;font-family:'Archivo';position:relative;color:#fff;overflow:hidden}
+.bokeh{position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:radial-gradient(14px 14px at 78% 18%,rgba(255,150,70,.5),transparent 60%),
+            radial-gradient(22px 22px at 90% 30%,rgba(255,140,60,.35),transparent 60%),
+            radial-gradient(10px 10px at 70% 40%,rgba(255,170,90,.4),transparent 60%),
+            radial-gradient(26px 26px at 85% 60%,rgba(255,120,40,.28),transparent 62%),
+            radial-gradient(12px 12px at 74% 74%,rgba(255,160,80,.34),transparent 60%),
+            radial-gradient(70% 60% at 84% 44%,rgba(244,106,31,.24),transparent 70%)}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.09;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* story-chrome handle top-left */
+.handle{position:absolute;top:52px;left:56px;z-index:6;display:flex;align-items:center;gap:12px}
+.handle .av{width:40px;height:40px;border-radius:50%;background:#F46A1F;position:relative;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-family:'Archivo';font-variation-settings:'wght' 800;font-size:20px;color:#fff}
+.handle .n{font-family:'Archivo';font-variation-settings:'wght' 700;font-size:18px;color:#fff}
+.handle .t{font-family:'Mono';font-size:14px;color:rgba(255,255,255,.5);margin-left:2px}
+/* progress bar like a story */
+.pbar{position:absolute;top:38px;left:56px;right:56px;height:3px;z-index:6;background:rgba(255,255,255,.22);border-radius:2px;overflow:hidden}
+.pbar::after{content:"";position:absolute;left:0;top:0;bottom:0;width:64%;background:#fff}
+/* headline stacked left */
+.head{position:absolute;top:196px;left:56px;z-index:5}
+.head h1{font-family:'Anton';font-size:132px;line-height:.86;letter-spacing:-1px;color:#fff}
+.head h1 .o{color:#ff8c42}
+.head .sub{font-family:'Archivo';font-variation-settings:'wght' 500;font-size:22px;color:#c9c1b4;margin-top:26px;max-width:15ch;line-height:1.35}
+/* phone bottom-right, bleeding */
+.phone{position:absolute;right:-30px;bottom:-120px;width:392px;background:#0b0b0e;border-radius:56px;padding:11px;z-index:4;
+ transform:rotate(6deg);box-shadow:0 50px 120px rgba(0,0,0,.6),0 0 90px rgba(244,106,31,.25),inset 0 0 0 2.5px #26262e}
+.dyn{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:90px;height:23px;background:#000;border-radius:13px;z-index:6}
+.screen{width:100%;background:#0a0a0b;border-radius:46px;overflow:hidden;position:relative;display:block}
+.sbar{position:relative;z-index:7;height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 32px;background:#0a0a0b}
+.sbar .time{font-family:'Archivo';font-variation-settings:'wght' 700;font-size:16px}
+.sbar .ic{display:flex;align-items:center;gap:7px}
+.appimg{width:100%;height:auto;display:block}
+/* footer */
+.foot{position:absolute;bottom:56px;left:56px;z-index:6}
+.foot .cta{font-family:'Mono';font-size:17px;letter-spacing:.06em;color:#fff}
+.foot .cta b{color:#ff8c42}
+.foot .lbl{font-family:'Mono';font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:8px}
+</style></head><body>
+<div class="bokeh"></div><div class="grain"></div>
+<div class="pbar"></div>
+<div class="handle"><div class="av">N</div><span class="n">nexova.mty</span><span class="t">· 3 h</span></div>
+
+<div class="head">
+  <h1>TODO<br>TU<br>NEGOCIO<br><span class="o">EN VIVO.</span></h1>
+  <div class="sub">Ventas, caja, inventario y citas — en tiempo real, desde tu celular.</div>
+</div>
+
+<div class="phone"><div class="dyn"></div><div class="screen">
+  <div class="sbar"><span class="time">9:41</span><span class="ic">
+    <svg width="19" height="12" viewBox="0 0 19 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><path d="M8.5 2.4C5.6 2.4 3 3.5 1.1 5.3l1.4 1.5C4 5.3 6.1 4.4 8.5 4.4s4.5.9 6 2.4l1.4-1.5C14 3.5 11.4 2.4 8.5 2.4z"/><path d="M8.5 6.1c-1.7 0-3.3.7-4.4 1.9l1.4 1.4c.8-.8 1.9-1.3 3-1.3s2.2.5 3 1.3l1.4-1.4C11.8 6.8 10.2 6.1 8.5 6.1z"/><circle cx="8.5" cy="10.8" r="1.2"/></svg>
+    <span style="display:inline-flex;align-items:center;gap:2px"><span style="display:block;width:24px;height:12px;border:1.5px solid rgba(255,255,255,.45);border-radius:3px;padding:1.5px"><span style="display:block;width:80%;height:100%;background:#fff;border-radius:1px"></span></span><span style="display:block;width:1.6px;height:4px;background:rgba(255,255,255,.45);border-radius:0 2px 2px 0"></span></span>
+  </span></div>
+  <img class="appimg" src="appshots/inicio-hd.png" alt="App NEXOVA">
+</div></div>
+
+<div class="foot">
+  <div class="cta">nexova-mty.web.app <b>→</b></div>
+  <div class="lbl">Sistema de gestión · Monterrey</div>
+</div>
+</body></html>
