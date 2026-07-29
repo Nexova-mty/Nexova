@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — QR</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'Mono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden}
+:root{--cream:#ece4d4;--ink:#1c1813;--or:#e0601f;--muted:#6f665a}
+body{background:var(--cream);font-family:'Archivo';position:relative;color:var(--ink);overflow:hidden}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hd{position:absolute;top:56px;left:60px;right:60px;z-index:6;display:flex;justify-content:space-between;align-items:center}
+.wm{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 118;font-size:28px;letter-spacing:.02em;color:var(--ink)}
+.wm b{color:var(--or)}
+.tag{font-family:'Mono';font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+/* headline */
+.head{position:absolute;top:168px;left:60px;z-index:5;max-width:560px}
+.head h1{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 108;font-size:74px;line-height:.98;letter-spacing:-.03em;color:var(--ink)}
+.head h1 .o{color:var(--or)}
+.head p{font-family:'Archivo';font-variation-settings:'wght' 500;font-size:21px;color:#4a4437;margin-top:20px;max-width:22ch;line-height:1.4}
+/* QR block */
+.qrblock{position:absolute;left:60px;bottom:150px;z-index:6;display:flex;align-items:center;gap:26px}
+.qrcard{width:210px;height:210px;background:#fff;border-radius:20px;padding:20px;box-shadow:0 20px 44px rgba(28,20,10,.18);border:1px solid rgba(28,24,19,.1)}
+.qrcard img{width:100%;height:100%;display:block}
+.qrtxt .k{font-family:'Anton';font-size:40px;line-height:.95;color:var(--ink)}
+.qrtxt .s{font-family:'Mono';font-size:14px;letter-spacing:.06em;color:var(--muted);margin-top:10px;max-width:16ch;line-height:1.5}
+/* phone right, bleeding */
+.phone{position:absolute;right:-40px;top:250px;width:396px;background:#0b0b0e;border-radius:58px;padding:11px;z-index:4;
+ transform:rotate(7deg);box-shadow:0 60px 120px rgba(40,20,5,.4),inset 0 0 0 2.5px #26262e}
+.screen{width:100%;background:#0a0a0b;border-radius:47px;overflow:hidden;display:block}
+.screen img{width:100%;height:auto;display:block}
+/* bottom thin row */
+.foot{position:absolute;bottom:56px;left:60px;right:60px;z-index:6;display:flex;justify-content:space-between;align-items:center;
+ padding-top:20px;border-top:1.5px solid rgba(28,24,19,.28)}
+.foot span{font-family:'Mono';font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+.foot .or{color:var(--or)}
+</style></head><body>
+<div class="grain"></div>
+<div class="hd"><div class="wm">NEX<b>OVA</b></div><div class="tag">Monterrey · 2026</div></div>
+
+<div class="head">
+  <h1>Tu negocio,<br>a un <span class="o">escaneo</span>.</h1>
+  <p>Escanea, entra y controla todo desde tu celular. Sin instalar nada.</p>
+</div>
+
+<div class="phone"><div class="screen"><img src="ios/reportes.png" alt="Reportes NEXOVA"></div></div>
+
+<div class="qrblock">
+  <div class="qrcard"><img src="qr-dark.png" alt="QR nexova-mty.web.app"></div>
+  <div class="qrtxt"><div class="k">ESCANEA<br>Y ENTRA</div><div class="s">Prueba gratis la demo</div></div>
+</div>
+
+<div class="foot">
+  <span>Sistema de gestión</span>
+  <span>nexova-mty.web.app <span class="or">→</span></span>
+</div>
+</body></html>

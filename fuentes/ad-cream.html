@@ -1,0 +1,54 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — Cream</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'Mono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden}
+:root{--cream:#ece4d4;--ink:#1c1813;--or:#e0601f;--muted:#6f665a}
+body{background:var(--cream);font-family:'Archivo';position:relative;color:var(--ink);overflow:hidden}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hd{position:absolute;top:56px;left:60px;right:60px;z-index:6;display:flex;justify-content:space-between;align-items:center}
+.wm{font-family:'Archivo';font-variation-settings:'wght' 800,'wdth' 118;font-size:28px;letter-spacing:.02em;color:var(--ink)}
+.wm b{color:var(--or)}
+.badge{font-family:'Mono';font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--or);
+ padding:9px 16px;border-radius:999px}
+/* headline stacked */
+.head{position:absolute;top:170px;left:60px;z-index:5}
+.head .q{font-family:'Archivo';font-variation-settings:'wght' 600;font-style:normal;font-size:26px;color:var(--or);margin-bottom:8px;letter-spacing:.02em}
+.head h1{font-family:'Anton';font-size:150px;line-height:.83;letter-spacing:-2px;color:var(--ink)}
+.head h1 .o{color:var(--or)}
+.head .sub{font-family:'Archivo';font-variation-settings:'wght' 500;font-size:22px;color:#4a4437;margin-top:24px;max-width:20ch;line-height:1.38}
+/* phone bottom-right bleeding */
+.phone{position:absolute;right:-26px;bottom:-130px;width:394px;background:#0b0b0e;border-radius:58px;padding:11px;z-index:4;
+ transform:rotate(6deg);box-shadow:0 60px 120px rgba(40,20,5,.42),inset 0 0 0 2.5px #26262e}
+.screen{width:100%;background:#0a0a0b;border-radius:47px;overflow:hidden;display:block}
+.screen img{width:100%;height:auto;display:block}
+/* price/feature chips */
+.chips{position:absolute;left:60px;bottom:150px;z-index:6;display:flex;flex-direction:column;gap:14px}
+.chip{display:flex;align-items:center;gap:12px;font-family:'Archivo';font-variation-settings:'wght' 600;font-size:22px;color:var(--ink)}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:var(--or);flex:none}
+/* bottom row */
+.foot{position:absolute;bottom:56px;left:60px;z-index:6;font-family:'Mono';font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.foot .or{color:var(--or)}
+</style></head><body>
+<div class="grain"></div>
+<div class="hd"><div class="wm">NEX<b>OVA</b></div><div class="badge">Disponible ahora</div></div>
+
+<div class="head">
+  <div class="q">Punto de venta</div>
+  <h1>COBRA<br>SIN<br><span class="o">BATALLAR.</span></h1>
+  <div class="sub">Registra cada venta y cierra tu caja sin cuentas a mano.</div>
+</div>
+
+<div class="chips">
+  <div class="chip"><span class="dot"></span>Cobra en segundos</div>
+  <div class="chip"><span class="dot"></span>Corte de caja automático</div>
+  <div class="chip"><span class="dot"></span>Descuenta tu inventario solo</div>
+</div>
+
+<div class="phone"><div class="screen"><img src="ios/pos.png" alt="Punto de venta NEXOVA"></div></div>
+
+<div class="foot">Sistema de gestión <span class="or">·</span> nexova-mty.web.app</div>
+</body></html>
