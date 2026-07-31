@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><title>NEXOVA — Agenda</title>
+<style>
+@font-face{font-family:'Anton';src:url('fonts/Anton.ttf')}
+@font-face{font-family:'Archivo';src:url('fonts/ArchivoExpanded.ttf')}
+@font-face{font-family:'Mono';src:url('fonts/SpaceMono.ttf')}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1350px;overflow:hidden}
+body{background:#0a0a0c;font-family:'Archivo';position:relative;color:#fff;overflow:hidden}
+.bg{position:absolute;inset:0;z-index:0;
+ background:radial-gradient(70% 55% at 82% 74%,rgba(255,140,66,.22),transparent 62%),
+            radial-gradient(58% 45% at 18% 22%,rgba(255,140,66,.12),transparent 60%),#0a0a0c}
+.grain{position:absolute;inset:0;z-index:40;pointer-events:none;opacity:.10;mix-blend-mode:overlay;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* logo transparente arriba */
+.logo{position:absolute;top:60px;left:60px;z-index:6}
+.logo img{height:52px;width:auto;display:block}
+.tr{position:absolute;top:74px;right:60px;z-index:6;text-align:right;font-family:'Mono';font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.55);line-height:1.7}
+/* left column headline */
+.head{position:absolute;top:216px;left:60px;z-index:5;max-width:460px}
+.head .kicker{font-family:'Mono';font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:#ff8c42;margin-bottom:24px}
+.head h1{font-family:'Anton';font-size:120px;line-height:.86;letter-spacing:-1px;color:#fff}
+.head h1 .o{color:#ff8c42}
+.head p{font-family:'Archivo';font-variation-settings:'wght' 500;font-size:22px;color:#c9c1b4;margin-top:28px;line-height:1.4;max-width:20ch}
+/* bullets pill */
+.bullets{position:absolute;left:60px;bottom:160px;z-index:6;display:flex;flex-direction:column;gap:14px}
+.pill{display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);
+ padding:14px 20px;border-radius:999px;font-family:'Archivo';font-variation-settings:'wght' 600;font-size:19px;color:#f0ece5;width:fit-content}
+.pill .d{width:8px;height:8px;border-radius:50%;background:#ff8c42;flex:none}
+/* phone right side, bleeding bottom */
+.phone{position:absolute;right:-24px;top:170px;width:436px;background:#0b0b0e;border-radius:62px;padding:12px;z-index:4;
+ transform:rotate(6deg);box-shadow:0 60px 130px rgba(0,0,0,.72),0 0 110px rgba(255,140,66,.28),inset 0 0 0 3px #26262e}
+.screen{width:100%;background:#0a0a0b;border-radius:50px;overflow:hidden;position:relative;display:block}
+.screen img{width:100%;height:auto;display:block}
+.screen::after{content:"";position:absolute;inset:0;border-radius:50px;pointer-events:none;
+ background:linear-gradient(118deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.03) 20%,rgba(255,255,255,0) 36%)}
+/* footer bar */
+.foot{position:absolute;bottom:60px;left:60px;right:60px;z-index:6;display:flex;justify-content:space-between;align-items:center;
+ padding-top:22px;border-top:1px solid rgba(255,255,255,.14)}
+.foot .l{font-family:'Mono';font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.foot .r{font-family:'Mono';font-size:17px;letter-spacing:.04em;color:#fff}
+.foot .r b{color:#ff8c42}
+</style></head><body>
+<div class="bg"></div>
+<div class="grain"></div>
+
+<div class="logo"><img src="logo-transparente.png" alt="NEXOVA"></div>
+<div class="tr">Agenda inteligente<br>para tu negocio</div>
+
+<div class="head">
+  <div class="kicker">Citas & Reservaciones</div>
+  <h1>NUNCA<br>PIERDAS UNA<br><span class="o">CITA.</span></h1>
+  <p>Tu agenda del día, siempre a un toque. Con recordatorios por WhatsApp.</p>
+</div>
+
+<div class="bullets">
+  <div class="pill"><span class="d"></span>Agenda y modifica en segundos</div>
+  <div class="pill"><span class="d"></span>Cliente + servicio + hora, todo junto</div>
+  <div class="pill"><span class="d"></span>Confirma o completa con un botón</div>
+</div>
+
+<div class="phone"><div class="screen"><img src="ios/citas.png" alt="Citas NEXOVA"></div></div>
+
+<div class="foot">
+  <div class="l">Sistema de gestión · MTY</div>
+  <div class="r">nexova-mty.web.app <b>→</b></div>
+</div>
+</body></html>
